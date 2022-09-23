@@ -1,0 +1,37 @@
+Prototypes of allowed functions:
+
+All that respects c++98 norm
+
+malloc, free, write
+
+ntohs, ntohl, htons, htonl : convert values between host and network byte order
+
+select : multiplexing of entries - synchronous outputs
+
+poll : wait for some event on a file descriptor
+
+epoll : in-out event notification 
+
+kqueue, kevent : kernel event notification mechanism
+
+socket : creer un point de communication
+
+accept : accept a connexion on a socket
+
+listen : waits for connexion on a socket
+
+send : send a message on a socket 
+
+recv : receive a message on a socket
+
+bind : give a name to a socket 
+
+connect : start a connexion on a socket
+
+inet_addr : IPv4 address manipulation 
+
+setsockopt : get and set options on sockets
+
+getsockname : get socket name
+
+fcntl : manipulate file descriptor
