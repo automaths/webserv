@@ -1,4 +1,4 @@
-// Server side C program to demonstrate Socket programming
+// Server side C program to demonstrate HTTP Server programming
 #include <stdio.h>
 #include <sys/socket.h>
 #include <unistd.h>
@@ -7,16 +7,18 @@
 #include <string.h>
 
 #define PORT 8080
-int main(int argc, char const *argv[])
+
+int main()
 {
     int server_fd;
     int new_socket;
     long valread;
     struct sockaddr_in address;
     int addrlen = sizeof(address);
-
-    char *hello = "Hello from server";
     
+    // Only this line has been changed. Everything is same.
+    char *hello = "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!";
+
     // Creating socket file descriptor
     if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0)
     {
@@ -24,27 +26,22 @@ int main(int argc, char const *argv[])
         exit(EXIT_FAILURE);
     }
 
-    //socket configuration
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = INADDR_ANY;
     address.sin_port = htons( PORT );
+    
     memset(address.sin_zero, '\0', sizeof address.sin_zero);
     
-    //binding socket configuration to created socket
     if (bind(server_fd, (struct sockaddr *)&address, sizeof(address))<0)
     {
         perror("In bind");
         exit(EXIT_FAILURE);
     }
-
-    //configuring port listening on socket 
     if (listen(server_fd, 10) < 0)
     {
         perror("In listen");
         exit(EXIT_FAILURE);
     }
-
-    //waiting for connections
     while(1)
     {
         printf("\n+++++++ Waiting for new connection ++++++++\n\n");
@@ -52,14 +49,13 @@ int main(int argc, char const *argv[])
         {
             perror("In accept");
             exit(EXIT_FAILURE);
-        }        
+        }
         char buffer[30000] = {0};
         valread = read( new_socket , buffer, 30000);
         printf("%s\n",buffer );
         write(new_socket , hello , strlen(hello));
-        printf("------------------Hello message sent-------------------\n");
+        printf("------------------Hello message sent-------------------");
         close(new_socket);
     }
-
     return 0;
 }

@@ -8,7 +8,6 @@ https://ncona.com/2019/04/building-a-simple-server-with-cpp/
 
 https://www.tutorialspoint.com/cplusplus/cpp_web_programming.htm
 
-
 https://www.rfc-editor.org/rfc/rfc2616.html
 
 https://www.rfc-editor.org/rfc/rfc7230.html
@@ -30,7 +29,6 @@ https://www.rfc-editor.org/rfc/rfc7540.html
 https://www.rfc-editor.org/rfc/rfc7541.html
 
 https://www.rfc-editor.org/rfc/rfc959.html
-
 
 https://www.rfc-editor.org/rfc/rfc959.html
 
