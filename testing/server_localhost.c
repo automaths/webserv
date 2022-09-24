@@ -23,6 +23,13 @@ int main()
 
     char *test_redir = "HTTP/1.1 200 OK\nDate: Mon, 27 Jul 2009 12:28:53 GMT\nServer: Apache/2.2.14 (Win32)\nLast-Modified: Wed, 22 Jul 2009 19:15:56 GMT\nContent-Length: 88\nContent-Type: text/html\nConnection: Closed\n\n<html>\n<head>\n<meta http-equiv='Refresh' content='0; URL=https://google.com/' />\n</head>\n</html>";
 
+    char *test_cat = "HTTP/1.1 200 OK\nDate: Mon, 27 Jul 2009 12:28:53 GMT\nServer: Apache/2.2.14 (Win32)\nLast-Modified: Wed, 22 Jul 2009 19:15:56 GMT\nContent-Length: 88\nContent-Type: text/html\nConnection: Closed\n\n<html>\n<head>\n<meta http-equiv='Refresh' content='0; URL=https://http.cat/101' />\n</head>\n</html>";
+
+    char *test_cat_start = "HTTP/1.1 200 OK\nDate: Mon, 27 Jul 2009 12:28:53 GMT\nServer: Apache/2.2.14 (Win32)\nLast-Modified: Wed, 22 Jul 2009 19:15:56 GMT\nContent-Length: 88\nContent-Type: text/html\nConnection: Closed\n\n<html>\n<head>\n<meta http-equiv='Refresh' content='0; URL=https://http.cat/";
+    // char *test_cat_redir = " content='0; URL=https://http.cat/";
+    char *test_cat_end = "' />\n</head>\n</html>";
+   
+
     // Creating socket file descriptor
     if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0)
     {
@@ -57,7 +64,18 @@ int main()
         char buffer[30000] = {0};
         valread = read( new_socket , buffer, 30000);
         printf("%s\n",buffer );
-        write(new_socket , test_redir , strlen(test_redir));
+
+        int i = 0;
+
+        write(new_socket , test_cat_start , strlen(test_cat_start));
+        // write(new_socket , test_cat_redir , strlen(test_cat_redir));
+        while (buffer[i + 5] >= '0' && buffer[i + 5] <= '9')
+            write(new_socket, &buffer[i++ + 5], 1);
+        write(new_socket , test_cat_end , strlen(test_cat_end));
+
+
+
+        // write(new_socket , test_cat , strlen(test_cat));
         printf("------------------Hello message sent-------------------");
         close(new_socket);
     }
