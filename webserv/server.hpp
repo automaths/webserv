@@ -9,12 +9,12 @@
 #include <sys/select.h>
 #include <exception>
 #include <iostream>
-#include <vector>
-
-// if (fcntl(fd, F_GETFL) < 0 && errno == EBADF) check if a file descriptor is invalid or closed
+#include <list>
+#include <fcntl.h>
 
 #define PORT 8080
 
+// <link rel='icon' href='data:,'> prevent automatic favicon request
 class Server {
     public:
 
@@ -25,7 +25,7 @@ class Server {
     struct sockaddr_in getAddr(){return _address;}
 
     void initing(){
-        if ((_server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) // creating the socket
+        if ((_server_fd = socket(AF_INET, SOCK_STREAM, 0)) == -1) // creating the socket
             throw SocketCreationException();
         _address.sin_family = AF_INET; // socket configuration
         _address.sin_addr.s_addr = INADDR_ANY;
@@ -35,12 +35,12 @@ class Server {
             throw BindException();
         if (listen(_server_fd, 10) < 0) // opening the socket to the port
             throw ListenException();
-        _number_clients = 0; // initing number of client socket to null
     }
 
     void execute(){
         char *_test_cat_start = (char *)"HTTP/1.1 200 OK\nDate: Mon, 27 Jul 2022 12:28:53 GMT\nServer: Apache/2.2.14 (Win32)\nLast-Modified: Wed, 22 Jul 2022 19:15:56 GMT\nContent-Length: 88\nContent-Type: text/html\nConnection: Closed\n\n<html>\n<head>\n<meta http-equiv='Refresh' content='0; URL=https://http.cat/";
         char *_test_cat_end = (char *)"' />\n</head>\n</html>";
+
         int tmp;
         int result;
         int addrlen = sizeof(_address);
@@ -52,8 +52,8 @@ class Server {
             // the fd_set needs to be configured for each call to select
             FD_ZERO(&_sockSet); // initing to null the fd_set
             FD_SET(_server_fd, &_sockSet); // put server socket to fd_set
-            for (int i = 0; i < _number_clients; i++) 
-                FD_SET(_client[i], &_sockSet); // put each client socket to the fd_set
+            for (std::list<int>::iterator it = _client_set.begin(); it != _client_set.end(); ++it)
+                FD_SET(*it, &_sockSet); // put each client socket to the fd_set
             timeout.tv_sec = 1; timeout.tv_usec = 0; // set timeout
 
             result = select(10, &_sockSet, NULL, NULL, &timeout); // max 10 requests, only checking reads
@@ -67,29 +67,51 @@ class Server {
                     if ((tmp = accept(_server_fd, (struct sockaddr *)&_address, (socklen_t*)&addrlen)) < 0)
                         throw AcceptException();
                     else
-                        _client[_number_clients++] = tmp;
+                        _client_set.push_back(tmp);
                 }
                 // test all client sockets to see which ones are ready
-                for (int i = 0; i < _number_clients; i++)
-                    if (FD_ISSET(_client[i], &_sockSet) && _client[i] != -1)
+                for (std::list<int>::iterator it = _client_set.begin(); it != _client_set.end(); ++it)
+                    if (FD_ISSET(*it, &_sockSet))
                     {
                         char buffer[10000];
-                        if (read( _client[i] , buffer, 10000) == -1)
-                            throw ReadException();
-                        printf("%s\n",buffer ); // request to parse and give a response to 
-                        tmp = 0;
-                        if (write(_client[i] , _test_cat_start , strlen(_test_cat_start)) == -1) // the request response
-                            throw WriteException();
-                        while (buffer[tmp + 5] >= '0' && buffer[tmp + 5] <= '9')
-                            if (write(_client[i], &buffer[tmp++ + 5], 1) == -1)
-                                throw WriteException();
-                        if (write(_client[i] , _test_cat_end , strlen(_test_cat_end)) == -1)
-                            throw WriteException();
-                        close (_client[i]);
-                        _client[i] = -1;
+                        if (recv(*it, buffer, 10000, 0) == -1)
+                            close (*it);
+                        // throw ReadException();
+                        else
+                        {
+                            printf("%s\n",buffer ); // request to parse and give a response to 
+                            tmp = 0;
+                            if (send(*it, _test_cat_start , strlen(_test_cat_start), MSG_NOSIGNAL) == -1) // the request response
+                            {
+                                close (*it);
+                                break ;
+                            }
+                            // throw SendException();
+                            while (buffer[tmp + 5] >= '0' && buffer[tmp + 5] <= '9')
+                                if (send(*it, &buffer[tmp++ + 5], 1, MSG_NOSIGNAL) == -1)
+                                {
+                                    close (*it);
+                                    break ;
+                                }
+                                // throw SendException();
+                            if (send(*it , _test_cat_end , strlen(_test_cat_end), MSG_NOSIGNAL) == -1)
+                            {
+                                close (*it);
+                                break ;
+                            }
+                            // throw SendException();
+                        }
                     }
             }
-            printf("The number of clients is %d\n", _number_clients);
+            for (std::list<int>::iterator it = _client_set.begin(); it != _client_set.end(); ++it)
+            {
+                if ((fcntl(*it, F_GETFL) < 0 && errno == EBADF) && *it != _server_fd)
+                {
+                    _client_set.erase(it);
+                    it = _client_set.begin();
+                }
+            }
+            printf("The number of clients is %zu\n", _client_set.size());
         }
     }
 
@@ -97,15 +119,14 @@ class Server {
     
     int _server_fd;
     struct sockaddr_in _address;                  /* Set of socket descriptors for select() */      /* Timeout for select() */
-    int _number_clients;
-    int _client[1000];
+    std::list<int> _client_set;
 
     class SocketCreationException : public std::exception {virtual const char* what() const throw(){return ("An error occured during socket creation");}};
     class BindException : public std::exception {virtual const char* what() const throw(){return ("An error occured during bind");}};
     class ListenException : public std::exception {virtual const char* what() const throw(){return ("An error occured during listen");}};
     class SelectException : public std::exception {virtual const char* what() const throw(){return ("An error occured during select");}};
     class AcceptException : public std::exception {virtual const char* what() const throw(){return ("An error occured during accept");}};
-    class ReadException : public std::exception {virtual const char* what() const throw(){return ("An error occured during accept");}};
-    class WriteException : public std::exception {virtual const char* what() const throw(){return ("An error occured during accept");}};
+    class ReadException : public std::exception {virtual const char* what() const throw(){return ("An error occured during read");}};
+    class SendException : public std::exception {virtual const char* what() const throw(){return ("An error occured during send");}};
 
 };
