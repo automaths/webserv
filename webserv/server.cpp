@@ -4,7 +4,15 @@ int main()
 {
     class Server test;
 
-    test.initing();
-    test.execute();
+    try 
+    {
+        test.initing();
+        test.execute();
+    }
+    catch (std::exception &e)
+    {
+        std::cout << "An exception has been caught: " << e.what() << std::endl;
+    }
+
 
 }

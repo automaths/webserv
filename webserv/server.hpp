@@ -8,26 +8,18 @@
 #include <string.h>
 #include <sys/select.h>
 #include <exception>
+#include <iostream>
+#include <vector>
+
+// if (fcntl(fd, F_GETFL) < 0 && errno == EBADF) check if a file descriptor is invalid or closed
 
 #define PORT 8080
 
 class Server {
-    private:
-    
-    int _server_fd;
-    struct sockaddr_in _address;                  /* Set of socket descriptors for select() */      /* Timeout for select() */
-    int _number_clients;
-    int _client[1000];
-
     public:
 
-    class SocketCreationException : public std::exception {virtual const char* what() const throw(){return ("An error occured during socket creation");}};
-    class BindException : public std::exception {virtual const char* what() const throw(){return ("An error occured during bind");}};
-    class ListenException : public std::exception {virtual const char* what() const throw(){return ("An error occured during listen");}};
-    class SelectException : public std::exception {virtual const char* what() const throw(){return ("An error occured during select");}};
-    class AcceptException : public std::exception {virtual const char* what() const throw(){return ("An error occured during accept");}};
-    class ReadException : public std::exception {virtual const char* what() const throw(){return ("An error occured during accept");}};
-    class WriteException : public std::exception {virtual const char* what() const throw(){return ("An error occured during accept");}};
+    Server(){}
+    ~Server(){}
 
     int getServerFd(){return _server_fd;}
     struct sockaddr_in getAddr(){return _address;}
@@ -89,9 +81,9 @@ class Server {
                         if (write(_client[i] , _test_cat_start , strlen(_test_cat_start)) == -1) // the request response
                             throw WriteException();
                         while (buffer[tmp + 5] >= '0' && buffer[tmp + 5] <= '9')
-                            if (write(_client[i], &buffer[tmp++ + 5], 1))
+                            if (write(_client[i], &buffer[tmp++ + 5], 1) == -1)
                                 throw WriteException();
-                        if (write(_client[i] , _test_cat_end , strlen(_test_cat_end)))
+                        if (write(_client[i] , _test_cat_end , strlen(_test_cat_end)) == -1)
                             throw WriteException();
                         close (_client[i]);
                         _client[i] = -1;
@@ -100,5 +92,20 @@ class Server {
             printf("The number of clients is %d\n", _number_clients);
         }
     }
+
+    private:
+    
+    int _server_fd;
+    struct sockaddr_in _address;                  /* Set of socket descriptors for select() */      /* Timeout for select() */
+    int _number_clients;
+    int _client[1000];
+
+    class SocketCreationException : public std::exception {virtual const char* what() const throw(){return ("An error occured during socket creation");}};
+    class BindException : public std::exception {virtual const char* what() const throw(){return ("An error occured during bind");}};
+    class ListenException : public std::exception {virtual const char* what() const throw(){return ("An error occured during listen");}};
+    class SelectException : public std::exception {virtual const char* what() const throw(){return ("An error occured during select");}};
+    class AcceptException : public std::exception {virtual const char* what() const throw(){return ("An error occured during accept");}};
+    class ReadException : public std::exception {virtual const char* what() const throw(){return ("An error occured during accept");}};
+    class WriteException : public std::exception {virtual const char* what() const throw(){return ("An error occured during accept");}};
 
 };
