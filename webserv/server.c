@@ -35,10 +35,10 @@ int main()
     int new_socket;
     int addrlen = sizeof(address);
     fd_set sockSet;                  /* Set of socket descriptors for select() */
-    struct timeval selTimeout;       /* Timeout for select() */
+    struct timeval timeout;       /* Timeout for select() */
     int    i;
-    int    iResult;
-    int valread;
+    int    result;
+    int size_read;
 
     int iNumClients = 0;
     int clients[1000];
@@ -54,23 +54,19 @@ int main()
 
         /* Timeout specification */
         /* This must be reset every time select() is called */
-        selTimeout.tv_sec = 1;       /* timeout (secs.) */
-        selTimeout.tv_usec = 0;            /* 0 microseconds */
+        timeout.tv_sec = 1;       /* timeout (secs.) */
+        timeout.tv_usec = 0;            /* 0 microseconds */
 
-        iResult = select(10, &sockSet, NULL, NULL, &selTimeout);
+        result = select(10, &sockSet, NULL, NULL, &timeout);
 
-        if (iResult == -1)
-        {
+        if (result == -1)
             printf("an error occured during select");
-            /* an error occurred; process it (eg, display error message) */
-        }
-        else if(iResult > 0) /* ie, if a socket is ready */
+        else if(result > 0) /* ie, if a socket is ready */
         {
             printf("Found at least one ready socket\n");
             // test this specific socket to see if it was one of the ones that was set
             if (FD_ISSET(server_fd, &sockSet))
             {
-                printf("is accepting");
                 if ((new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen))<0)
                     return (perror("In accept"), 0);
                 else
@@ -84,12 +80,11 @@ int main()
             for (i=0; i < iNumClients; i++)
                 if (FD_ISSET(clients[i], &sockSet) && clients[i] != -1)
                 {
-                    write(1, "has entered", 6);
                     /* do whatever it takes to read the socket and handle the client */
                     /* Please note that this will involve reassociating the socket   */
                     /*     with the client record                                    */
                     char buffer[30000] = {0};
-                    valread = read( clients[i] , buffer, 30000);
+                    size_read = read( clients[i] , buffer, 30000);
                     printf("%s\n",buffer );
 
                     int k = 0;
@@ -99,12 +94,13 @@ int main()
                         write(clients[i], &buffer[k++ + 5], 1);
                     write(clients[i] , test_cat_end , strlen(test_cat_end));
 
-                    // clients[i] = -1;
-                    // HandleClient(clients[i]);
+                    close (clients[i]);
+                    clients[i] = -1;
                 }
+
         }
 
-        /* else iResult == 0, no socket is ready to be read, */
+        /* else result == 0, no socket is ready to be read, */
         /*    so ignore them and move on.                    */
 
         printf("The number of clients is %d\n", iNumClients);
