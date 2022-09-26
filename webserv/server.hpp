@@ -76,7 +76,6 @@ class Server {
                         char buffer[10000];
                         if (recv(*it, buffer, 10000, 0) == -1)
                             close (*it);
-                        // throw ReadException();
                         else
                         {
                             printf("%s\n",buffer ); // request to parse and give a response to 
@@ -86,26 +85,23 @@ class Server {
                                 close (*it);
                                 break ;
                             }
-                            // throw SendException();
                             while (buffer[tmp + 5] >= '0' && buffer[tmp + 5] <= '9')
                                 if (send(*it, &buffer[tmp++ + 5], 1, MSG_NOSIGNAL) == -1)
                                 {
                                     close (*it);
                                     break ;
                                 }
-                                // throw SendException();
                             if (send(*it , _test_cat_end , strlen(_test_cat_end), MSG_NOSIGNAL) == -1)
                             {
                                 close (*it);
                                 break ;
                             }
-                            // throw SendException();
                         }
                     }
             }
             for (std::list<int>::iterator it = _client_set.begin(); it != _client_set.end(); ++it)
             {
-                if ((fcntl(*it, F_GETFL) < 0 && errno == EBADF) && *it != _server_fd)
+                if (_client_set.size() > 0 && (fcntl(*it, F_GETFL) < 0 && errno == EBADF) && *it != _server_fd)
                 {
                     _client_set.erase(it);
                     it = _client_set.begin();
