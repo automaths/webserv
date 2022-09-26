@@ -110,60 +110,8 @@ class Server {
 					else
 						std::cerr << "More data to send" << std::endl;
 
-<<<<<<< HEAD
 				}
 			}
-=======
-            if (result == -1)
-                throw SelectException(); 
-            else if(result > 0) // number of sockets ready
-            {
-                if (FD_ISSET(_server_fd, &_sockSet)) // test the server socket to see if there is incoming connection
-                {
-                    if ((tmp = accept(_server_fd, (struct sockaddr *)&_address, (socklen_t*)&addrlen)) < 0)
-                        throw AcceptException();
-                    else
-                        _client_set.push_back(tmp);
-                }
-                // test all client sockets to see which ones are ready
-                for (std::list<int>::iterator it = _client_set.begin(); it != _client_set.end(); ++it)
-                    if (FD_ISSET(*it, &_sockSet))
-                    {
-                        char buffer[10000];
-                        if (recv(*it, buffer, 10000, 0) == -1)
-                            close (*it);
-                        else
-                        {
-                            printf("%s\n",buffer ); // request to parse and give a response to 
-                            tmp = 0;
-                            if (send(*it, _test_cat_start , strlen(_test_cat_start), MSG_NOSIGNAL) == -1) // the request response
-                            {
-                                close (*it);
-                                break ;
-                            }
-                            while (buffer[tmp + 5] >= '0' && buffer[tmp + 5] <= '9')
-                                if (send(*it, &buffer[tmp++ + 5], 1, MSG_NOSIGNAL) == -1)
-                                {
-                                    close (*it);
-                                    break ;
-                                }
-                            if (send(*it , _test_cat_end , strlen(_test_cat_end), MSG_NOSIGNAL) == -1)
-                            {
-                                close (*it);
-                                break ;
-                            }
-                        }
-                    }
-            }
-            for (std::list<int>::iterator it = _client_set.begin(); it != _client_set.end(); ++it)
-            {
-                if (_client_set.size() > 0 && (fcntl(*it, F_GETFL) < 0 && errno == EBADF) && *it != _server_fd)
-                {
-                    _client_set.erase(it);
-                    it = _client_set.begin();
-                }
-            }
->>>>>>> 68a8abb05cecba2e54193cb49cd38e97904c12db
             printf("The number of clients is %zu\n", _client_set.size());
         }
     }
