@@ -1,16 +1,16 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   parse.cpp                                          :+:      :+:    :+:   */
+/*   request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: tnaton <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:32:13 by tnaton            #+#    #+#             */
-/*   Updated: 2022/09/27 19:18:41 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/09/27 20:12:44 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "parse.hpp"
+#include "request.hpp"
 
 int Request::checkType(std::string & type) {
 	int i = 0;
@@ -18,14 +18,11 @@ int Request::checkType(std::string & type) {
 	if (type.find(" ") == std::string::npos) {
 		return (1);
 	} if (!type.find("GET") || !type.find("POST") || !type.find("DELETE")) {
-		while (type.c_str()[i] && type.c_str()[i] != ' ')
-			i++;
+		i = type.find_first_of(" ");
 		_type = type.substr(0, i);
-		while (type.c_str()[i] && type.c_str()[i] == ' ')
-			i++;
+		i = type.find_first_not_of(" ", i);
 		_file = type.substr(i, type.find(" ", i));
-		while (type.c_str()[i] && type.c_str()[i] != ' ')
-			i++;
+		i = type.find_first_of(" ", i);
 		if (type.c_str()[i] != '\0') {
 			_version = type.substr(i, type.find(" ", i));
 			if (_version.size() < 6) {
@@ -33,9 +30,11 @@ int Request::checkType(std::string & type) {
 			} if (_version.find("HTTP/")) {
 				return (1);
 			}
-			std::string tmp = _version.substr(
-			while (type.c_str()[i] == ' ')
-				i++;
+			std::string tmp = _version.substr(5, _version.size());
+			if (static_cast<std::string>("123456789").find(tmp[0]) == std::string::npos)
+				return (1);
+			if (tmp[1] && tmp[1] == '1' && !tmp[2])
+				return (1);
 		}
 		if (type.c_str()[i] != '\0' || !_type.c_str() || !_file.c_str())
 			return (1);

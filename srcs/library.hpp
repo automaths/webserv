@@ -19,8 +19,8 @@
 #include <list>
 #include <sstream>
 
-#include "parse.hpp"
+#include "request.hpp"
 #include "server.hpp"
 
 class Server;
-class Parser;
+class Request;
