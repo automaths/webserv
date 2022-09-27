@@ -1,6 +1,9 @@
 #pragma once
 
-
+#include <map>
+#include <list>
+#include "Client.hpp"
+#include <utility>
 #define PORT 8080
 
 // <link rel='icon' href='data:,'> prevent automatic favicon request
@@ -8,12 +11,27 @@ class Server {
     public:
 
     Server(){}
-    ~Server(){close(this->_epoll_fd);}
+    ~Server()
+	{
+		close(this->_epoll_fd);
+		for (std::map<int, int>::iterator st = this->_listen_sockets.begin(); st!= this->_listen_sockets.end(); st++)
+		{
+			close((*st).first);
+			this->_listen_sockets.erase(st);
+		}
+		for (std::map<int, Client>::iterator st = this->_client_sockets.begin(); st!= this->_client_sockets.end(); st++)
+		{
+			close((*st).first);
+			this->_client_sockets.erase(st);
+		}
 
-    int getServerFd(){return _server_fd;}
+	}
+
+//    int getServerFd(){return _server_fd;}
     struct sockaddr_in getAddr(){return _address;}
 
     void initing(){
+		int	_server_fd;
         if ((_server_fd = socket(AF_INET, SOCK_STREAM, 0)) == -1) // creating the socket
             throw SocketCreationException();
         _address.sin_family = AF_INET; // socket configuration
@@ -24,6 +42,7 @@ class Server {
             throw BindException();
         if (listen(_server_fd, 10) < 0) // opening the socket to the port
             throw ListenException();
+		this->_listen_sockets.insert(std::pair<int, int>(_server_fd, PORT));
 		if ((this->_epoll_fd = epoll_create(1)) == -1)
 			throw EpollCreateException();
     }
@@ -32,46 +51,60 @@ class Server {
 		std::string	_test_cat_start("HTTP/1.1 200 OK\nDate: Mon, 27 Jul 2022 12:28:53 GMT\nServer: Apache/2.2.14 (Win32)\nLast-Modified: Wed, 22 Jul 2022 19:15:56 GMT\nContent-Length: 88\nContent-Type: text/html\nConnection: Closed\n\n<html>\n<head>\n<meta http-equiv='Refresh' content='0; URL=https://http.cat/");
 		std::string _test_cat_end("' />\n</head>\n</html>");
 
+		std::map<int, int>::iterator	serv;
 		struct epoll_event	ev, event[10];
         int result;
         int addrlen = sizeof(_address);
 
-		ev.events = EPOLLIN;
-		ev.data.fd = this->_server_fd;
-		if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_ADD, this->_server_fd, &ev) == -1)
-			throw EpollCreateException();
-        while (1)
+		for (std::map<int, int>::const_iterator st = this->_listen_sockets.begin(); st!= this->_listen_sockets.end(); st++)
+		{
+			ev.events = EPOLLIN;
+			ev.data.fd = (*st).first;
+			if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_ADD, (*st).first, &ev) == -1)
+				throw EpollCreateException();
+		}
+        while (true)
         {
 			result = epoll_wait(this->_epoll_fd, event, 10, -1);
 			if (result == -1)
 				throw EpollCreateException();
 			for (int i = 0; i < result; i++)
 			{
-				if (event[i].data.fd == this->_server_fd)
+				if ((serv = this->_listen_sockets.find(event[i].data.fd)) != this->_listen_sockets.end())
 				{
+					Client	tmp(this->_listen_sockets[event[i].data.fd]);
 					ev.events = EPOLLIN;
-					ev.data.fd = accept(_server_fd, (struct sockaddr *)&_address, (socklen_t*)&addrlen);
+					ev.data.fd = accept((*serv).first, (struct sockaddr *)&_address, (socklen_t*)&addrlen);
 					if (ev.data.fd < 0)
                         throw AcceptException();
 					if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_ADD, ev.data.fd, &ev) == -1)
 						throw EpollCreateException();
-					_client_set.push_back(ev.data.fd);
+					this->_client_sockets.insert(std::pair<int, Client>(ev.data.fd, tmp)); 
 				}
 				else if (event[i].events == EPOLLIN)
 				{
-					char	buffer[10000];
+					char	buffer[10001];
 					ssize_t	recvret = 0;
 
                     recvret = recv(event[i].data.fd, static_cast<void *>(buffer), 10000, MSG_DONTWAIT);
 					if (recvret == -1)
 						std::cerr << "Error while receiving data" << std::endl;
+					else if (recvret == 0)
+					{
+						epoll_ctl(this->_epoll_fd, EPOLL_CTL_DEL, event[i].data.fd, &event[i]);
+						close(event[i].data.fd);
+						this->_client_sockets.erase(event[i].data.fd);
+					}
 					else if (recvret < 10000)
 					{
-						std:: cout << buffer << std::endl;
-						
-						event[i].events = EPOLLOUT;
-						if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_MOD, event[i].data.fd, &event[i]) == -1)
-							throw EpollCreateException();
+						buffer[recvret] = '\0';
+						std:: cout << buffer << "size: " << recvret << std::endl;
+						std::cout << "fd used: " << event[i].data.fd << std::endl;
+						std::cout << "Port Number: " << this->_client_sockets[event[i].data.fd].getPortNumber() << std::endl;
+						this->_client_sockets[event[i].data.fd].addToRequest(std::string(buffer));
+//						event[i].events = EPOLLOUT;
+//						if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_MOD, event[i].data.fd, &event[i]) == -1)
+//							throw EpollCreateException();
 					}
 					else
 					{
@@ -90,23 +123,23 @@ class Server {
 						if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_DEL, event[i].data.fd, &event[i]) == -1)
 							throw EpollCreateException();
 						close(event[i].data.fd);
-						_client_set.erase(std::find(_client_set.begin(), _client_set.end(), event[i].data.fd)); 
+						this->_client_sockets.erase(event[i].data.fd);
 					}
 					else
 						std::cerr << "More data to send" << std::endl;
 
 				}
 			}
-            printf("The number of clients is %zu\n", _client_set.size());
+            printf("The number of clients is %zu\n", _client_sockets.size());
         }
     }
 
     private:
     
-    int _server_fd;
-	int	_epoll_fd;
+	int						_epoll_fd;
+	std::map<int, int>		_listen_sockets;
+	std::map<int, Client>	_client_sockets;
     struct sockaddr_in _address;                  /* Set of socket descriptors for select() */      /* Timeout for select() */
-    std::list<int> _client_set;
 
     class SocketCreationException : public std::exception {virtual const char* what() const throw(){return ("An error occured during socket creation");}};
     class BindException : public std::exception {virtual const char* what() const throw(){return ("An error occured during bind");}};
