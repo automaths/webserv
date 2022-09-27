@@ -1,4 +1,4 @@
-#include "library.hpp"
+#include "../library.hpp"
 
 // Choisir le port et lhost de chaque "serveur".
 // Setup server_names ou pas.
@@ -21,20 +21,20 @@
         // Le CGI doit être exécuté dans le bon répertoire pour laccès au fichier de chemin relatif.
         // votre serveur devrait fonctionner avec un seul CGI (phpCGI, Python, etc.). Vous devez fournir des fichiers de configuration et des fichiers de base par défaut pour tester et démontrer que chaque fonctionnalité fonctionne pendant lévaluation.
 
-class Serv {
+// class Serv {
 
-    public:
+//     public:
 
-    private:
+//     private:
 
-    std::string ip;
-    int port;
+//     std::string ip;
+//     int port;
 
-    std::list<std::string> names;
+//     std::list<std::string> names;
 
-    std::list<std::map<std::string, std::string> > locations;
+//     std::list<std::map<std::string, std::string> > locations;
 
-};
+// };
 
 class Config {
 
@@ -51,24 +51,16 @@ class Config {
         for (unsigned int i = 0; i <= file.find_first_of("{"); ++i)
             ++it;
         int n = 1;
-
-
-
-
-        while (it != file.end())
+        while (it != file.end() && n > 0)
         {
-            std::cout << *it;
+            if (*it == '{')
+                ++n;
+            if (*it == '}')
+                --n;
             ++it;
         }
-
-
-
-        // while (file.size() > 0 && n > 0)
-
-
-        // std::cout << file << std::endl;
-
-
+        file.erase(it, file.end());
+        std::cout << file << std::endl;
 
     }
 
@@ -76,6 +68,6 @@ class Config {
 
     std::string file;
 
-    std::list<Serv> servers;
+    // std::list<Serv> servers;
 
 };

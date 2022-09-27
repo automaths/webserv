@@ -23,9 +23,6 @@
 
 #include "request.hpp"
 #include "server.hpp"
-//#include "config.hpp"
 
 class Server;
 class Request;
-class Serv;
-//class Config;
