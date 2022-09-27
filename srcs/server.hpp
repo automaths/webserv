@@ -18,14 +18,13 @@ class Server {
 		for (std::map<int, int>::iterator st = this->_listen_sockets.begin(); st!= this->_listen_sockets.end(); st++)
 		{
 			close((*st).first);
-			this->_listen_sockets.erase(st);
 		}
 		for (std::map<int, Client>::iterator st = this->_client_sockets.begin(); st!= this->_client_sockets.end(); st++)
 		{
 			close((*st).first);
-			this->_client_sockets.erase(st);
 		}
-
+		this->_listen_sockets.clear();
+		this->_client_sockets.clear();
 	}
 
 //    int getServerFd(){return _server_fd;}
@@ -56,7 +55,7 @@ class Server {
 		struct epoll_event	ev, event[10];
         int result;
         int addrlen = sizeof(_address);
-		std::time_t	current;
+
 
 		for (std::map<int, int>::const_iterator st = this->_listen_sockets.begin(); st!= this->_listen_sockets.end(); st++)
 		{
@@ -132,31 +131,37 @@ class Server {
 
 				}
 			}
-			std::time(&current);
-			std::map<int, Client>::iterator st = this->_client_sockets.begin();
-			std::map<int, Client>::iterator tmp;
-			while (st!= this->_client_sockets.end())
-			{
-				tmp = st;
-				tmp++;
-				if (std::difftime(current, (*st).second.getLastConnection()) > (*st).second.getKeepAlive())
-				{
-					epoll_ctl(this->_epoll_fd, EPOLL_CTL_DEL, (*st).first, NULL);
-					close((*st).first);
-					this->_client_sockets.erase(st);
-				}
-				st = tmp;
-			}
-            printf("The number of clients is %zu\n", _client_sockets.size());
+			this->closeTimedoutConnections();
+			std::cout << "The number of clients is: " << this->_client_sockets.size() << std::endl;
         }
     }
 
+	void	closeTimedoutConnections(void)
+	{
+		std::time_t	current = std::time(NULL);
+		std::map<int, Client>::iterator st = this->_client_sockets.begin();
+		std::map<int, Client>::iterator tmp;
+
+		while (st!= this->_client_sockets.end())
+		{
+			tmp = st;
+			tmp++;
+			if (std::difftime(current, (*st).second.getLastConnection()) > (*st).second.getKeepAlive())
+			{
+				epoll_ctl(this->_epoll_fd, EPOLL_CTL_DEL, (*st).first, NULL);
+				close((*st).first);
+				this->_client_sockets.erase(st);
+			}
+			st = tmp;
+		}
+	}
+
     private:
     
-	int						_epoll_fd;
-	std::map<int, int>		_listen_sockets;
-	std::map<int, Client>	_client_sockets;
-    struct sockaddr_in _address;                  /* Set of socket descriptors for select() */      /* Timeout for select() */
+	int						_epoll_fd;			//fd for epoll queue
+	std::map<int, int>		_listen_sockets;	//Listening sockets: <fd, port>
+	std::map<int, Client>	_client_sockets;	//Accepted connections sockets: <fd, Client>
+    struct sockaddr_in		_address;			// Address to bind to a socket
 
     class SocketCreationException : public std::exception {virtual const char* what() const throw(){return ("An error occured during socket creation");}};
     class BindException : public std::exception {virtual const char* what() const throw(){return ("An error occured during bind");}};
