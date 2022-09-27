@@ -6,11 +6,14 @@
 /*   By: tnaton <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:32:13 by tnaton            #+#    #+#             */
-/*   Updated: 2022/09/27 20:12:44 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/09/27 20:39:25 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "request.hpp"
+
+Request::Request(void): _type(""), _version("HTTP/1.0"), _file(""), _body(""), _buff(""), _headers() {
+}
 
 int Request::checkType(std::string & type) {
 	int i = 0;
@@ -64,4 +67,24 @@ int Request::parseChunk(std::string & chunk) {
 			return (1);
 		}
         return (0);
+}
+
+std::string Request::getType(void) const {
+	return (_type);
+}
+
+std::string Request::getVersion(void) const {
+	return (_version);
+}
+
+std::string Request::getFile(void) const {
+	return (_file);
+}
+
+std::string Request::getBody(void) const {
+	return (_body);
+}
+
+std::map<std::string, std::list<std::string> > Request::getHeaders(void) const {
+	return (_headers);
 }
