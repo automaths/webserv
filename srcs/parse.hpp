@@ -4,19 +4,19 @@
 
 class Request{
 
-    public:
+	public:
 
-    Request(){};
-    ~Request(){};
+	Request(){};
+	~Request(){};
 
-    int ParseChunk(std::string chunk){
-        (void)chunk;
-        return 0;
-    }
+	int parseChunk(std::string &);
+	int checkType(std::string &);
+	private:
 
-    private:
-
-    std::string type;
-    std::map<std::string, std::list<std::string> > headers;
-    std::string body;
+	std::string _type;
+	std::string _version;
+	std::string _file;
+	std::string _body;
+	std::string _buff;
+	std::map<std::string, std::list<std::string> > _headers;
 };

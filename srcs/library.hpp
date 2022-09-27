@@ -17,6 +17,7 @@
 #include <sys/time.h>
 #include <map>
 #include <list>
+#include <sstream>
 
 #include "parse.hpp"
 #include "server.hpp"
