@@ -33,7 +33,6 @@ class Server {
 		std::string _test_cat_end("' />\n</head>\n</html>");
 
 		struct epoll_event	ev, event[10];
-        int tmp;
         int result;
         int addrlen = sizeof(_address);
 
@@ -86,7 +85,7 @@ class Server {
 					sendret = send(event[i].data.fd, sender.data(), sender.length(), MSG_NOSIGNAL | MSG_DONTWAIT);
 					if (sendret == -1)
 						std::cerr << "Error while sending" << std::endl;
-					else if (sendret >= sender.length())
+					else if (sendret >= (long)sender.length())
 					{
 						if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_DEL, event[i].data.fd, &event[i]) == -1)
 							throw EpollCreateException();

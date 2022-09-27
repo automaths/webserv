@@ -16,6 +16,7 @@
 #include <sys/epoll.h>
 #include <sys/time.h>
 #include <map>
+#include <list>
 
 #include "parse.hpp"
 #include "server.hpp"
