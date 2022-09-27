@@ -11,4 +11,6 @@ int main()
         buffer.append(1, c);
         c = ifs.get();
     }
+
+    Config el_configo(buffer);
 }

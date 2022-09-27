@@ -43,14 +43,38 @@ class Config {
     Config(){}
     ~Config(){}
 
-    Config(std::string config){
-        
+    Config(std::string str): file(str) {
+
+        while (file.find_first_of("http") > 0)
+            file.erase(0, 1);
+        std::string::iterator it = file.begin();
+        for (unsigned int i = 0; i <= file.find_first_of("{"); ++i)
+            ++it;
+        int n = 1;
+
+
+
+
+        while (it != file.end())
+        {
+            std::cout << *it;
+            ++it;
+        }
+
+
+
+        // while (file.size() > 0 && n > 0)
+
+
+        // std::cout << file << std::endl;
 
 
 
     }
 
     private:
+
+    std::string file;
 
     std::list<Serv> servers;
 
