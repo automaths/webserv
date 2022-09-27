@@ -9,7 +9,7 @@ class Request{
     Request(){};
     ~Request(){};
 
-    ParseChunk(std::string chunk){
+    int ParseChunk(std::string chunk){
 
     }
 
