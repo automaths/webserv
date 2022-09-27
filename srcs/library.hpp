@@ -20,6 +20,9 @@
 
 #include "parse.hpp"
 #include "server.hpp"
+#include "config.hpp"
 
 class Server;
 class Parser;
+class Serv;
+class Config;
