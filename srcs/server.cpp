@@ -2,17 +2,13 @@
 
 int main()
 {
-    class Server test;
+    std::ifstream ifs;
+    std::string buffer; 
 
-    try 
-    {
-        test.initing();
-        test.execute();
+    ifs.open("config.txt");
+    char c = ifs.get();
+    while (ifs.good()){
+        buffer.append(1, c);
+        c = ifs.get();
     }
-    catch (std::exception &e)
-    {
-        std::cout << "An exception has been caught: " << e.what() << std::endl;
-    }
-
-
 }

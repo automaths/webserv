@@ -25,17 +25,14 @@ class Serv {
 
     public:
 
-
-
-
     private:
 
     std::string ip;
     int port;
-    
+
     std::list<std::string> names;
 
-
+    std::list<std::map<std::string, std::string> > locations;
 
 };
 
@@ -43,14 +40,18 @@ class Config {
 
     public:
 
+    Config(){}
+    ~Config(){}
+
+    Config(std::string config){
+        
 
 
+
+    }
 
     private:
 
     std::list<Serv> servers;
-
-
-
 
 };
