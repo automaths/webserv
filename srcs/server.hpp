@@ -4,6 +4,7 @@
 #include <list>
 #include "Client.hpp"
 #include <utility>
+#include <ctime>
 #define PORT 8080
 
 // <link rel='icon' href='data:,'> prevent automatic favicon request
@@ -55,6 +56,7 @@ class Server {
 		struct epoll_event	ev, event[10];
         int result;
         int addrlen = sizeof(_address);
+		std::time_t	current;
 
 		for (std::map<int, int>::const_iterator st = this->_listen_sockets.begin(); st!= this->_listen_sockets.end(); st++)
 		{
@@ -65,7 +67,7 @@ class Server {
 		}
         while (true)
         {
-			result = epoll_wait(this->_epoll_fd, event, 10, -1);
+			result = epoll_wait(this->_epoll_fd, event, 10, 1000);
 			if (result == -1)
 				throw EpollCreateException();
 			for (int i = 0; i < result; i++)
@@ -129,6 +131,21 @@ class Server {
 						std::cerr << "More data to send" << std::endl;
 
 				}
+			}
+			std::time(&current);
+			std::map<int, Client>::iterator st = this->_client_sockets.begin();
+			std::map<int, Client>::iterator tmp;
+			while (st!= this->_client_sockets.end())
+			{
+				tmp = st;
+				tmp++;
+				if (std::difftime(current, (*st).second.getLastConnection()) > (*st).second.getKeepAlive())
+				{
+					epoll_ctl(this->_epoll_fd, EPOLL_CTL_DEL, (*st).first, NULL);
+					close((*st).first);
+					this->_client_sockets.erase(st);
+				}
+				st = tmp;
 			}
             printf("The number of clients is %zu\n", _client_sockets.size());
         }
