@@ -14,9 +14,9 @@ NAME = webserv
 
 OBJDIR := objs
 
-SRCS = server.cpp request.cpp
+SRCS = server.cpp request.cpp Client.cpp
 
-INC = server.hpp request.hpp
+INC = server.hpp request.hpp Client.hpp
 
 source = $(addprefix srcs/,$(SRCS))
 

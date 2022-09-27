@@ -18,9 +18,14 @@
 #include <map>
 #include <list>
 #include <sstream>
+#include <iostream>
+#include <fstream>
 
 #include "request.hpp"
 #include "server.hpp"
+#include "config.hpp"
 
 class Server;
 class Request;
+class Serv;
+class Config;
