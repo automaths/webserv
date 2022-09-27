@@ -1,0 +1,24 @@
+version: "3.6"
+
+services:
+        nginx:
+               container_name: nginx
+               build: requirements/nginx
+               image: nginx:inception
+               depends_on: [mariadb, wordpress]
+               restart: always
+               env_file: ./.env
+               ports:
+                       - "80:80"
+                       - "8080:8080"
+               networks:
+                       gen-network:
+                               aliases:
+                                       - bdetune.42.fr
+               volumes:
+                       - www-volume:/var/html/www
+networks:
+        gen-network: {}
+
+volumes:
+        www-volume:
