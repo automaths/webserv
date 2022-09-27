@@ -17,14 +17,15 @@
 #include <sys/time.h>
 #include <map>
 #include <list>
+#include <sstream>
 #include <iostream>
 #include <fstream>
 
-#include "parse.hpp"
+#include "request.hpp"
 #include "server.hpp"
 #include "config.hpp"
 
 class Server;
-class Parser;
+class Request;
 class Serv;
 class Config;
