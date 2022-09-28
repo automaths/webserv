@@ -1,12 +1,5 @@
-obj/config.o: config.cpp config.hpp ../library.hpp ../Request.hpp \
-  ../server.hpp ../Client.hpp
+obj/config.o: config.cpp config.hpp library.hpp
 
 config.hpp:
 
-../library.hpp:
-
-../Request.hpp:
-
-../server.hpp:
-
-../Client.hpp:
+library.hpp:
