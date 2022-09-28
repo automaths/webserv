@@ -1,13 +1,5 @@
 cousdfasdf
 
-server {
-
-
-gfsdgsdgdfs
-
-
-}
-
 http {
     server {
 
@@ -37,6 +29,6 @@ http {
 
 }
 
-
-
 ouaiouaiouaiouai
+
+

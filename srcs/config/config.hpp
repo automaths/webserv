@@ -36,6 +36,10 @@
 
 // };
 
+// std::ofstream ofs;
+// ofs.open("config_result.txt");
+// ofs << _file;
+
 class Config {
 
     public:
@@ -52,7 +56,6 @@ class Config {
         {
             if (_file.find("http", 0) < _file.find("server") && _file.find("http", 0) != std::string::npos)
             {
-                //treat http block
                 while ((_file.find("http") > 0 && (_file[_file.find_first_not_of(" \t\v\n\r\f", 4)] != '{')))
                     _file.erase(0, 1);
                 std::string::iterator it = _file.begin();
@@ -68,49 +71,39 @@ class Config {
                         --n;
                     ++it;
                 }
-                std::string chunk = _file.substr(0, it - _file.begin());
-                
-
-
-
-                std::cout << chunk << std::endl;
-
-                // _chunks.push_back()
-
-
-
+                _chunks.push_back(_file.substr(0, it - _file.begin()));
+                for (unsigned int i = 0; i < it - _file.begin(); ++i)
+                    _file.erase(0, 1);
             }
             else
             {
-                //treat server block
+                while ((_file.find("server") > 0 && (_file[_file.find_first_not_of(" \t\v\n\r\f", 4)] != '{')))
+                    _file.erase(0, 1);
+                std::string::iterator it = _file.begin();
+                while (*it != '{')
+                    ++it;
+                ++it;
+                int n = 1;
+                while (it != _file.end() && n > 0)
+                {
+                    if (*it == '{')
+                        ++n;
+                    if (*it == '}')
+                        --n;
+                    ++it;
+                }
+                _chunks.push_back(_file.substr(0, it - _file.begin()));
+                for (unsigned int i = 0; i < it - _file.begin(); ++i)
+                    _file.erase(0, 1);
             }
-            break;
         }
 
-        // if ((_file.find("http", 0) >= 0) && (_file[_file.find_first_not_of(" \t\v\n\r\f", _file.find("http", 0) + 4)] == '{'))
-        // {
-        //     while (_file.find_first_of("http") > 0)
-        //         _file.erase(0, 1);
-        //     std::string::iterator it = _file.begin();
-        //     for (unsigned int i = 0; i <= _file.find_first_of("{"); ++i)
-        //         ++it;
-        //     int n = 1;
-        //     while (it != _file.end() && n > 0)
-        //     {
-        //         if (*it == '{')
-        //             ++n;
-        //         if (*it == '}')
-        //             --n;
-        //         ++it;
-        //     }
-        //     if (n == 1)
-        //         std::cerr << "no closing brackets for the http block" << std::endl;
-        //     _file.erase(it, _file.end());
-        // }
-
-        // std::ofstream ofs;
-        // ofs.open("config_result.txt");
-        // ofs << _file;
+        int t = 1;
+        for (std::list<std::string>::iterator it = _chunks.begin(); it != _chunks.end(); ++it)
+        {
+            std::cout << "THE CHUNK " << t++ << " IS: \n\n" << std::endl;
+            std::cout << *it << std::endl;
+        }
     }
 
     void check_brackets();
