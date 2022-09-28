@@ -1,3 +1,13 @@
+
+THE CHUNK 1 IS: 
+
+server {
+
+    coudfaosidjflaksj
+}
+
+THE CHUNK 2 IS: 
+
 http {
     server {
 
@@ -25,4 +35,11 @@ http {
         error_page 404 /404.html;
     }
 
+}
+
+THE CHUNK 3 IS: 
+
+http {
+
+    fdsfasdfasdfasdf
 }

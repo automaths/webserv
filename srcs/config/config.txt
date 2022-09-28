@@ -1,5 +1,10 @@
 cousdfasdf
 
+server {
+
+    coudfaosidjflaksj
+}
+
 http {
     server {
 
@@ -29,6 +34,12 @@ http {
 
 }
 
+
+
 ouaiouaiouaiouai
 
 
+http {
+
+    fdsfasdfasdfasdf
+}
