@@ -1,6 +1,12 @@
 cousdfasdf
 
+server {
 
+
+gfsdgsdgdfs
+
+
+}
 
 http {
     server {
