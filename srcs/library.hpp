@@ -24,5 +24,9 @@
 #include "Request.hpp"
 #include "server.hpp"
 
+#define GET "GET"
+#define POST "POST"
+#define DELETE "DELETE"
+
 class Server;
 class Request;

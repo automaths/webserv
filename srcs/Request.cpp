@@ -6,7 +6,7 @@
 /*   By: tnaton <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:32:13 by tnaton            #+#    #+#             */
-/*   Updated: 2022/09/28 11:32:49 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/09/28 14:30:56 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@ int Request::checkType(std::string & type) {
 
 	if (type.find(" ") == std::string::npos) {
 		return (1);
-	} if (!type.find("GET") || !type.find("POST") || !type.find("DELETE")) {
+	} if (!type.find(GET) || !type.find(POST) || !type.find(DELETE)) {
 		i = type.find_first_of(" ");
 		_type = type.substr(0, i);
 		i = type.find_first_not_of(" ", i);
@@ -38,6 +38,8 @@ int Request::checkType(std::string & type) {
 				return (1);
 			if (tmp[1] && tmp[1] == '1' && !tmp[2])
 				return (1);
+			if (tmp.find_first_not_of("0123456789.") != std::string::npos)
+				return (1);
 		}
 		if (type.c_str()[i] != '\0' || !_type.c_str() || !_file.c_str())
 			return (1);
@@ -49,7 +51,7 @@ int Request::checkType(std::string & type) {
 int Request::parseChunk(std::string & chunk) {
 	std::string line;
 
-		if (_type.size()) {
+		if (!_type.size()) {
 			do {
 				line = chunk.substr(0, chunk.find("\r\n"));
 				chunk = chunk.substr(0, chunk.find("\r\n"));
@@ -60,11 +62,31 @@ int Request::parseChunk(std::string & chunk) {
 				}
 			}
 			while (chunk.size());
-		}
-		_buff += chunk;
-		if (_buff.find("\r\n\r\n") != std::string::npos) {
-			//parse this
-			return (1);
+		} else {
+			std::string key;
+			std::string val;
+
+			do {
+				line = chunk.substr(0, chunk.find("\r\n"));
+				chunk = chunk.substr(0, chunk.find("\r\n"));
+				if (line == "" && !chunk.find("\r\n")) {
+					if (_type == POST) {
+						_body = chunk;
+					}
+					return (1);
+				}
+				key = line.substr(0, (line.find(":") == std::string::npos) ? line.size() : line.find(":"));
+				val = line.substr(key.size(), line.size());
+				if (key.find(" ") != std::string::npos) {
+					return (-1);
+				}
+				if (_headers.find(key) == _headers.end()) {
+					_headers.insert(std::pair<std::string, std::list<std::string> >(key, std::list<std::string>(1, val)));
+				} else {
+					_headers[key].push_back(val);
+				}
+			}
+			while (chunk.size());
 		}
         return (0);
 }
