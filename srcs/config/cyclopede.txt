@@ -1,6 +1,4 @@
 
-THE CHUNK 1 IS: 
-
 server {
 
     listen 127.0.0.1:8080;
@@ -26,3 +24,10 @@ server {
 
     error_page 404 /404.html;
 }
+
+listen combinations:
+    listen 127.0.0.1:8000;
+    listen 127.0.0.1;
+    listen 8000;
+    listen *:8000;
+    listen localhost:8000;
