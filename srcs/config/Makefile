@@ -6,6 +6,7 @@ FLAGS	=	-Wall -Wextra -Werror -g -MMD -MP -std=c++98
 
 SRC		=	main.cpp \
 			config.cpp \
+			chunk_infos.cpp \
 
 OBJ		:=	$(addprefix ./obj/,$(SRC:%.cpp=%.o))
 

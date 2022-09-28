@@ -1,10 +1,9 @@
 
-
-
-
-
 server {
     listen localhost:8000;
+
+    server_name ouaiouaiouai.com coucou.fr;
+    
 
 }
 
