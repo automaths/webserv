@@ -6,7 +6,7 @@
 /*   By: tnaton <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:32:13 by tnaton            #+#    #+#             */
-/*   Updated: 2022/09/28 14:30:56 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/09/28 16:31:36 by bdetune          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,13 +18,19 @@ Request::Request(void): _type(""), _version("HTTP/1.0"), _file(""), _body(""), _
 int Request::checkType(std::string & type) {
 	int i = 0;
 
+	std::cout << "First line received: |" << type << "|" <<std::endl;
 	if (type.find(" ") == std::string::npos) {
 		return (1);
-	} if (!type.find(GET) || !type.find(POST) || !type.find(DELETE)) {
+	}
+	if (!type.find(GET) || !type.find(POST) || !type.find(DELETE)) {
+		std::cerr << "Condition" << std::endl;
 		i = type.find_first_of(" ");
 		_type = type.substr(0, i);
 		i = type.find_first_not_of(" ", i);
-		_file = type.substr(i, type.find(" ", i));
+		type.erase(0, i);
+		_file = type.substr(0, type.find_first_of(" "));
+		std::cout << "type: |"<< _type << "|" << std::endl;
+		std::cout << "file: |"<< _file << "|" << std::endl;
 		i = type.find_first_of(" ", i);
 		if (type.c_str()[i] != '\0') {
 			_version = type.substr(i, type.find(" ", i));
@@ -54,40 +60,44 @@ int Request::parseChunk(std::string & chunk) {
 		if (!_type.size()) {
 			do {
 				line = chunk.substr(0, chunk.find("\r\n"));
-				chunk = chunk.substr(0, chunk.find("\r\n"));
+				chunk.erase(0, (line.length() + 2));
 				if (line != "") {
-					if (checkType(_type)) {
+					if (checkType(line)) {
 						return (-1);
 					}
-				}
-			}
-			while (chunk.size());
-		} else {
-			std::string key;
-			std::string val;
-
-			do {
-				line = chunk.substr(0, chunk.find("\r\n"));
-				chunk = chunk.substr(0, chunk.find("\r\n"));
-				if (line == "" && !chunk.find("\r\n")) {
-					if (_type == POST) {
-						_body = chunk;
-					}
-					return (1);
-				}
-				key = line.substr(0, (line.find(":") == std::string::npos) ? line.size() : line.find(":"));
-				val = line.substr(key.size(), line.size());
-				if (key.find(" ") != std::string::npos) {
-					return (-1);
-				}
-				if (_headers.find(key) == _headers.end()) {
-					_headers.insert(std::pair<std::string, std::list<std::string> >(key, std::list<std::string>(1, val)));
-				} else {
-					_headers[key].push_back(val);
+					break;
 				}
 			}
 			while (chunk.size());
 		}
+		if (!chunk.size())
+			return (0);
+		std::string key;
+		std::string val;
+
+		do {
+			line = chunk.substr(0, chunk.find("\r\n"));
+			chunk.erase(0, (line.length() + 2));
+			if (line == "") {
+				if (_type == POST) {
+					_body = chunk;
+				}
+				return (1);
+			}
+			key = line.substr(0, (line.find(":") == std::string::npos) ? line.size() : line.find(":"));
+			line.erase(0, (key.size() + 1));
+			val = line;
+			if (key.find(" ") != std::string::npos) {
+				return (-1);
+			}
+			if (_headers.find(key) == _headers.end()) {
+				_headers.insert(std::pair<std::string, std::list<std::string> >(key, std::list<std::string>(1, val)));
+			} else {
+				_headers[key].push_back(val);
+			}
+		}
+		while (chunk.size());
+
         return (0);
 }
 

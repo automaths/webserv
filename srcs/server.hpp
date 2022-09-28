@@ -102,10 +102,20 @@ class Server {
 						std:: cout << buffer << "size: " << recvret << std::endl;
 						std::cout << "fd used: " << event[i].data.fd << std::endl;
 						std::cout << "Port Number: " << this->_client_sockets[event[i].data.fd].getPortNumber() << std::endl;
-						this->_client_sockets[event[i].data.fd].addToRequest(std::string(buffer));
-//						event[i].events = EPOLLOUT;
-//						if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_MOD, event[i].data.fd, &event[i]) == -1)
-//							throw EpollCreateException();
+						result = this->_client_sockets[event[i].data.fd].addToRequest(std::string(buffer));
+						if (result == -1)
+						{
+							std::cerr << "BAD REQUEST" << std::endl;
+							epoll_ctl(this->_epoll_fd, EPOLL_CTL_DEL, event[i].data.fd, NULL);
+							close(event[i].data.fd);
+							this->_client_sockets.erase(event[i].data.fd);
+						}
+						else if (result == 1)
+						{
+							event[i].events = EPOLLOUT;
+							if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_MOD, event[i].data.fd, &event[i]) == -1)
+								throw EpollCreateException();
+						}
 					}
 					else
 					{
@@ -114,6 +124,7 @@ class Server {
 				}
 				else if (event[i].events == EPOLLOUT)
 				{
+					std::cerr << "Sending" << std::endl;
 					ssize_t	sendret = 0;
 					std::string sender = _test_cat_start + std::string("200") + _test_cat_end;
 					sendret = send(event[i].data.fd, sender.data(), sender.length(), MSG_NOSIGNAL | MSG_DONTWAIT);
@@ -121,10 +132,20 @@ class Server {
 						std::cerr << "Error while sending" << std::endl;
 					else if (sendret >= (long)sender.length())
 					{
-						if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_DEL, event[i].data.fd, &event[i]) == -1)
-							throw EpollCreateException();
-						close(event[i].data.fd);
-						this->_client_sockets.erase(event[i].data.fd);
+						this->_client_sockets[event[i].data.fd].resetRequest();
+						if (this->_client_sockets[event[i].data.fd].getKeepAlive() != -1)
+						{
+							event[i].events = EPOLLIN;
+							if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_MOD, event[i].data.fd, &event[i]) == -1)
+								throw EpollCreateException();
+						}
+						else
+						{	
+							if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_DEL, event[i].data.fd, &event[i]) == -1)
+								throw EpollCreateException();
+							close(event[i].data.fd);
+							this->_client_sockets.erase(event[i].data.fd);
+						}
 					}
 					else
 						std::cerr << "More data to send" << std::endl;

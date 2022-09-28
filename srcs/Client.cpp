@@ -6,7 +6,7 @@
 /*   By: bdetune <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:13:06 by bdetune           #+#    #+#             */
-/*   Updated: 2022/09/27 20:43:11 by bdetune          ###   ########.fr       */
+/*   Updated: 2022/09/28 15:07:36 by bdetune          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,21 +54,21 @@ void	Client::setPortNumber(int portNumber)
 	this->_portNumber = portNumber;
 }
 
-std::string &	Client::getRequest(void)
+Request &	Client::getRequest(void)
 {
 	return (this->_request);
 }
 
-void	Client::setRequest(std::string const & request)
+void	Client::resetRequest(void)
 {
-	this->_request = request;
-	this->_lastConnection = std::time(NULL);
+	Request	resetter;
+	this->_request = resetter;
 }
 
-void	Client::addToRequest(std::string const & packet)
+int	Client::addToRequest(std::string packet)
 {
-	this->_request += packet;
 	this->_lastConnection = std::time(NULL);
+	return (this->_request.parseChunk(packet));
 }
 
 int &	Client::getKeepAlive(void)

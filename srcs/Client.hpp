@@ -6,12 +6,13 @@
 /*   By: bdetune <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 16:15:51 by bdetune           #+#    #+#             */
-/*   Updated: 2022/09/27 18:46:26 by bdetune          ###   ########.fr       */
+/*   Updated: 2022/09/28 15:32:00 by bdetune          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef CLIENT_HPP
 # define CLIENT_HPP
+# include "Request.hpp"
 # include <ctime>
 # include <string>
 
@@ -27,9 +28,9 @@ class Client
 
 		int &			getPortNumber(void);
 		void			setPortNumber(int portNumber);
-		std::string &	getRequest(void);
-		void			setRequest(std::string const & request);
-		void			addToRequest(std::string const & packet);
+		Request &		getRequest(void);
+		void			resetRequest(void);
+		int				addToRequest(std::string packet);
 		int &			getKeepAlive(void);
 		void			setKeepAlive(int keepAlive);
 		unsigned int	getNbRequest(void);
@@ -38,7 +39,7 @@ class Client
 
 	private:
 		int				_portNumber;
-		std::string		_request;
+		Request			_request;
 		int				_keepAlive;
 		unsigned int	_nbRequest;
 		std::time_t		_lastConnection;

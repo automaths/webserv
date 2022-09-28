@@ -1,6 +1,12 @@
 #pragma once
-
-#include "library.hpp"
+#define GET "GET"
+#define POST "POST"
+#define DELETE "DELETE"
+#include <string>
+#include <map>
+#include <list>
+#include <utility>
+#include <iostream>
 
 class Request{
 
