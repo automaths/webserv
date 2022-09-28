@@ -1,4 +1,4 @@
-#include "../library.hpp"
+#include "library.hpp"
 
 // Choisir le port et lhost de chaque "serveur".
 // Setup server_names ou pas.
@@ -36,6 +36,10 @@
 
 // };
 
+// std::ofstream ofs;
+// ofs.open("config_result.txt");
+// ofs << _file;
+
 class Config {
 
     public:
@@ -43,46 +47,64 @@ class Config {
     Config(){}
     ~Config(){}
 
-    Config(std::string str): _file(str) {
+    Config(std::string str){
+
+        _file = str;
         check_brackets();
-
-
-
-        if ((_file.find("http", 0) >= 0) && (_file[_file.find_first_not_of(" \t\v\n\r\f", _file.find("http", 0) + 4)] == '{'))
+        while (((_file.find("http", 0) >= 0) && (_file[_file.find_first_not_of(" \t\v\n\r\f", _file.find("http", 0) + 4)] == '{')) || \
+            ((_file.find("server", 0) >= 0) && (_file[_file.find_first_not_of(" \t\v\n\r\f", _file.find("server", 0) + 6)] == '{')))
         {
-            while (_file.find_first_of("http") > 0)
-                _file.erase(0, 1);
-            std::string::iterator it = _file.begin();
-            for (unsigned int i = 0; i <= _file.find_first_of("{"); ++i)
-                ++it;
-            int n = 1;
-            while (it != _file.end() && n > 0)
+            if (_file.find("http", 0) < _file.find("server") && _file.find("http", 0) != std::string::npos)
             {
-                if (*it == '{')
-                    ++n;
-                if (*it == '}')
-                    --n;
-                ++it;
+                while ((_file.find("http") > 0 && (_file[_file.find_first_not_of(" \t\v\n\r\f", 4)] != '{')))
+                    _file.erase(0, 1);
+                std::string chunk = chunking();
+                _chunks.push_back(chunk);
+                for (unsigned int i = 0; i < chunk.size(); ++i)
+                    _file.erase(0, 1);
             }
-            if (n == 1)
-                std::cerr << "no closing brackets for the http block" << std::endl;
-            _file.erase(it, _file.end());
+            else
+            {
+                while ((_file.find("server") > 0 && (_file[_file.find_first_not_of(" \t\v\n\r\f", 4)] != '{')))
+                    _file.erase(0, 1);
+                std::string chunk = chunking();
+                _chunks.push_back(chunk);
+                for (unsigned int i = 0; i < chunk.size(); ++i)
+                    _file.erase(0, 1);
+            }
         }
-
-        std::ofstream ofs;
-        ofs.open("config_result.txt");
-        ofs << _file;
+        // int n = 1;
+        // std::ofstream ofs;
+        // ofs.open("config_result.txt");
+        // for (std::list<std::string>::iterator tmp = _chunks.begin(); tmp != _chunks.end(); ++tmp)
+        //     ofs << "\nTHE CHUNK " << n++ << " IS: \n\n" << *tmp << std::endl;
     }
 
-    int check_brackets();
+    void check_brackets();
+
+    std::string chunking() {
+
+        std::string::iterator it = _file.begin();
+        while (*it != '{')
+            ++it;
+        ++it;
+        int n = 1;
+        while (it != _file.end() && n > 0)
+        {
+            if (*it == '{')
+                ++n;
+            if (*it == '}')
+                --n;
+            ++it;
+        }
+        return (_file.substr(0, it - _file.begin()));
+    }
 
     private:
 
     std::string _file;
-
+    std::list<std::string> _chunks;
     // std::list<Serv> servers;
 
-
     class BracketsException : public std::exception {virtual const char* what() const throw(){return ("Close the brackets in the configuration file please");}};
-
 };

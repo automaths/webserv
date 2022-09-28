@@ -1,6 +1,6 @@
 #include "config.hpp"
 
-int Config::check_brackets(){
+void Config::check_brackets(){
     std::string::iterator it = _file.begin();
     int n = 0;
     while (it != _file.end())

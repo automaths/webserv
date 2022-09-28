@@ -1,4 +1,4 @@
-#include "../library.hpp"
+#include "library.hpp"
 #include "config.hpp"
 
 int main()
@@ -12,7 +12,14 @@ int main()
         buffer.append(1, c);
         c = ifs.get();
     }
-    Config el_configo(buffer);
+
+    try {
+        Config el_configo(buffer);
+    }
+    catch (std::exception &e) {
+        std::cout << "An exception has been caught: " << e.what() << std::endl;
+    }
+    return 0;
 }
 
 
