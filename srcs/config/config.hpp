@@ -43,31 +43,46 @@ class Config {
     Config(){}
     ~Config(){}
 
-    Config(std::string str): file(str) {
+    Config(std::string str): _file(str) {
+        check_brackets();
 
-        while (file.find_first_of("http") > 0)
-            file.erase(0, 1);
-        std::string::iterator it = file.begin();
-        for (unsigned int i = 0; i <= file.find_first_of("{"); ++i)
-            ++it;
-        int n = 1;
-        while (it != file.end() && n > 0)
+
+
+        if ((_file.find("http", 0) >= 0) && (_file[_file.find_first_not_of(" \t\v\n\r\f", _file.find("http", 0) + 4)] == '{'))
         {
-            if (*it == '{')
-                ++n;
-            if (*it == '}')
-                --n;
-            ++it;
+            while (_file.find_first_of("http") > 0)
+                _file.erase(0, 1);
+            std::string::iterator it = _file.begin();
+            for (unsigned int i = 0; i <= _file.find_first_of("{"); ++i)
+                ++it;
+            int n = 1;
+            while (it != _file.end() && n > 0)
+            {
+                if (*it == '{')
+                    ++n;
+                if (*it == '}')
+                    --n;
+                ++it;
+            }
+            if (n == 1)
+                std::cerr << "no closing brackets for the http block" << std::endl;
+            _file.erase(it, _file.end());
         }
-        file.erase(it, file.end());
-        std::cout << file << std::endl;
 
+        std::ofstream ofs;
+        ofs.open("config_result.txt");
+        ofs << _file;
     }
+
+    int check_brackets();
 
     private:
 
-    std::string file;
+    std::string _file;
 
     // std::list<Serv> servers;
+
+
+    class BracketsException : public std::exception {virtual const char* what() const throw(){return ("Close the brackets in the configuration file please");}};
 
 };
