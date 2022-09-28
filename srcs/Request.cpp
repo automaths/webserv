@@ -6,7 +6,7 @@
 /*   By: tnaton <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:32:13 by tnaton            #+#    #+#             */
-/*   Updated: 2022/09/28 18:08:03 by bdetune          ###   ########.fr       */
+/*   Updated: 2022/09/28 19:57:13 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,7 @@ Request::Request(void): _type(""), _version("HTTP/1.0"), _file(""), _body(""), _
 }
 
 int Request::checkType(std::string & type) {
-	int i = 0;
+	unsigned long i = 0;
 
 	std::cout << "First line received: |" << type << "|" <<std::endl;
 	if (type.find(" ") == std::string::npos) {
@@ -45,13 +45,16 @@ int Request::checkType(std::string & type) {
 			std::string tmp = _version.substr(5);
 			if (static_cast<std::string>("123456789").find(tmp[0]) == std::string::npos)
 				return (1);
-			if (tmp[1] && tmp[1] == '1' && !tmp[2])
+			if (tmp == "1")
 				return (1);
 			if (tmp.find_first_not_of("0123456789.") != std::string::npos)
 				return (1);
-			std::cout << "tmp: |"<< tmp << "|" << std::endl;
+			std::cout << "tmp: |" << tmp << "|" << std::endl;
+			std::string tmp2 = tmp.substr(tmp.find(".") + 1);
+			if (tmp2 != tmp && (tmp2 == "" || tmp2.find_first_not_of("0123456789") != std::string::npos))
+				return (1);
 		}
-		if (type.size() || !_type.size() || !_file.size())
+		if (!_type.size() || !_file.size())
 			return (1);
 		return (0);
 	}
