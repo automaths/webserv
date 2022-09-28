@@ -6,7 +6,7 @@
 /*   By: tnaton <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:32:13 by tnaton            #+#    #+#             */
-/*   Updated: 2022/09/28 16:31:36 by bdetune          ###   ########.fr       */
+/*   Updated: 2022/09/28 18:08:03 by bdetune          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,23 +31,27 @@ int Request::checkType(std::string & type) {
 		_file = type.substr(0, type.find_first_of(" "));
 		std::cout << "type: |"<< _type << "|" << std::endl;
 		std::cout << "file: |"<< _file << "|" << std::endl;
-		i = type.find_first_of(" ", i);
-		if (type.c_str()[i] != '\0') {
-			_version = type.substr(i, type.find(" ", i));
+		type.erase(0, _file.size());
+		type.erase(0, type.find_first_not_of(" "));
+		if (type.size()) {
+			_version = type.substr(0, type.find(" "));
+			type.erase(0, _version.size());
 			if (_version.size() < 6) {
 				return (1);
 			} if (_version.find("HTTP/")) {
 				return (1);
 			}
-			std::string tmp = _version.substr(5, _version.size());
+			std::cout << "version: |"<< _version << "|" << std::endl;
+			std::string tmp = _version.substr(5);
 			if (static_cast<std::string>("123456789").find(tmp[0]) == std::string::npos)
 				return (1);
 			if (tmp[1] && tmp[1] == '1' && !tmp[2])
 				return (1);
 			if (tmp.find_first_not_of("0123456789.") != std::string::npos)
 				return (1);
+			std::cout << "tmp: |"<< tmp << "|" << std::endl;
 		}
-		if (type.c_str()[i] != '\0' || !_type.c_str() || !_file.c_str())
+		if (type.size() || !_type.size() || !_file.size())
 			return (1);
 		return (0);
 	}
@@ -85,7 +89,7 @@ int Request::parseChunk(std::string & chunk) {
 				return (1);
 			}
 			key = line.substr(0, (line.find(":") == std::string::npos) ? line.size() : line.find(":"));
-			line.erase(0, (key.size() + 1));
+			(line.find(":") == std::string::npos) ? line.erase(0, (key.size() + 1)) : line.erase(0, (key.size()));
 			val = line;
 			if (key.find(" ") != std::string::npos) {
 				return (-1);
