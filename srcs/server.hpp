@@ -27,7 +27,6 @@ class Server {
 		this->_client_sockets.clear();
 	}
 
-//    int getServerFd(){return _server_fd;}
     struct sockaddr_in getAddr(){return _address;}
 
     void initing(){
@@ -48,9 +47,6 @@ class Server {
     }
 
     void execute(){
-		std::string	_test_cat_start("HTTP/1.1 200 OK\nDate: Mon, 27 Jul 2022 12:28:53 GMT\nServer: Apache/2.2.14 (Win32)\nLast-Modified: Wed, 22 Jul 2022 19:15:56 GMT\nContent-Length: 88\nContent-Type: text/html\nConnection: Closed\n\n<html>\n<head>\n<meta http-equiv='Refresh' content='0; URL=https://http.cat/");
-		std::string _test_cat_end("' />\n</head>\n</html>");
-
 		std::map<int, int>::iterator	serv;
 		struct epoll_event	ev, event[10];
         int result;
@@ -96,60 +92,106 @@ class Server {
 						close(event[i].data.fd);
 						this->_client_sockets.erase(event[i].data.fd);
 					}
-					else if (recvret < 10000)
+					else
 					{
 						buffer[recvret] = '\0';
-						std:: cout << buffer << "size: " << recvret << std::endl;
-						std::cout << "fd used: " << event[i].data.fd << std::endl;
-						std::cout << "Port Number: " << this->_client_sockets[event[i].data.fd].getPortNumber() << std::endl;
 						result = this->_client_sockets[event[i].data.fd].addToRequest(std::string(buffer));
 						if (result == -1)
 						{
-							std::cerr << "BAD REQUEST" << std::endl;
-							epoll_ctl(this->_epoll_fd, EPOLL_CTL_DEL, event[i].data.fd, NULL);
-							close(event[i].data.fd);
-							this->_client_sockets.erase(event[i].data.fd);
+							this->_client_sockets[event[i].data.fd].getResponse() = Response(this->_client_sockets[event[i].data.fd].getRequest(), 400);
+							event[i].events = EPOLLOUT;
+							if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_MOD, event[i].data.fd, &event[i]) == -1)
+								throw EpollCreateException();
 						}
 						else if (result == 1)
 						{
+							this->_client_sockets[event[i].data.fd].getResponse() = Response(this->_client_sockets[event[i].data.fd].getRequest());
 							event[i].events = EPOLLOUT;
 							if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_MOD, event[i].data.fd, &event[i]) == -1)
 								throw EpollCreateException();
 						}
 					}
-					else
-					{
-						std::cout << "Buffer incomplete, need class" << std::endl;
-					}
 				}
 				else if (event[i].events == EPOLLOUT)
 				{
-					std::cerr << "Sending" << std::endl;
 					ssize_t	sendret = 0;
-					std::string sender = _test_cat_start + std::string("200") + _test_cat_end;
-					sendret = send(event[i].data.fd, sender.data(), sender.length(), MSG_NOSIGNAL | MSG_DONTWAIT);
-					if (sendret == -1)
-						std::cerr << "Error while sending" << std::endl;
-					else if (sendret >= (long)sender.length())
+					std::cerr << "Sending" << std::endl;
+					if (!this->_client_sockets[event[i].data.fd].getResponse().headerIsSent())
 					{
-						this->_client_sockets[event[i].data.fd].resetRequest();
-						if (this->_client_sockets[event[i].data.fd].getKeepAlive() != -1)
+						sendret = send(event[i].data.fd, this->_client_sockets[event[i].data.fd].getResponse().getHeader().data(), this->_client_sockets[event[i].data.fd].getResponse().getHeaderSize(), MSG_NOSIGNAL | MSG_DONTWAIT);
+						if (sendret == -1)
 						{
-							event[i].events = EPOLLIN;
-							if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_MOD, event[i].data.fd, &event[i]) == -1)
-								throw EpollCreateException();
-						}
-						else
-						{	
+							std::cerr << "Error while sending" << std::endl;
 							if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_DEL, event[i].data.fd, &event[i]) == -1)
 								throw EpollCreateException();
 							close(event[i].data.fd);
 							this->_client_sockets.erase(event[i].data.fd);
+							continue ;
+						}
+						if (this->_client_sockets[event[i].data.fd].getResponse().headerBytesSent(sendret))
+						{
+							sendret = send(event[i].data.fd, this->_client_sockets[event[i].data.fd].getResponse().getBody().data(), this->_client_sockets[event[i].data.fd].getResponse().getBodySize(), MSG_NOSIGNAL | MSG_DONTWAIT);
+							if (sendret == -1)
+							{	
+								std::cerr << "Error while sending" << std::endl;
+								if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_DEL, event[i].data.fd, &event[i]) == -1)
+									throw EpollCreateException();
+								close(event[i].data.fd);
+								this->_client_sockets.erase(event[i].data.fd);
+								continue ;
+							}
+							if (this->_client_sockets[event[i].data.fd].getResponse().bodyBytesSent(sendret))
+							{
+								if (this->_client_sockets[event[i].data.fd].getResponse().getClose())
+								{
+									if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_DEL, event[i].data.fd, &event[i]) == -1)
+										throw EpollCreateException();
+									close(event[i].data.fd);
+									this->_client_sockets.erase(event[i].data.fd);
+								}
+								else
+								{
+									this->_client_sockets[event[i].data.fd].resetRequest();
+									this->_client_sockets[event[i].data.fd].resetResponse();
+									event[i].events = EPOLLIN;
+									if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_MOD, event[i].data.fd, &event[i]) == -1)
+										throw EpollCreateException();
+								}
+							}
 						}
 					}
 					else
-						std::cerr << "More data to send" << std::endl;
+					{
+							sendret = send(event[i].data.fd, this->_client_sockets[event[i].data.fd].getResponse().getBody().data(), this->_client_sockets[event[i].data.fd].getResponse().getBodySize(), MSG_NOSIGNAL | MSG_DONTWAIT);
+							if (sendret == -1)
+							{	
+								std::cerr << "Error while sending" << std::endl;
+								if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_DEL, event[i].data.fd, &event[i]) == -1)
+									throw EpollCreateException();
+								close(event[i].data.fd);
+								this->_client_sockets.erase(event[i].data.fd);
+								continue ;
+							}
+							if (this->_client_sockets[event[i].data.fd].getResponse().bodyBytesSent(sendret))
+							{
+								if (this->_client_sockets[event[i].data.fd].getResponse().getClose())
+								{
+									if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_DEL, event[i].data.fd, &event[i]) == -1)
+										throw EpollCreateException();
+									close(event[i].data.fd);
+									this->_client_sockets.erase(event[i].data.fd);
+								}
+								else
+								{
+									this->_client_sockets[event[i].data.fd].resetRequest();
+									this->_client_sockets[event[i].data.fd].resetResponse();
+									event[i].events = EPOLLIN;
+									if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_MOD, event[i].data.fd, &event[i]) == -1)
+										throw EpollCreateException();
+								}
+							}
 
+					}
 				}
 			}
 			this->closeTimedoutConnections();
