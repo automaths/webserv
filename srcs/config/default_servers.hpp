@@ -2,7 +2,6 @@
 
 #include "library.hpp"
 
-
 // Choisir le port et lhost de chaque "serveur".
 // Setup server_names ou pas.
 // Le premier serveur pour un host:port sera le serveur par défaut pour cet host:port (ce qui signifie quil répondra à toutes les requêtes qui nappartiennent pas à un autre serveur).
@@ -80,7 +79,6 @@ class Default_Error_Page_Infos {
     std::string _number;
     std::string _path;
 };
-
 
 
 class Default_Unit_Infos {
@@ -162,9 +160,6 @@ class Default_Servers_Infos {
             std::cout << "Body Max Size: " << it->getClientBodyMax() << std::endl;
             std::cout << "Error Page: error number " << it->getErrorPage().front().getNumber() << " and path " << it->getErrorPage().front().getPath() << std::endl;
             std::cout << std::endl;
-
-
-
 
     // std::string _address;
     // std::string _port;
