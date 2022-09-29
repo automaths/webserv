@@ -7,6 +7,9 @@ server {
     error_page 404 403 402 /one.html;
     error_page 401 /two.html;
 
+    client_body_buffer_size 200M;
+
+    root /my_root;
 
 }
 
