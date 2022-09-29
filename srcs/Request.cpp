@@ -6,7 +6,7 @@
 /*   By: tnaton <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:32:13 by tnaton            #+#    #+#             */
-/*   Updated: 2022/09/29 16:16:09 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/09/29 19:46:13 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,7 +85,9 @@ int Request::parseChunk(std::string & chunk) {
 				chunk.erase(0, (line.length() + 2));
 				if (line != "") {
 					if (checkType(line)) {
-						return (-1);
+						return (400);
+					} else if (_version.substr(5) != "1.1" && _version.substr(5) != "1.0") {
+						return (505);
 					}
 					break;
 				}
@@ -105,8 +107,8 @@ int Request::parseChunk(std::string & chunk) {
 					_body = chunk;
 				}
 				if (_headers.find("host") == _headers.end())
-					return (-1);
-				return (parseHeaders(), 1);
+					return (400);
+				return (parseHeaders(), 200);
 			}
 			key = line.substr(0, (line.find(":") == std::string::npos) ? line.size() : line.find(":"));
 			key = tolower(key);
@@ -116,7 +118,7 @@ int Request::parseChunk(std::string & chunk) {
 				return (-1);
 			} if (key == "host") {
 				if (val == "" || _headers.find(key) != _headers.end()) {
-					return (-1);
+					return (400);
 				}
 			} if (_headers.find(key) == _headers.end()) {
 				_headers.insert(std::pair<std::string, std::list<std::string> >(key, std::list<std::string>(1, val)));
