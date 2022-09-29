@@ -2,7 +2,7 @@
 server {
     listen localhost:8000;
 
-    server_name ouaiouaiouai.com coucou.fr;
+    server_name       cavalazoone.com ouaiouaiouai.com coucou.fr;
     
 
 }
