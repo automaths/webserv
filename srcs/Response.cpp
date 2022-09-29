@@ -6,7 +6,7 @@
 /*   By: bdetune <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/29 12:29:34 by bdetune           #+#    #+#             */
-/*   Updated: 2022/09/29 18:13:45 by bdetune          ###   ########.fr       */
+/*   Updated: 2022/09/29 19:25:55 by bdetune          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -81,9 +81,9 @@ void	Response::basicResponse(void)
 {
 	std::stringstream	header;
 	
-	this->_body = std::string("<html>\n<head>\n<meta http-equiv='Refresh' content='0; URL=https://http.cat/200' />\n</head>\n</html>\n");
+	this->_body = DEFAULT200BODY;
 	this->_bodySize = this->_body.size();
-	header << "HTTP/1.1 200 OK" << "\r\n";
+	header << "HTTP/1.1 200 "<< DEFAULT200STATUS << "\r\n";
 	header << setBaseHeader();
 	header << "Content-type: text/html\r\n";
 	header << "Content-Length: " << this->_bodySize << "\r\n";
