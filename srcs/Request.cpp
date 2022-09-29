@@ -6,7 +6,7 @@
 /*   By: tnaton <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:32:13 by tnaton            #+#    #+#             */
-/*   Updated: 2022/09/28 19:57:13 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/09/29 16:16:09 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,22 +15,26 @@
 Request::Request(void): _type(""), _version("HTTP/1.0"), _file(""), _body(""), _buff(""), _headers() {
 }
 
+std::string tolower(std::string & str) {
+	std::string ret;
+	for (size_t i = 0; i < str.size(); i++) {
+		ret.push_back(std::tolower(str[i]));
+	}
+	return (ret);
+}
+
 int Request::checkType(std::string & type) {
 	unsigned long i = 0;
 
-	std::cout << "First line received: |" << type << "|" <<std::endl;
 	if (type.find(" ") == std::string::npos) {
 		return (1);
 	}
 	if (!type.find(GET) || !type.find(POST) || !type.find(DELETE)) {
-		std::cerr << "Condition" << std::endl;
 		i = type.find_first_of(" ");
 		_type = type.substr(0, i);
 		i = type.find_first_not_of(" ", i);
 		type.erase(0, i);
 		_file = type.substr(0, type.find_first_of(" "));
-		std::cout << "type: |"<< _type << "|" << std::endl;
-		std::cout << "file: |"<< _file << "|" << std::endl;
 		type.erase(0, _file.size());
 		type.erase(0, type.find_first_not_of(" "));
 		if (type.size()) {
@@ -41,7 +45,6 @@ int Request::checkType(std::string & type) {
 			} if (_version.find("HTTP/")) {
 				return (1);
 			}
-			std::cout << "version: |"<< _version << "|" << std::endl;
 			std::string tmp = _version.substr(5);
 			if (static_cast<std::string>("123456789").find(tmp[0]) == std::string::npos)
 				return (1);
@@ -49,7 +52,6 @@ int Request::checkType(std::string & type) {
 				return (1);
 			if (tmp.find_first_not_of("0123456789.") != std::string::npos)
 				return (1);
-			std::cout << "tmp: |" << tmp << "|" << std::endl;
 			std::string tmp2 = tmp.substr(tmp.find(".") + 1);
 			if (tmp2 != tmp && (tmp2 == "" || tmp2.find_first_not_of("0123456789") != std::string::npos))
 				return (1);
@@ -59,6 +61,19 @@ int Request::checkType(std::string & type) {
 		return (0);
 	}
 	return (1);
+}
+
+void Request::parseHeaders(void) {
+	std::map<std::string, std::list<std::string> >::iterator first = _headers.begin();
+	while (first != _headers.end()) {
+		std::cout << "Key :" << first->first << std::endl;
+		std::list<std::string>::iterator list = first->second.begin();
+		while (list != first->second.end()) {
+			std::cout << "Val :" << *list << std::endl;
+			list++;
+		}
+		first++;
+	}
 }
 
 int Request::parseChunk(std::string & chunk) {
@@ -89,15 +104,21 @@ int Request::parseChunk(std::string & chunk) {
 				if (_type == POST) {
 					_body = chunk;
 				}
-				return (1);
+				if (_headers.find("host") == _headers.end())
+					return (-1);
+				return (parseHeaders(), 1);
 			}
 			key = line.substr(0, (line.find(":") == std::string::npos) ? line.size() : line.find(":"));
-			(line.find(":") == std::string::npos) ? line.erase(0, (key.size() + 1)) : line.erase(0, (key.size()));
+			key = tolower(key);
+			(line.find(":") == std::string::npos) ? line.erase(0, (key.size())) : line.erase(0, (key.size() + 1));
 			val = line;
 			if (key.find(" ") != std::string::npos) {
 				return (-1);
-			}
-			if (_headers.find(key) == _headers.end()) {
+			} if (key == "host") {
+				if (val == "" || _headers.find(key) != _headers.end()) {
+					return (-1);
+				}
+			} if (_headers.find(key) == _headers.end()) {
 				_headers.insert(std::pair<std::string, std::list<std::string> >(key, std::list<std::string>(1, val)));
 			} else {
 				_headers[key].push_back(val);

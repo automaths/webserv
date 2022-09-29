@@ -15,6 +15,7 @@ class Request{
 		Request();
 		~Request(){};
 
+		void parseHeaders(void);
 		int parseChunk(std::string &);
 		int checkType(std::string &);
 		std::string getType(void) const;
