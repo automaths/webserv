@@ -5,9 +5,9 @@
 #include "Client.hpp"
 #include <utility>
 #include <ctime>
+#include <cstring>
 #define PORT 8080
 
-// <link rel='icon' href='data:,'> prevent automatic favicon request
 class Server {
     public:
 
@@ -46,12 +46,16 @@ class Server {
 			throw EpollCreateException();
     }
 
+//	bool	acceptIncomingConnection(struct epoll_event event[i])
+
     void execute(){
 		std::map<int, int>::iterator	serv;
 		struct epoll_event	ev, event[10];
         int result;
         int addrlen = sizeof(_address);
 
+		std::memset(event, '\0', (sizeof(struct epoll_event) * 10));
+		std::memset(&ev, '\0', sizeof(struct epoll_event));
 
 		for (std::map<int, int>::const_iterator st = this->_listen_sockets.begin(); st!= this->_listen_sockets.end(); st++)
 		{
@@ -69,6 +73,7 @@ class Server {
 			{
 				if ((serv = this->_listen_sockets.find(event[i].data.fd)) != this->_listen_sockets.end())
 				{
+//					acceptIncomingConnection(event[i]);
 					Client	tmp(this->_listen_sockets[event[i].data.fd]);
 					ev.events = EPOLLIN;
 					ev.data.fd = accept((*serv).first, (struct sockaddr *)&_address, (socklen_t*)&addrlen);
