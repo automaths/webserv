@@ -4,6 +4,9 @@ server {
 
     server_name       cavalazoone.com ouaiouaiouai.com coucou.fr;
     
+    error_page 404 403 402 /one.html;
+    error_page 401 /two.html;
+
 
 }
 
