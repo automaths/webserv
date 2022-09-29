@@ -11,6 +11,16 @@ server {
 
     root /my_root;
 
+    location /images/ {
+        root /my_images;
+        index index.html index.htm;
+        add_header Allow "GET, POST, HEAD" always;
+    }
+
+    location /videos/ {
+        root /my_videos;
+    }
+
 }
 
 server {
