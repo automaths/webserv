@@ -57,9 +57,7 @@ void Chunk_Infos::extract_server_name() {
         }
     }
     else
-    {
         _server_names.push_back("");
-    }
 }
 
 void Chunk_Infos::extract_default_error_pages() {
@@ -117,4 +115,41 @@ void Chunk_Infos::extract_root() {
     }
     else
         _root = "html";
+}
+
+void Chunk_Infos::extract_allow_method() {
+    while (_chunk.find("allow_method ", 0) != std::string::npos)
+    {
+        std::string allow_method_dir = _chunk.substr(_chunk.find("allow_method ", 0), _chunk.find_first_of(';', _chunk.find("allow_method ", 0)) - _chunk.find("allow_method ", 0));
+        //little trick here to stop while loop
+        _chunk.erase(_chunk.find("allow_method ", 0), 1);
+        allow_method_dir.erase(0, allow_method_dir.find_first_of("allow_method ") + 13);
+        while (allow_method_dir.find_first_of(" \t\v\n\r\f", 0) == 0)
+            allow_method_dir.erase(0, 1);
+        while (allow_method_dir.size() != 0)
+        {  
+            if (allow_method_dir.find_first_of(" \t\v\n\r\f", 0) != std::string::npos)
+            {
+                _allow_method.push_back(allow_method_dir.substr(0, allow_method_dir.find_first_of(" \t\v\n\r\f", 0)));
+                allow_method_dir.erase(0, allow_method_dir.find_first_of(" \t\v\n\r\f", 0));
+            }
+            else
+            {
+                _allow_method.push_back(allow_method_dir.substr(0, allow_method_dir.size()));
+                allow_method_dir.erase(0, allow_method_dir.size());
+            }
+            while(allow_method_dir.find_first_of(" \t\v\n\r\f", 0) == 0)
+                allow_method_dir.erase(0, 1);
+        }
+    }
+}
+
+void Chunk_Infos::extract_location() {
+    while ((_chunk.find("location ", 0) >= 0) && (_chunk[_chunk.find_first_not_of(" \t\v\n\r\f", _chunk.find("location", 0) + 8)] == '/'))
+    {
+        _location_blocks.push_back(_chunk.substr(_chunk.find("location", 0), _chunk.find_first_of('}', _chunk.find("location", 0)) - _chunk.find("location", 0) + 1));
+        //little trick here to stop while loop
+        _chunk.erase(_chunk.find("location ", 0), _chunk.find_first_of('}', _chunk.find("location", 0)) - _chunk.find("location", 0) + 1);
+    }
+    //then reiterate to the same parsing than server
 }
