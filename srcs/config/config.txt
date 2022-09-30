@@ -20,17 +20,20 @@ server {
 
     try_files /example/index.html /other/ /default/index.html;
 
+    #fsdkljgsdf
+
+
     location /images/ {
         root /my_images;
         index index.html index.htm;
         allow_method GET POST HEAD;
         allow_method PUT;
-    }
+    } #asdfajsdfkl
 
     location /videos/ {
         root /my_videos;
     }
-    root /my_root;
+    root /my_root; #flkdjafasfasdfa
 
 }
 
