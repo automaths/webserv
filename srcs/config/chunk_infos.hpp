@@ -1,6 +1,5 @@
 #pragma once
 
-
 // Votre serveur doit pouvoir ecouter sur plusieurs ports.
 // Choisir le port et lhost de chaque "serveur".
 // Setup server_names ou pas.
@@ -34,20 +33,55 @@ class Chunk_Infos {
 
     Chunk_Infos(std::string str){
         _chunk = str;
-        extract_location();
-        extract_address_port();
-        extract_server_name();
-        extract_default_error_pages();
-        extract_client_body_buffer_size();
-        extract_root();
-        extract_allow_method();
-        extract_cgi();
-        extract_index();
-        extract_autoindex();
-        extract_try_files();
+
+        _chunk.erase(0, _chunk.find_first_of('{', 0) + 1);
+        _chunk.erase(_chunk.find_last_of('}'), 1);
+        while (_chunk.find('#', 0) != std::string::npos)
+            _chunk.erase(_chunk.find('#', 0), _chunk.find_first_of('\n', _chunk.find('#', 0)) - _chunk.find('#', 0));
+        
+        
+        
+        
+        
+        // while (_chunk.find(';', 0) != std::string::npos)
+        // {
+        //     _configs.push_back(_chunk.substr(0, _chunk.find_first_of(';', 0)));
+        //     _chunk.erase(0, _chunk.find_first_of(';', 0) + 1);
+        // }
+        // for (std::list<std::string>::iterator it = _configs.begin(); it != _configs.end(); ++it)
+        // {
+        //     if (it->find_first_not_of("\t\v\n\r\f ", 0) == it->find_first_of("location"))
+        //     {
+
+        //     }
+        // }
+
+
+
+        // extract_location();
+
+        
+
+
+        // extract_address_port();
+        // extract_server_name();
+        // extract_default_error_pages();
+        // extract_client_body_buffer_size();
+        // extract_root();
+        // extract_allow_method();
+        // extract_cgi();
+        // extract_index();
+        // extract_autoindex();
+        // extract_try_files();
 
         print_result();
     }
+
+    // void extract_location() {
+    //     if (_chunk.first_first)
+    // }
+
+
 
     void extract_location();
     void extract_address_port();
@@ -59,52 +93,32 @@ class Chunk_Infos {
     void extract_cgi();
     void extract_index();
     void extract_autoindex();
-
-    void extract_try_files() {
-        if (_chunk.find("try_files ", 0) != std::string::npos)
-        {
-            std::string try_files_dir = _chunk.substr(_chunk.find("try_files ", 0), _chunk.find_first_of(';', _chunk.find("try_files ", 0)) - _chunk.find("try_files ", 0));
-            try_files_dir.erase(0, try_files_dir.find_first_of("try_files ") + 10);
-            while (try_files_dir.find_first_of(" \t\v\n\r\f", 0) == 0)
-                try_files_dir.erase(0, 1);
-            while (try_files_dir.size() != 0)
-            {  
-                if (try_files_dir.find_first_of(" \t\v\n\r\f", 0) != std::string::npos)
-                {
-                    _try_files.push_back(try_files_dir.substr(0, try_files_dir.find_first_of(" \t\v\n\r\f", 0)));
-                    try_files_dir.erase(0, try_files_dir.find_first_of(" \t\v\n\r\f", 0));
-                }
-                else
-                {
-                    _try_files.push_back(try_files_dir.substr(0, try_files_dir.size()));
-                    try_files_dir.erase(0, try_files_dir.size());
-                }
-                while(try_files_dir.find_first_of(" \t\v\n\r\f", 0) == 0)
-                    try_files_dir.erase(0, 1);
-            }
-        }
-        else
-            _try_files.push_back("");
-    }
+    void extract_try_files();
 
     void print_result();
 
     private:
+
+    std::list<std::string> _configs;
 
     std::string _chunk;
 
     std::string _address;
     std::string _port;
     std::list<std::string> _server_names;
+
     std::list<std::string> _try_files;
     std::list<std::string> _index;
     std::string _client_body_buffer_size;
     std::string _autoindex;
     std::string _root;
     std::list<std::string> _location_blocks;
+    
     std::list<std::string> _allow_method;
     std::list<std::pair<std::string, std::string> > _cgi;
     std::map<std::string, std::string> _default_error_pages;
+
+
 
     // bool is_http;
 };

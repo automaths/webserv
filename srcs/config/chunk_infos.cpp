@@ -177,15 +177,6 @@ else
 }
 
 
-void Chunk_Infos::extract_location() {
-    while ((_chunk.find("location ", 0) >= 0) && (_chunk[_chunk.find_first_not_of(" \t\v\n\r\f", _chunk.find("location", 0) + 8)] == '/'))
-    {
-        _location_blocks.push_back(_chunk.substr(_chunk.find("location", 0), _chunk.find_first_of('}', _chunk.find("location", 0)) - _chunk.find("location", 0) + 1));
-        //little trick here to stop while loop
-        _chunk.erase(_chunk.find("location ", 0), _chunk.find_first_of('}', _chunk.find("location", 0)) - _chunk.find("location", 0) + 1);
-    }
-    //then reiterate to the same parsing than server
-}
 
 void Chunk_Infos::extract_default_error_pages() {
     while (_chunk.find("error_page ", 0) != std::string::npos)
@@ -234,35 +225,75 @@ void Chunk_Infos::extract_autoindex() {
         _autoindex = "off";
 }
 
-void Chunk_Infos::print_result() {
-    std::cout << "the address is: " << _address << std::endl;
-    std::cout << "the port is: " << _port << std::endl;
-    for (std::list<std::string>::iterator it = _server_names.begin(); it != _server_names.end(); ++it)
-        std::cout << "server_name: " << *it << std::endl;
-    for (std::list<std::string>::iterator it = _index.begin(); it != _index.end(); ++it)
-        std::cout << "index: " << *it << std::endl;
-    for (std::map<std::string, std::string>::iterator it = _default_error_pages.begin(); it != _default_error_pages.end(); ++it)
-        std::cout << "error page " << it->first << " associated path " << it->second << std::endl;
-    std::cout << "body max: " << _client_body_buffer_size << std::endl;
-    std::cout << "root: " << _root << std::endl;
-    std::cout << "allowed method: ";
-    for (std::list<std::string>::iterator it = _allow_method.begin(); it != _allow_method.end(); ++it)
-        std::cout << *it << ", ";
-    std::cout << std::endl;
-    for (std::list<std::pair<std::string, std::string> >::iterator it = _cgi.begin(); it != _cgi.end(); ++it)
-        std::cout << "cgi: " << it->first << " associated to path " << it->second << std::endl;
-    std::cout << "autoindex: " << _autoindex << std::endl;
-    for (std::list<std::string>::iterator it = _try_files.begin(); it != _try_files.end(); ++it)
+void Chunk_Infos::extract_try_files() {
+    if (_chunk.find("try_files ", 0) != std::string::npos)
     {
-        if (++it != _try_files.end())
-            std::cout << "try_files: " << *(--it) << std::endl;
-        else
-            std::cout << "try_files (fallback): " << *(--it) << std::endl;
+        std::string try_files_dir = _chunk.substr(_chunk.find("try_files ", 0), _chunk.find_first_of(';', _chunk.find("try_files ", 0)) - _chunk.find("try_files ", 0));
+        try_files_dir.erase(0, try_files_dir.find_first_of("try_files ") + 10);
+        while (try_files_dir.find_first_of(" \t\v\n\r\f", 0) == 0)
+            try_files_dir.erase(0, 1);
+        while (try_files_dir.size() != 0)
+        {  
+            if (try_files_dir.find_first_of(" \t\v\n\r\f", 0) != std::string::npos)
+            {
+                _try_files.push_back(try_files_dir.substr(0, try_files_dir.find_first_of(" \t\v\n\r\f", 0)));
+                try_files_dir.erase(0, try_files_dir.find_first_of(" \t\v\n\r\f", 0));
+            }
+            else
+            {
+                _try_files.push_back(try_files_dir.substr(0, try_files_dir.size()));
+                try_files_dir.erase(0, try_files_dir.size());
+            }
+            while(try_files_dir.find_first_of(" \t\v\n\r\f", 0) == 0)
+                try_files_dir.erase(0, 1);
+        }
     }
-    for (std::list<std::string>::iterator it = _location_blocks.begin(); it != _location_blocks.end(); ++it)
-        std::cout << "location block: " << *it << std::endl;
+    else
+        _try_files.push_back("");
+}
+
+// void Chunk_Infos::extract_location() {
+//     while ((_chunk.find("location ", 0) >= 0) && (_chunk[_chunk.find_first_not_of(" \t\v\n\r\f", _chunk.find("location", 0) + 8)] == '/'))
+//     {
+//         _location_blocks.push_back(_chunk.substr(_chunk.find("location", 0), _chunk.find_first_of('}', _chunk.find("location", 0)) - _chunk.find("location", 0) + 1));
+//         //little trick here to stop while loop
+//         _chunk.erase(_chunk.find("location ", 0), _chunk.find_first_of('}', _chunk.find("location", 0)) - _chunk.find("location", 0) + 1);
+//     }
+//     //then reiterate to the same parsing than server
+// }
+
+void Chunk_Infos::print_result() {
+    // std::cout << "the address is: " << _address << std::endl;
+    // std::cout << "the port is: " << _port << std::endl;
+    // for (std::list<std::string>::iterator it = _server_names.begin(); it != _server_names.end(); ++it)
+    //     std::cout << "server_name: " << *it << std::endl;
+    // for (std::list<std::string>::iterator it = _index.begin(); it != _index.end(); ++it)
+    //     std::cout << "index: " << *it << std::endl;
+    // for (std::map<std::string, std::string>::iterator it = _default_error_pages.begin(); it != _default_error_pages.end(); ++it)
+    //     std::cout << "error page " << it->first << " associated path " << it->second << std::endl;
+    // std::cout << "body max: " << _client_body_buffer_size << std::endl;
+    // std::cout << "root: " << _root << std::endl;
+    // std::cout << "allowed method: ";
+    // for (std::list<std::string>::iterator it = _allow_method.begin(); it != _allow_method.end(); ++it)
+    //     std::cout << *it << ", ";
+    // std::cout << std::endl;
+    // for (std::list<std::pair<std::string, std::string> >::iterator it = _cgi.begin(); it != _cgi.end(); ++it)
+    //     std::cout << "cgi: " << it->first << " associated to path " << it->second << std::endl;
+    // std::cout << "autoindex: " << _autoindex << std::endl;
+    // for (std::list<std::string>::iterator it = _try_files.begin(); it != _try_files.end(); ++it)
+    // {
+    //     if (++it != _try_files.end())
+    //         std::cout << "try_files: " << *(--it) << std::endl;
+    //     else
+    //         std::cout << "try_files (fallback): " << *(--it) << std::endl;
+    // }
+    // for (std::list<std::string>::iterator it = _location_blocks.begin(); it != _location_blocks.end(); ++it)
+    //     std::cout << "location block: " << *it << std::endl;
 
     std::ofstream ofs;
     ofs.open("config_result.txt");
-    ofs << _chunk;
+    ofs << "THE CONFIGS\n" << std::endl;
+    for (std::list<std::string>::iterator it = _configs.begin(); it != _configs.end(); ++it)
+        ofs << *it;
+    ofs << "\n\nTHE LOCATIONS\n" << std::endl;
 }
