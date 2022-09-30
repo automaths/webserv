@@ -6,7 +6,7 @@
 /*   By: bdetune <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/28 13:45:50 by bdetune           #+#    #+#             */
-/*   Updated: 2022/09/30 17:19:06 by bdetune          ###   ########.fr       */
+/*   Updated: 2022/09/30 20:26:25 by bdetune          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,24 +56,35 @@ void Server::initing(void)
 			throw EpollCreateException();
 }
 
+bool	Server::epollSockets(void)
+{
+	struct epoll_event	ev;
+
+	std::memset(&ev, '\0', sizeof(struct epoll_event));
+	for (std::map<int, int>::iterator st = this->_listen_sockets.begin(); st!= this->_listen_sockets.end(); st++)
+	{
+		ev.events = EPOLLIN;
+		ev.data.fd = (*st).first;
+		if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_ADD, (*st).first, &ev) == -1)
+			return (false) ;
+	}
+	return (true);
+}
+
 void Server::execute(){
 		std::map<int, int>::iterator	serv;
 		struct epoll_event	ev, event[10];
         int result, ready;
         int addrlen = sizeof(_address);
 
+		if (!this->epollSockets())
+			throw EpollCreateException();
 		std::memset(&ev, '\0', sizeof(struct epoll_event));
-
-		for (std::map<int, int>::iterator st = this->_listen_sockets.begin(); st!= this->_listen_sockets.end(); st++)
-		{
-			ev.events = EPOLLIN;
-			ev.data.fd = (*st).first;
-			if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_ADD, (*st).first, &ev) == -1)
-				throw EpollCreateException();
-		}
         while (true)
         {
 			ready = epoll_wait(this->_epoll_fd, event, 10, 1000);
+			if (g_code)
+				return ;
 			if (ready == -1)
 				throw EpollCreateException();
 			for (int i = 0; i < ready; i++)

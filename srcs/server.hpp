@@ -11,7 +11,10 @@
 #include <utility>
 #include <ctime>
 #include <cstring>
+#include <csignal>
 #define PORT 8080
+
+extern volatile std::sig_atomic_t g_code;
 
 class Server {
     public:
@@ -36,6 +39,7 @@ class Server {
 	std::map<int, Client>	_client_sockets;	//Accepted connections sockets: <fd, Client>
     struct sockaddr_in		_address;			// Address to bind to a socket
 
+	bool	epollSockets(void);
     class SocketCreationException : public std::exception {virtual const char* what() const throw(){return ("An error occured during socket creation");}};
     class BindException : public std::exception {virtual const char* what() const throw(){return ("An error occured during bind");}};
     class ListenException : public std::exception {virtual const char* what() const throw(){return ("An error occured during listen");}};
