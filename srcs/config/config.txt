@@ -9,9 +9,10 @@ server {
 
     client_body_buffer_size 200M;
 
-    cgi .php /usr/lib/cgi-bin/php .py /usr/lib/cgi-bin/python
+    cgi .php /usr/lib/cgi-bin/php .py /usr/lib/cgi-bin/python;
+    cgi .js /usr/lib/cgi-bin/javascript;
 
-
+    allow_method GET POST;
 
     location /images/ {
         root /my_images;

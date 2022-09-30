@@ -18,11 +18,9 @@ class Chunk_Infos {
         extract_client_body_buffer_size();
         extract_root();
         extract_allow_method();
+        extract_cgi();
 
         print_result();
-
-
-
     }
 
     void extract_location();
@@ -32,13 +30,7 @@ class Chunk_Infos {
     void extract_client_body_buffer_size();
     void extract_root();
     void extract_allow_method();
-
-
-
-
-
-
-
+    void extract_cgi();
 
     void print_result() {
         std::cout << "the address is: " << _address << std::endl;
@@ -58,8 +50,10 @@ class Chunk_Infos {
         for (std::list<std::string>::iterator it = _allow_method.begin(); it != _allow_method.end(); ++it)
             std::cout << *it << ", ";
         std::cout << std::endl;
+        for (std::list<std::pair<std::string, std::string> >::iterator it = _cgi.begin(); it != _cgi.end(); ++it)
+            std::cout << "cgi: " << it->first << " associated to path " << it->second << std::endl;
         for (std::list<std::string>::iterator it = _location_blocks.begin(); it != _location_blocks.end(); ++it)
-            std::cout << "Location block: " << *it << std::endl;
+            std::cout << "location block: " << *it << std::endl;
 
 
         std::ofstream ofs;
@@ -79,7 +73,7 @@ class Chunk_Infos {
     std::string _root;
     std::list<std::string> _location_blocks;
     std::list<std::string> _allow_method;
-    std::list<std::pair<std::list<std::string>, std::string> > _cgi;
+    std::list<std::pair<std::string, std::string> > _cgi;
 
     // bool is_http;
 };

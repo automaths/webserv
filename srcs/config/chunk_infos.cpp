@@ -144,6 +144,45 @@ void Chunk_Infos::extract_allow_method() {
     }
 }
 
+void Chunk_Infos::extract_cgi() {
+    std::list<std::string> content;
+    while (_chunk.find("cgi ", 0) != std::string::npos)
+    {
+        content.clear();
+        std::string cgi_dir = _chunk.substr(_chunk.find("cgi ", 0), _chunk.find_first_of(';', _chunk.find("cgi ", 0)) - _chunk.find("cgi ", 0));
+        //little trick here to stop while loop
+        _chunk.erase(_chunk.find("cgi ", 0), 1);
+        cgi_dir.erase(0, cgi_dir.find_first_of("cgi ") + 4);
+        while (cgi_dir.find_first_of(" \t\v\n\r\f", 0) == 0)
+            cgi_dir.erase(0, 1);
+        while (cgi_dir.size() != 0)
+        {  
+            if (cgi_dir.find_first_of(" \t\v\n\r\f", 0) != std::string::npos)
+            {
+                content.push_back(cgi_dir.substr(0, cgi_dir.find_first_of(" \t\v\n\r\f", 0)));
+                cgi_dir.erase(0, cgi_dir.find_first_of(" \t\v\n\r\f", 0));
+            }
+            else
+            {
+                content.push_back(cgi_dir.substr(0, cgi_dir.size()));
+                cgi_dir.erase(0, cgi_dir.size());
+            }
+            while(cgi_dir.find_first_of(" \t\v\n\r\f", 0) == 0)
+                cgi_dir.erase(0, 1);
+        }
+        for (std::list<std::string>::iterator it = content.begin(); it != content.end(); ++it)
+        {
+            if (++it != content.end())
+            {
+                _cgi.push_back(std::make_pair(*(--it), *(++it)));
+            }
+            else
+                --it;
+        }
+    }
+}
+
+
 void Chunk_Infos::extract_location() {
     while ((_chunk.find("location ", 0) >= 0) && (_chunk[_chunk.find_first_not_of(" \t\v\n\r\f", _chunk.find("location", 0) + 8)] == '/'))
     {
