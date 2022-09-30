@@ -6,7 +6,7 @@
 #    By: tnaton <marvin@42.fr>                      +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/09/27 13:15:29 by tnaton            #+#    #+#              #
-#    Updated: 2022/09/29 17:30:12 by bdetune          ###   ########.fr        #
+#    Updated: 2022/09/30 17:21:50 by bdetune          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -14,7 +14,7 @@ NAME = webserv
 
 OBJDIR := objs
 
-SRCS = webserv.cpp Request.cpp Response.cpp Client.cpp
+SRCS = webserv.cpp Request.cpp Response.cpp Client.cpp server.cpp
 
 INC = server.hpp Request.hpp Client.hpp Response.hpp
 
