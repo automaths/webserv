@@ -11,10 +11,11 @@
 class Server {
     public:
 
-    Server(){}
+    Server():_epoll_fd(-1){}
     ~Server()
 	{
-		close(this->_epoll_fd);
+		if (this->_epoll_fd != -1)
+			close(this->_epoll_fd);
 		for (std::map<int, int>::iterator st = this->_listen_sockets.begin(); st!= this->_listen_sockets.end(); st++)
 		{
 			close((*st).first);
@@ -54,10 +55,10 @@ class Server {
         int result;
         int addrlen = sizeof(_address);
 
-		std::memset(event, '\0', (sizeof(struct epoll_event) * 10));
+//		std::memset(event, '\0', (sizeof(struct epoll_event) * 10));
 		std::memset(&ev, '\0', sizeof(struct epoll_event));
 
-		for (std::map<int, int>::const_iterator st = this->_listen_sockets.begin(); st!= this->_listen_sockets.end(); st++)
+		for (std::map<int, int>::iterator st = this->_listen_sockets.begin(); st!= this->_listen_sockets.end(); st++)
 		{
 			ev.events = EPOLLIN;
 			ev.data.fd = (*st).first;
@@ -101,16 +102,17 @@ class Server {
 					{
 						buffer[recvret] = '\0';
 						result = this->_client_sockets[event[i].data.fd].addToRequest(std::string(buffer));
-						if (result == -1)
+						std::cerr << "Result parsing: " << result << std::endl;
+						if (result == 200)
 						{
-							this->_client_sockets[event[i].data.fd].getResponse() = Response(this->_client_sockets[event[i].data.fd].getRequest(), 400);
+							this->_client_sockets[event[i].data.fd].getResponse() = Response(this->_client_sockets[event[i].data.fd].getRequest());
 							event[i].events = EPOLLOUT;
 							if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_MOD, event[i].data.fd, &event[i]) == -1)
 								throw EpollCreateException();
 						}
-						else if (result == 1)
+						else if (result)
 						{
-							this->_client_sockets[event[i].data.fd].getResponse() = Response(this->_client_sockets[event[i].data.fd].getRequest());
+							this->_client_sockets[event[i].data.fd].getResponse() = Response(this->_client_sockets[event[i].data.fd].getRequest(), 400);
 							event[i].events = EPOLLOUT;
 							if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_MOD, event[i].data.fd, &event[i]) == -1)
 								throw EpollCreateException();
