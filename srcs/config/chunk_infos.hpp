@@ -42,6 +42,8 @@ class Chunk_Infos {
         extract_root();
         extract_allow_method();
         extract_cgi();
+        extract_index();
+        extract_autoindex();
 
         print_result();
     }
@@ -54,6 +56,8 @@ class Chunk_Infos {
     void extract_root();
     void extract_allow_method();
     void extract_cgi();
+    void extract_index();
+    void extract_autoindex();
 
     void print_result();
 
@@ -64,16 +68,14 @@ class Chunk_Infos {
     std::string _address;
     std::string _port;
     std::list<std::string> _server_names;
-
-    //map instead
-    std::list<std::pair<std::list<std::string>, std::string> > _default_error_pages;
-    
-    
+    std::list<std::string> _index;
     std::string _client_body_buffer_size;
+    std::string _autoindex;
     std::string _root;
     std::list<std::string> _location_blocks;
     std::list<std::string> _allow_method;
     std::list<std::pair<std::string, std::string> > _cgi;
+    std::map<std::string, std::string> _default_error_pages;
 
     // bool is_http;
 };
