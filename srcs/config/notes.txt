@@ -1,3 +1,0 @@
-Comments on parsing:
-
-if the keyword isn't followed by a space the request is not parsed
