@@ -52,7 +52,7 @@ class Server {
     void execute(){
 		std::map<int, int>::iterator	serv;
 		struct epoll_event	ev, event[10];
-        int result;
+        int result, ready;
         int addrlen = sizeof(_address);
 
 //		std::memset(event, '\0', (sizeof(struct epoll_event) * 10));
@@ -67,10 +67,10 @@ class Server {
 		}
         while (true)
         {
-			result = epoll_wait(this->_epoll_fd, event, 10, 1000);
-			if (result == -1)
+			ready = epoll_wait(this->_epoll_fd, event, 10, 1000);
+			if (ready == -1)
 				throw EpollCreateException();
-			for (int i = 0; i < result; i++)
+			for (int i = 0; i < ready; i++)
 			{
 				if ((serv = this->_listen_sockets.find(event[i].data.fd)) != this->_listen_sockets.end())
 				{
