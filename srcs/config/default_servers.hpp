@@ -92,6 +92,7 @@ class Default_Unit_Infos {
         {
             // _address = "localhost";
             _port = "6000";
+            _server_name = "server_one";
             _locations.push_back(Default_Location_Infos(1));
             _client_body_max_size = "200M";
             _default_error_pages.push_back(Default_Error_Page_Infos("404", "/error_page_one.html"));
@@ -100,6 +101,7 @@ class Default_Unit_Infos {
         {
             // _address = "*";
             _port = "7000";
+            _server_name = "server_two";
             _locations.push_back(Default_Location_Infos(2));
             _client_body_max_size = "300M";
             _default_error_pages.push_back(Default_Error_Page_Infos("401", "/error_page_two.html"));
@@ -108,6 +110,7 @@ class Default_Unit_Infos {
         {
             // _address ="127.0.0.1" ;
             _port = "8000";
+            _server_name = "server_three";
             _locations.push_back(Default_Location_Infos(3));
             _client_body_max_size = "400M";
             _default_error_pages.push_back(Default_Error_Page_Infos("402", "/error_page_three.html"));
@@ -124,6 +127,7 @@ class Default_Unit_Infos {
 
     // std::string _address;
     std::string _port;
+    std::string _server_name;
     std::list<Default_Location_Infos> _locations;
     std::list<Default_Error_Page_Infos> _default_error_pages;
     std::string _client_body_max_size;

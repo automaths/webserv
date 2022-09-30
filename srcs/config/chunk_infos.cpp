@@ -182,6 +182,34 @@ void Chunk_Infos::extract_cgi() {
     }
 }
 
+void Chunk_Infos::print_result() {
+    std::cout << "the address is: " << _address << std::endl;
+    std::cout << "the port is: " << _port << std::endl;
+    for (std::list<std::string>::iterator it = _server_names.begin(); it != _server_names.end(); ++it)
+        std::cout << "server_name: " << *it << std::endl;
+    for (std::list<std::pair<std::list<std::string>, std::string> >::iterator it = _default_error_pages.begin(); it != _default_error_pages.end(); ++it)
+    {
+        std::cout << "error pages: " << std::endl;
+        for (std::list<std::string>::iterator ite = it->first.begin(); ite != it->first.end(); ++ite)
+            std::cout << "  error number: " << *ite << std::endl;
+        std::cout << "  path: " << it->second << std::endl;
+    }
+    std::cout << "body max: " << _client_body_buffer_size << std::endl;
+    std::cout << "root: " << _root << std::endl;
+    std::cout << "allowed method: ";
+    for (std::list<std::string>::iterator it = _allow_method.begin(); it != _allow_method.end(); ++it)
+        std::cout << *it << ", ";
+    std::cout << std::endl;
+    for (std::list<std::pair<std::string, std::string> >::iterator it = _cgi.begin(); it != _cgi.end(); ++it)
+        std::cout << "cgi: " << it->first << " associated to path " << it->second << std::endl;
+    for (std::list<std::string>::iterator it = _location_blocks.begin(); it != _location_blocks.end(); ++it)
+        std::cout << "location block: " << *it << std::endl;
+
+    std::ofstream ofs;
+    ofs.open("config_result.txt");
+    ofs << _chunk;
+}
+
 
 void Chunk_Infos::extract_location() {
     while ((_chunk.find("location ", 0) >= 0) && (_chunk[_chunk.find_first_not_of(" \t\v\n\r\f", _chunk.find("location", 0) + 8)] == '/'))
