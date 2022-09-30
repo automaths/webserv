@@ -6,11 +6,14 @@
 /*   By: tnaton <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:32:13 by tnaton            #+#    #+#             */
-/*   Updated: 2022/09/29 19:57:05 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/09/30 21:54:10 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Request.hpp"
+#define NPOS std::string::npos
+#define NOT_OLD _version!="HTTP/1.0"
+#define NOT_NEW _version!="HTTP/1.1"
 
 Request::Request(void): _type(""), _version("HTTP/1.0"), _file(""), _body(""), _buff(""), _headers() {
 }
@@ -26,7 +29,7 @@ std::string tolower(std::string & str) {
 int Request::checkType(std::string & type) {
 	unsigned long i = 0;
 
-	if (type.find(" ") == std::string::npos) {
+	if (type.find(" ") == NPOS) {
 		return (1);
 	}
 	if (!type.find(GET) || !type.find(POST) || !type.find(DELETE)) {
@@ -46,14 +49,14 @@ int Request::checkType(std::string & type) {
 				return (1);
 			}
 			std::string tmp = _version.substr(5);
-			if (static_cast<std::string>("123456789").find(tmp[0]) == std::string::npos)
+			if (static_cast<std::string>("123456789").find(tmp[0]) == NPOS)
 				return (1);
 			if (tmp == "1")
 				return (1);
-			if (tmp.find_first_not_of("0123456789.") != std::string::npos)
+			if (tmp.find_first_not_of("0123456789.") != NPOS)
 				return (1);
 			std::string tmp2 = tmp.substr(tmp.find(".") + 1);
-			if (tmp2 != tmp && (tmp2 == "" || tmp2.find_first_not_of("0123456789") != std::string::npos))
+			if (tmp2 != tmp && (tmp2 == "" || tmp2.find_first_not_of("0123456789") != NPOS))
 				return (1);
 		}
 		if (!_type.size() || !_file.size())
@@ -64,21 +67,33 @@ int Request::checkType(std::string & type) {
 }
 
 void Request::parseHeaders(void) {
-	std::map<std::string, std::list<std::string> >::iterator first = _headers.begin();
-	while (first != _headers.end()) {
-		std::cout << "Key :" << first->first << std::endl;
-		std::list<std::string>::iterator list = first->second.begin();
-		while (list != first->second.end()) {
-			std::cout << "Val :" << *list << std::endl;
-			list++;
+	std::map<std::string, std::list<std::string> >::iterator map = _headers.begin();
+
+	if (NOT_OLD) {
+		std::string & tmp = _headers["host"].front();
+		tmp = tmp.substr(0, tmp.find(":"));
+	}
+	while (map != _headers.end()) {
+		std::cout << "Key :" << map->first << std::endl;
+		std::list<std::string>::iterator val = map->second.begin();
+		while (val != map->second.end()) {
+			if (val->find(",") != NPOS) {
+				std::string tmp = val->substr(val->find(",") + 1);
+				map->second.push_back(tmp.substr(tmp.find_first_not_of(" "), tmp.find_last_not_of(" ") + 1));
+				*val = val->erase(val->find(","));
+				*val = val->substr(val->find_first_not_of(" "), val->find_last_not_of(" ") + 1);
+			}
+			std::cout << "Val :" << *val << std::endl;
+			val++;
 		}
-		first++;
+		map++;
 	}
 }
 
 int Request::parseChunk(std::string & chunk) {
 	std::string line;
 
+	std::cerr << "Chunk in parsing : " << chunk << std::endl;
 		if (!_type.size()) {
 			do {
 				line = chunk.substr(0, chunk.find("\r\n"));
@@ -86,7 +101,7 @@ int Request::parseChunk(std::string & chunk) {
 				if (line != "") {
 					if (checkType(line)) {
 						return (400);
-					} else if (_version.substr(5) != "1.1" && _version.substr(5) != "1.0") {
+					} else if (NOT_NEW && NOT_OLD) {
 						return (505);
 					}
 					break;
@@ -106,15 +121,15 @@ int Request::parseChunk(std::string & chunk) {
 				if (_type == POST) {
 					_body = chunk;
 				}
-				if (_headers.find("host") == _headers.end())
+				if (_headers.find("host") == _headers.end() && NOT_OLD)
 					return (400);
 				return (parseHeaders(), 200);
 			}
-			key = line.substr(0, (line.find(":") == std::string::npos) ? line.size() : line.find(":"));
+			key = line.substr(0, (line.find(":") == NPOS) ? line.size() : line.find(":"));
 			key = tolower(key);
-			(line.find(":") == std::string::npos) ? line.erase(0, (key.size())) : line.erase(0, (key.size() + 1));
-			val = line;
-			if (key.find(" ") != std::string::npos) {
+			(line.find(":") == NPOS) ? line.erase(0, (key.size())) : line.erase(0, (key.size() + 1));
+			val = line.substr(line.find_first_not_of(" "), line.find_last_not_of(" ") - line.find_first_not_of(" ") + 1);
+			if (key.find(" ") != NPOS) {
 				return (400);
 			} if (key == "host") {
 				if (val == "" || _headers.find(key) != _headers.end()) {
