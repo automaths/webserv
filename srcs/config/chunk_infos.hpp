@@ -44,6 +44,7 @@ class Chunk_Infos {
         extract_cgi();
         extract_index();
         extract_autoindex();
+        extract_try_files();
 
         print_result();
     }
@@ -59,6 +60,33 @@ class Chunk_Infos {
     void extract_index();
     void extract_autoindex();
 
+    void extract_try_files() {
+        if (_chunk.find("try_files ", 0) != std::string::npos)
+        {
+            std::string try_files_dir = _chunk.substr(_chunk.find("try_files ", 0), _chunk.find_first_of(';', _chunk.find("try_files ", 0)) - _chunk.find("try_files ", 0));
+            try_files_dir.erase(0, try_files_dir.find_first_of("try_files ") + 10);
+            while (try_files_dir.find_first_of(" \t\v\n\r\f", 0) == 0)
+                try_files_dir.erase(0, 1);
+            while (try_files_dir.size() != 0)
+            {  
+                if (try_files_dir.find_first_of(" \t\v\n\r\f", 0) != std::string::npos)
+                {
+                    _try_files.push_back(try_files_dir.substr(0, try_files_dir.find_first_of(" \t\v\n\r\f", 0)));
+                    try_files_dir.erase(0, try_files_dir.find_first_of(" \t\v\n\r\f", 0));
+                }
+                else
+                {
+                    _try_files.push_back(try_files_dir.substr(0, try_files_dir.size()));
+                    try_files_dir.erase(0, try_files_dir.size());
+                }
+                while(try_files_dir.find_first_of(" \t\v\n\r\f", 0) == 0)
+                    try_files_dir.erase(0, 1);
+            }
+        }
+        else
+            _try_files.push_back("");
+    }
+
     void print_result();
 
     private:
@@ -68,6 +96,7 @@ class Chunk_Infos {
     std::string _address;
     std::string _port;
     std::list<std::string> _server_names;
+    std::list<std::string> _try_files;
     std::list<std::string> _index;
     std::string _client_body_buffer_size;
     std::string _autoindex;

@@ -252,6 +252,13 @@ void Chunk_Infos::print_result() {
     for (std::list<std::pair<std::string, std::string> >::iterator it = _cgi.begin(); it != _cgi.end(); ++it)
         std::cout << "cgi: " << it->first << " associated to path " << it->second << std::endl;
     std::cout << "autoindex: " << _autoindex << std::endl;
+    for (std::list<std::string>::iterator it = _try_files.begin(); it != _try_files.end(); ++it)
+    {
+        if (++it != _try_files.end())
+            std::cout << "try_files: " << *(--it) << std::endl;
+        else
+            std::cout << "try_files (fallback): " << *(--it) << std::endl;
+    }
     for (std::list<std::string>::iterator it = _location_blocks.begin(); it != _location_blocks.end(); ++it)
         std::cout << "location block: " << *it << std::endl;
 

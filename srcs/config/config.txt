@@ -18,6 +18,7 @@ server {
 
     autoindex on;
 
+    try_files /example/index.html /other/ /default/index.html;
 
     location /images/ {
         root /my_images;

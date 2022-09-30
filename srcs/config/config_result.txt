@@ -15,8 +15,9 @@ server {
 
     llow_method GET POST;
 
-    autoindex onf ;
+    autoindex on;
 
+    try_files /example/index.html /other/ /default/index.html;
 
     
 
