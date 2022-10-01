@@ -6,7 +6,7 @@
 /*   By: tnaton <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:32:13 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/01 15:30:41 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/01 17:20:57 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -128,7 +128,9 @@ int Request::parseChunk(std::string & chunk) {
 			key = line.substr(0, (line.find(":") == NPOS) ? line.size() : line.find(":"));
 			key = tolower(key);
 			(line.find(":") == NPOS) ? line.erase(0, (key.size())) : line.erase(0, (key.size() + 1));
-			val = line.substr(line.find_first_not_of(" "), line.find_last_not_of(" ") - line.find_first_not_of(" ") + 1);
+			val = line;
+			if (val.size())
+				val = line.substr(line.find_first_not_of(" "), line.find_last_not_of(" ") - line.find_first_not_of(" ") + 1);
 			if (key.find(" ") != NPOS) {
 				return (400);
 			} if (key == "host") {

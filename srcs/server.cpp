@@ -6,7 +6,7 @@
 /*   By: bdetune <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/28 13:45:50 by bdetune           #+#    #+#             */
-/*   Updated: 2022/09/30 20:26:25 by bdetune          ###   ########.fr       */
+/*   Updated: 2022/10/01 17:07:32 by bdetune          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,11 +21,12 @@ Server::~Server(void)
 {
 	if (this->_epoll_fd != -1)
 		close(this->_epoll_fd);
-	for (std::map<int, int>::iterator st = this->_listen_sockets.begin(); st!= this->_listen_sockets.end(); st++)
+	for (std::map<int, Client>::iterator st = this->_client_sockets.begin(); st!= this->_client_sockets.end(); st++)
 	{
+		shutdown((*st).first, SHUT_RDWR);
 		close((*st).first);
 	}
-	for (std::map<int, Client>::iterator st = this->_client_sockets.begin(); st!= this->_client_sockets.end(); st++)
+	for (std::map<int, int>::iterator st = this->_listen_sockets.begin(); st!= this->_listen_sockets.end(); st++)
 	{
 		close((*st).first);
 	}
@@ -41,12 +42,15 @@ struct sockaddr_in Server::getAddr(void)
 void Server::initing(void)
 {
 	int	_server_fd;
+	int	enable = 1;
         if ((_server_fd = socket(AF_INET, SOCK_STREAM, 0)) == -1) // creating the socket
             throw SocketCreationException();
         _address.sin_family = AF_INET; // socket configuration
         _address.sin_addr.s_addr = INADDR_ANY;
         _address.sin_port = htons( PORT );
         memset(_address.sin_zero, '\0', sizeof _address.sin_zero); // applying configurations on the created socket
+		if (setsockopt(_server_fd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)))
+            throw BindException();
         if (bind(_server_fd, (struct sockaddr *)&_address, sizeof(_address)) < 0)
             throw BindException();
         if (listen(_server_fd, 10) < 0) // opening the socket to the port
@@ -118,7 +122,14 @@ void Server::execute(){
 					else
 					{
 						buffer[recvret] = '\0';
-						result = this->_client_sockets[event[i].data.fd].addToRequest(std::string(buffer));
+						try
+						{
+							result = this->_client_sockets[event[i].data.fd].addToRequest(std::string(buffer));
+						}
+						catch (std::exception const & e)
+						{
+							std::cerr << "Parsing error: " << e.what() << std::endl;
+						}
 						std::cerr << "Result parsing: " << result << std::endl;
 						if (result == 200)
 						{
