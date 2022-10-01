@@ -1,61 +1,17 @@
 #include "library.hpp"
-#include "chunk_infos.hpp"
+#include "location_infos.hpp"
 
-void ChunkInfos::extract_listen(std::string directive){
-    directive.erase(0, directive.find("listen") + 6);
-    if (directive.find_first_of(':') != std::string::npos)
-    {
-        _address = directive.substr(0, directive.find_first_of(':'));
-        directive.erase(0, directive.find_first_of(':') + 1);
-        _port = directive;
-    }
-    else
-    {
-        if (directive.find_first_not_of("\t\v\n\r\f 0123456789") == std::string::npos)
-        {
-            _port = directive;
-            _address = "*";
-        }
-        else
-        {
-            _port = "80";
-            _address = directive;
-        }
-    }
-}
-
-void ChunkInfos::extract_server_name(std::string directive) {
-    directive.erase(0, directive.find("server_name") + 11);
-    while(directive.find_first_not_of(" \t\v\n\r\f") == 0)
-        directive.erase(0, 1);
-    while (directive.size() != 0)
-    {  
-        if (directive.find_first_of(" \t\v\n\r\f") != std::string::npos)
-        {
-            _server_names.push_back(directive.substr(0, directive.find_first_of(" \t\v\n\r\f")));
-            directive.erase(0, directive.find_first_of(" \t\v\n\r\f"));
-        }
-        else
-        {
-            _server_names.push_back(directive.substr(0, directive.size()));
-            directive.erase(0, directive.size());
-        }
-        while(directive.find_first_of(" \t\v\n\r\f") == 0)
-            directive.erase(0, 1);
-    }
-}
-
-void ChunkInfos::extract_client_body_buffer_size(std::string directive) {
+void LocationInfos::extract_client_body_buffer_size(std::string directive) {
     directive.erase(0, directive.find("client_body_buffer_size") + 23);
     _client_body_buffer_size = directive.substr(directive.find_first_not_of("\t\v\n\r\f "), directive.find_first_of("\t\v\n\r\f ", directive.find_first_not_of("\t\v\n\r\f ")));
 }
 
-void ChunkInfos::extract_root(std::string directive) {
+void LocationInfos::extract_root(std::string directive) {
     directive.erase(0, directive.find_first_of("root") + 4);
     _root = directive.substr(directive.find_first_not_of("\t\v\n\r\f "), directive.find_first_of("\t\v\n\r\f ", directive.find_first_not_of("\t\v\n\r\f ")));
 }
 
-void ChunkInfos::extract_allow_method(std::string directive) {
+void LocationInfos::extract_allow_method(std::string directive) {
     directive.erase(0, directive.find("allow_method") + 12);
     while (directive.find_first_of(" \t\v\n\r\f") == 0)
         directive.erase(0, 1);
@@ -76,7 +32,7 @@ void ChunkInfos::extract_allow_method(std::string directive) {
     }
 }
 
-void ChunkInfos::extract_cgi(std::string cgi_dir) {
+void LocationInfos::extract_cgi(std::string cgi_dir) {
     std::list<std::string> content;
     cgi_dir.erase(0, cgi_dir.find_first_of("cgi") + 3);
     while (cgi_dir.find_first_of(" \t\v\n\r\f") == 0)
@@ -107,7 +63,7 @@ void ChunkInfos::extract_cgi(std::string cgi_dir) {
     }
 }
 
-void ChunkInfos::extract_index(std::string index_dir) {
+void LocationInfos::extract_index(std::string index_dir) {
     index_dir.erase(0, index_dir.find("index") + 5);
     while (index_dir.find_first_of(" \t\v\n\r\f") == 0)
         index_dir.erase(0, 1);
@@ -128,7 +84,7 @@ void ChunkInfos::extract_index(std::string index_dir) {
     }
 }
 
-void ChunkInfos::extract_default_error_pages(std::string error_page_dir) {
+void LocationInfos::extract_default_error_pages(std::string error_page_dir) {
     error_page_dir.erase(0, error_page_dir.find("error_page") + 10);
     while (error_page_dir.find_first_of(" \t\v\n\r\f") == 0)
         error_page_dir.erase(0, 1);
@@ -155,14 +111,14 @@ void ChunkInfos::extract_default_error_pages(std::string error_page_dir) {
         _default_error_pages.insert(std::make_pair(*it, path));
 }
 
-void ChunkInfos::extract_autoindex(std::string autoindex_dir) {
+void LocationInfos::extract_autoindex(std::string autoindex_dir) {
     autoindex_dir.erase(0, autoindex_dir.find("autoindex ") + 9);
     _autoindex = autoindex_dir.substr(autoindex_dir.find_first_not_of("\t\v\n\r\f ", 0), autoindex_dir.find_first_of("\t\v\n\r\f ", autoindex_dir.find_first_not_of("\t\v\n\r\f ", 0)));
     if (_autoindex.compare("on") != 0)
         _autoindex = "off";
 }
 
-void ChunkInfos::extract_try_files(std::string try_files_dir) {
+void LocationInfos::extract_try_files(std::string try_files_dir) {
     try_files_dir.erase(0, try_files_dir.find("try_files") + 9);
     while (try_files_dir.find_first_of(" \t\v\n\r\f") == 0)
         try_files_dir.erase(0, 1);
@@ -183,42 +139,38 @@ void ChunkInfos::extract_try_files(std::string try_files_dir) {
     }
 }
 
-void ChunkInfos::extract_location_blocks() {  
+void LocationInfos::extract_location_blocks() {  
     std::string copy = _chunk;
     while (copy.find(';', 0) != std::string::npos || copy.find('}') != std::string::npos)
     {
         if (copy.find('}', 0) == std::string::npos)
         {
-            while (copy.find(';') > 0 && copy.find(';') != std::string::npos)
+            while (copy.find(';') > 0)
                 copy.erase(0, 1);
-            if (copy.size() > 0)
-                copy.erase(0, 1);
+            copy.erase(0, 1);
         }
         else if (copy.find(';', 0) == std::string::npos)
         {
-            while (copy.find('}') > 0 && copy.find('}') != std::string::npos)
+            while (copy.find('}') > 0)
                 copy.erase(0, 1);
-            if (copy.size() > 0)
-                copy.erase(0, 1);
+            copy.erase(0, 1);
         }
         else 
         {
             if (copy.find(';', 0) < copy.find('}', 0))
             {
-                while (copy.find(';') > 0 && copy.find(';') != std::string::npos)
+                while (copy.find(';') > 0)
                     copy.erase(0, 1);
-                if (copy.size() > 0)
-                    copy.erase(0, 1);
+                copy.erase(0, 1);
             }
             else
             {
-                while (copy.find('}') > 0 && copy.find('}') != std::string::npos)
-                    copy.erase(0, 1);   
-                if (copy.size() > 0)
+                while (copy.find('}') > 0)
                     copy.erase(0, 1);
+                copy.erase(0, 1);
             }
         }
-        if (copy.find_first_not_of("\t\v\n\r\f ") == copy.find("location") && copy.find("location") != std::string::npos)
+        if (copy.find_first_not_of("\t\v\n\r\f ", 0) == copy.find("location", 0) && copy.find("location", 0) != std::string::npos)
         {
             std::string::iterator it = copy.begin();
             for (unsigned int i = 0; i < copy.find("location", 0) + 1; ++i)
@@ -243,12 +195,12 @@ void ChunkInfos::extract_location_blocks() {
                 ++tmp;
             }
             _location_blocks.push_back(copy.substr(copy.find("location", 0), n + 1));
-            _chunk.erase(copy.find("location", 0), n + 1);
+            _chunk.erase(_chunk.find(_location_blocks.back(), 0), _location_blocks.back().size());
         }
     }
 }
 
-void ChunkInfos::extract_lines() {
+void LocationInfos::extract_lines() {
     while (_chunk.find(';', 0) != std::string::npos)
     {
         _directives.push_back(_chunk.substr(0, _chunk.find(';')));
@@ -256,7 +208,7 @@ void ChunkInfos::extract_lines() {
     }
 }
 
-void ChunkInfos::extract_rules(std::string rule)
+void LocationInfos::extract_rules(std::string rule)
 {
     for (unsigned int i = 0; i < 10; ++i)
     {
@@ -269,15 +221,15 @@ void ChunkInfos::extract_rules(std::string rule)
     }
 }
 
-void ChunkInfos::clean_comments_header()
+void LocationInfos::extract_main_path()
 {
-    _chunk.erase(0, _chunk.find_first_of('{', 0) + 1);
+    _chunk.erase(0, _chunk.find("location") + 8);
+    _main_path = _chunk.substr(0, _chunk.find('{'));
+    _chunk.erase(0, _chunk.find('{') + 1);
     _chunk.erase(_chunk.find_last_of('}'), 1);
-    while (_chunk.find('#', 0) != std::string::npos)
-        _chunk.erase(_chunk.find('#', 0), _chunk.find_first_of('\n', _chunk.find('#', 0)) - _chunk.find('#', 0));
 }
 
-void ChunkInfos::extract_directives() {
+void LocationInfos::extract_directives() {
     while (_directives.size() != 0)
     {
         extract_rules(_directives.back());
@@ -285,23 +237,15 @@ void ChunkInfos::extract_directives() {
     }
 }
 
-void ChunkInfos::apply_default() {
-    if (_address.size() == 0)
-    {
-        _address = "*";
-        _port = "80";           
-    }
+void LocationInfos::apply_default() {
     if (_root.size() == 0)
         _root = "html";
     if(_autoindex.size() == 0)
         _autoindex = "off";
 }
 
-void ChunkInfos::print_result() {
-    std::cout << "the address is: " << _address << std::endl;
-    std::cout << "the port is: " << _port << std::endl;
-    for (std::list<std::string>::iterator it = _server_names.begin(); it != _server_names.end(); ++it)
-        std::cout << "server_name: " << *it << std::endl;
+void LocationInfos::print_result() {
+    std::cout << "main path: " << _main_path << std::endl;
     for (std::list<std::string>::iterator it = _index.begin(); it != _index.end(); ++it)
         std::cout << "index: " << *it << std::endl;
     for (std::map<std::string, std::string>::iterator it = _default_error_pages.begin(); it != _default_error_pages.end(); ++it)
@@ -324,6 +268,8 @@ void ChunkInfos::print_result() {
     }
     for (std::list<std::string>::iterator it = _location_blocks.begin(); it != _location_blocks.end(); ++it)
         std::cout << "location block: " << *it << std::endl;
+
+    std::cout << "\n\n" << std::endl;
 
     // std::ofstream ofs;
     // ofs.open("config_result.txt");

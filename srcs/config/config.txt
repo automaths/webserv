@@ -24,14 +24,19 @@ server {
     #fsdkljgsdf
 
     location /images/ {
-        root /my_images
-        index index.html index.htm
-        allow_method GET POST HEAD
-        allow_method PUT
+        root /my_images;
+        index index.html index.htm;
+        allow_method GET POST HEAD;
+        allow_method PUT;
     } #asdfajsdfkl
 
     location /videos/ {
-        root /my_videos
+        root /my_videos;
+
+        location /coucou/ {
+            allow_method GET;
+        }
+
     }
     root /my_root; #flkdjafasfasdfa
 

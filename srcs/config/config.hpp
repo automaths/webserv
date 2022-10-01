@@ -85,7 +85,7 @@ class Config {
             }
         }
 
-        Chunk_Infos(_chunks.front());
+        ChunkInfos(_chunks.front());
 
         // int n = 1;
         // std::ofstream ofs;
@@ -118,7 +118,7 @@ class Config {
 
     std::string _file;
     std::list<std::string> _chunks;
-    std::list<Chunk_Infos> _extracted_chunks;
+    std::list<ChunkInfos> _extracted_chunks;
 
     // std::list<Serv> servers;
 

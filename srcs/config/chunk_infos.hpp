@@ -23,162 +23,86 @@
         // votre serveur devrait fonctionner avec un seul CGI (phpCGI, Python, etc.). Vous devez fournir des fichiers de configuration et des fichiers de base par défaut pour tester et démontrer que chaque fonctionnalité fonctionne pendant lévaluation.
 
 #include "library.hpp"
+#include "location_infos.hpp"
 
-class Chunk_Infos {
+class ChunkInfos {
 
     public:
 
-    Chunk_Infos(){}
-    ~Chunk_Infos(){}
-
-    class Harl{
-    std::string level[4];
-    void    (Harl::*exec[4])(void);
-    void debug(void);
-    void info(void);
-    void warning(void);
-    void error(void);
-    public: 
-    Harl();
-    ~Harl();
-    void complain(std::string level);
-};
-
-    Chunk_Infos(std::string str){
+    ChunkInfos(){}
+    ~ChunkInfos(){}
+    ChunkInfos(std::string str){
         _chunk = str;
-
-        _chunk.erase(0, _chunk.find_first_of('{', 0) + 1);
-        _chunk.erase(_chunk.find_last_of('}'), 1);
-        while (_chunk.find('#', 0) != std::string::npos)
-            _chunk.erase(_chunk.find('#', 0), _chunk.find_first_of('\n', _chunk.find('#', 0)) - _chunk.find('#', 0));
-
+        clean_comments_header();
         extract_location_blocks();
+        extract_lines();
+        _directive_types[0] = "listen";
+        _directive_types[1] = "server_name";
+        _directive_types[2] = "error_page";
+        _directive_types[3] = "client_body_buffer_size";
+        _directive_types[4] = "root";
+        _directive_types[5] = "allow_method";
+        _directive_types[6] = "cgi";
+        _directive_types[7] = "index";
+        _directive_types[8] = "autoindex";
+        _directive_types[9] = "try_files";
+        exec[0] = &ChunkInfos::extract_listen;
+        exec[1] = &ChunkInfos::extract_server_name;
+        exec[2] = &ChunkInfos::extract_default_error_pages;
+        exec[3] = &ChunkInfos::extract_client_body_buffer_size;
+        exec[4] = &ChunkInfos::extract_root;
+        exec[5] = &ChunkInfos::extract_allow_method;
+        exec[6] = &ChunkInfos::extract_cgi;
+        exec[7] = &ChunkInfos::extract_index;
+        exec[8] = &ChunkInfos::extract_autoindex;
+        exec[9] = &ChunkInfos::extract_try_files;
         extract_directives();
-
-        while (_directives.size() != 0)
+        apply_default();
+        while (_location_blocks.size() != 0)
         {
-            if (_directives.back().find("listen") == _directives.back().find_first_not_of("\t\v\n\r\f "))
-            {
-                if (_directives.back().find_first_of("\t\v\n\r\f ", _directives.back().find("listen")) == (_directives.back().find("listen") + 6))
-                    extract_listen(_directives.back());
-            }
-            else if (_directives.back().find("server_name") == _directives.back().find_first_not_of("\t\v\n\r\f "))
-            {
-                if (_directives.back().find_first_of("\t\v\n\r\f ", _directives.back().find("server_name")) == (_directives.back().find("server_name") + 11))
-                    extract_server_name(_directives.back());
-            }
-            else if (_directives.back().find("error_page") == _directives.back().find_first_not_of("\t\v\n\r\f "))
-            {
-                if (_directives.back().find_first_of("\t\v\n\r\f ", _directives.back().find("error_page")) == (_directives.back().find("error_page") + 10))
-                    extract_default_error_pages(_directives.back());
-            }
-            else if (_directives.back().find("client_body_buffer_size") == _directives.back().find_first_not_of("\t\v\n\r\f "))
-            {
-                if (_directives.back().find_first_of("\t\v\n\r\f ", _directives.back().find("client_body_buffer_size")) == (_directives.back().find("client_body_buffer_size") + 23))
-                    extract_client_body_buffer_size(_directives.back());
-            }
-            else if (_directives.back().find("root") == _directives.back().find_first_not_of("\t\v\n\r\f "))
-            {
-                if (_directives.back().find_first_of("\t\v\n\r\f ", _directives.back().find("root")) == (_directives.back().find("root") + 4))
-                   extract_root(_directives.back());
-            }
-            else if (_directives.back().find("allow_method") == _directives.back().find_first_not_of("\t\v\n\r\f "))
-            {
-                if (_directives.back().find_first_of("\t\v\n\r\f ", _directives.back().find("allow_method")) == (_directives.back().find("allow_method") + 12))
-                    extract_allow_method(_directives.back());
-            }
-            else if (_directives.back().find("cgi") == _directives.back().find_first_not_of("\t\v\n\r\f "))
-            {
-                if (_directives.back().find_first_of("\t\v\n\r\f ", _directives.back().find("cgi")) == (_directives.back().find("cgi") + 3))
-                    extract_cgi(_directives.back());
-            }
-            else if (_directives.back().find("index") == _directives.back().find_first_not_of("\t\v\n\r\f "))
-            {
-                if (_directives.back().find_first_of("\t\v\n\r\f ", _directives.back().find("index")) == (_directives.back().find("index") + 5))
-                    extract_index(_directives.back());
-            }
-            else if (_directives.back().find("autoindex") == _directives.back().find_first_not_of("\t\v\n\r\f "))
-            {
-                if (_directives.back().find_first_of("\t\v\n\r\f ", _directives.back().find("autoindex")) == (_directives.back().find("autoindex") + 9))
-                    extract_autoindex(_directives.back());
-            }
-            else if (_directives.back().find("try_files") == _directives.back().find_first_not_of("\t\v\n\r\f "))
-            {
-                if (_directives.back().find_first_of("\t\v\n\r\f ", _directives.back().find("try_files")) == (_directives.back().find("try_files") + 9))
-                    extract_try_files(_directives.back());
-            }
-            _directives.pop_back();
+            _locations.push_back(LocationInfos(_location_blocks.front()));
+            _location_blocks.pop_front();
         }
-
-        if (_address.size() == 0)
-        {
-            _address = "*";
-            _port = "80";           
-        }
-        if (_root.size() == 0)
-            _root = "html";
-        if(_autoindex.size() == 0)
-            _autoindex = "off";
-        // std::ofstream ofs;
-        // ofs.open("config_result.txt");
-        // ofs << _chunk;
-
-        // int n = 1;
-        // for (std::list<std::string>::iterator it = _directives.begin(); it != _directives.end(); ++it)
-        //     ofs << "\nthe line " << n++ << " is:\n" << *it << std::endl;;
-
-        print_result();
+        // print_result();
     }
 
-    // void extract_location() {
-    //     if (_chunk.first_first)
-    // }
-
     void extract_location_blocks();
+    void extract_lines();
     void extract_directives();
-
-    void extract_listen(std::string listen_dir);
-    void extract_server_name(std::string server_name_dir);
-    void extract_default_error_pages(std::string _error_page_dir);
-    void extract_client_body_buffer_size(std::string body_max_dir);
-    void extract_root(std::string root_dir);
-    void extract_allow_method(std::string allow_method_dir);
-    void extract_cgi(std::string cgi_dir);
-    void extract_index(std::string index_dir);
-    void extract_autoindex(std::string autoindex_dir);
-    void extract_try_files(std::string try_files_dir);
-
+    void clean_comments_header();
+    void extract_rules(std::string rule);
+    void apply_default();
     void print_result();
+    void extract_listen(std::string directive);
+    void extract_server_name(std::string directive);
+    void extract_default_error_pages(std::string directive);
+    void extract_client_body_buffer_size(std::string directive);
+    void extract_root(std::string directive);
+    void extract_allow_method(std::string directive);
+    void extract_cgi(std::string directive);
+    void extract_index(std::string directive);
+    void extract_autoindex(std::string directive);
+    void extract_try_files(std::string directive);
 
     private:
 
-    std::string _chunk;
-    std::list<std::string> _location_blocks;
-    std::list<std::string> _directives;
-
-
-
-
-
-    std::list<std::string> _configs;
-
-
-    std::string _address;
-    std::string _port;
-    std::list<std::string> _server_names;
-
-    std::list<std::string> _try_files;
-    std::list<std::string> _index;
-    std::string _client_body_buffer_size;
-    std::string _autoindex;
-    std::string _root;
-    
-    std::list<std::string> _allow_method;
-    std::list<std::pair<std::string, std::string> > _cgi;
-    std::map<std::string, std::string> _default_error_pages;
-
-
-
-    // bool is_http;
+    std::list<LocationInfos>                           _locations;
+    std::string                                         _chunk;
+    std::list<std::string>                              _location_blocks;
+    std::list<std::string>                              _directives;
+    std::list<std::string>                              _configs;
+    std::string                                         _address;
+    std::string                                         _port;
+    std::list<std::string>                              _server_names;
+    std::list<std::string>                              _try_files;
+    std::list<std::string>                              _index;
+    std::string                                         _client_body_buffer_size;
+    std::string                                         _autoindex;
+    std::string                                         _root;
+    std::list<std::string>                              _allow_method;
+    std::list<std::pair<std::string, std::string> >     _cgi;
+    std::map<std::string, std::string>                  _default_error_pages;
+    std::string                                         _directive_types[10];
+    void (ChunkInfos::*exec[10])(std::string str);
 };
 
