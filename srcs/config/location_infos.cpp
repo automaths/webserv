@@ -55,9 +55,7 @@ void LocationInfos::extract_cgi(std::string cgi_dir) {
     for (std::list<std::string>::iterator it = content.begin(); it != content.end(); ++it)
     {
         if (++it != content.end())
-        {
-            _cgi.push_back(std::make_pair(*(--it), *(++it)));
-        }
+            _cgi.insert(std::make_pair(*(--it), *(++it)));
         else
             --it;
     }
@@ -256,7 +254,7 @@ void LocationInfos::print_result() {
     for (std::list<std::string>::iterator it = _allow_method.begin(); it != _allow_method.end(); ++it)
         std::cout << *it << ", ";
     std::cout << std::endl;
-    for (std::list<std::pair<std::string, std::string> >::iterator it = _cgi.begin(); it != _cgi.end(); ++it)
+    for (std::map<std::string, std::string>::iterator it = _cgi.begin(); it != _cgi.end(); ++it)
         std::cout << "cgi: " << it->first << " associated to path " << it->second << std::endl;
     std::cout << "autoindex: " << _autoindex << std::endl;
     for (std::list<std::string>::iterator it = _try_files.begin(); it != _try_files.end(); ++it)

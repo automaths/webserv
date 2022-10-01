@@ -65,32 +65,69 @@ class ChunkInfos {
         }
         // print_result();
     }
-
-    void extract_location_blocks();
-    void extract_lines();
-    void extract_directives();
-    void clean_comments_header();
-    void extract_rules(std::string rule);
-    void apply_default();
-    void print_result();
-    void extract_listen(std::string directive);
-    void extract_server_name(std::string directive);
-    void extract_default_error_pages(std::string directive);
-    void extract_client_body_buffer_size(std::string directive);
-    void extract_root(std::string directive);
-    void extract_allow_method(std::string directive);
-    void extract_cgi(std::string directive);
-    void extract_index(std::string directive);
-    void extract_autoindex(std::string directive);
-    void extract_try_files(std::string directive);
+    ChunkInfos& operator=(ChunkInfos &other) {
+        if (this != &other)
+        {
+            // _locations = other._locations;
+            _address = other._address;
+            _port = other._port;
+            _server_names = other._server_names;
+            _try_files = other._try_files;
+            _index = other._index;
+            _client_body_buffer_size = other._client_body_buffer_size;
+            _autoindex = other._autoindex;
+            _root = other._root;
+            _allow_method = other._allow_method;
+            _cgi = other._cgi;
+            _default_error_pages = other._default_error_pages;
+        }
+        return *this;
+    }
+    void                                extract_location_blocks();
+    void                                extract_lines();
+    void                                extract_directives();
+    void                                clean_comments_header();
+    void                                extract_rules(std::string rule);
+    void                                apply_default();
+    void                                print_result();
+    void                                extract_listen(std::string directive);
+    void                                extract_server_name(std::string directive);
+    void                                extract_default_error_pages(std::string directive);
+    void                                extract_client_body_buffer_size(std::string directive);
+    void                                extract_root(std::string directive);
+    void                                extract_allow_method(std::string directive);
+    void                                extract_cgi(std::string directive);
+    void                                extract_index(std::string directive);
+    void                                extract_autoindex(std::string directive);
+    void                                extract_try_files(std::string directive);
+    // void                                setLocations(std::list<LocationInfos> arg) { _locations = arg; }
+    void                                setAddress(std::string arg) { _address = arg; }
+    void                                setPort(std::string arg) { _port = arg; }
+    void                                setServerName(std::list<std::string> arg) { _server_names = arg; }
+    void                                setTryFiles(std::list<std::string> arg) { _try_files = arg; }
+    void                                setIndex(std::list<std::string> arg) { _index = arg; }
+    void                                setClientBodyBufferMax(std::string arg) { _client_body_buffer_size = arg; }
+    void                                setAutoIndex(std::string arg) { _autoindex = arg; }
+    void                                setRoot(std::string arg) { _root = arg; }
+    void                                setAllowMethod(std::list<std::string> arg) { _allow_method = arg; }
+    void                                getCgi(std::map<std::string, std::string> arg) { _cgi = arg; }
+    void                                getDefaultErrorPage(std::map<std::string, std::string> arg) { _default_error_pages = arg; }
+    std::list<LocationInfos>            getLocations() { return _locations; }
+    std::string                         getAddress() { return _address; }
+    std::string                         getPort() { return _port; }
+    std::list<std::string>              getServerName() { return _server_names; }
+    std::list<std::string>              getTryFiles() { return _try_files; }
+    std::list<std::string>              getIndex() { return _index; }
+    std::string                         getClientBodyBufferMax() { return _client_body_buffer_size; }
+    std::string                         getAutoIndex() { return _autoindex; }
+    std::string                         getRoot() { return _root; }
+    std::list<std::string>              getAllowMethod() { return _allow_method; }
+    std::map<std::string, std::string>  getCgi() { return _cgi; }
+    std::map<std::string, std::string>  getDefaultErrorPage() { return _default_error_pages; }
 
     private:
 
-    std::list<LocationInfos>                           _locations;
-    std::string                                         _chunk;
-    std::list<std::string>                              _location_blocks;
-    std::list<std::string>                              _directives;
-    std::list<std::string>                              _configs;
+    std::list<LocationInfos>                            _locations;
     std::string                                         _address;
     std::string                                         _port;
     std::list<std::string>                              _server_names;
@@ -100,8 +137,13 @@ class ChunkInfos {
     std::string                                         _autoindex;
     std::string                                         _root;
     std::list<std::string>                              _allow_method;
-    std::list<std::pair<std::string, std::string> >     _cgi;
+    std::map<std::string, std::string>                  _cgi;
     std::map<std::string, std::string>                  _default_error_pages;
+
+    std::string                                         _chunk;
+    std::list<std::string>                              _location_blocks;
+    std::list<std::string>                              _directives;
+    std::list<std::string>                              _configs;
     std::string                                         _directive_types[10];
     void (ChunkInfos::*exec[10])(std::string str);
 };

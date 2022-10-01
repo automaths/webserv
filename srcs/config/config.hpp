@@ -22,35 +22,6 @@
         // Le CGI doit être exécuté dans le bon répertoire pour laccès au fichier de chemin relatif.
         // votre serveur devrait fonctionner avec un seul CGI (phpCGI, Python, etc.). Vous devez fournir des fichiers de configuration et des fichiers de base par défaut pour tester et démontrer que chaque fonctionnalité fonctionne pendant lévaluation.
 
-// class Serv {
-
-//     public:
-
-//     private:
-
-//     std::string ip;
-//     int port;
-
-//     std::list<std::string> names;
-
-//     std::list<std::map<std::string, std::string> > locations;
-
-// };
-
-// std::ofstream ofs;
-// ofs.open("config_result.txt");
-// ofs << _file;
-
-class Location_Infos {
-
-    public:
-
-
-    private:
-
-
-};
-
 class Config {
 
     public:
