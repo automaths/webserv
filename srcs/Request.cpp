@@ -6,7 +6,7 @@
 /*   By: tnaton <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:32:13 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/01 17:20:57 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/01 17:45:39 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -123,14 +123,21 @@ int Request::parseChunk(std::string & chunk) {
 				}
 				if (_headers.find("host") == _headers.end() && NOT_OLD)
 					return (400);
-				return (parseHeaders(), 200);
+				try {
+					return (parseHeaders(), 200);
+				} catch (std::exception & e) {
+					std::cerr << "Erreur dans le parsing du header :" << e.what() << std::endl;
+					return (200);
+				}
 			}
 			key = line.substr(0, (line.find(":") == NPOS) ? line.size() : line.find(":"));
 			key = tolower(key);
 			(line.find(":") == NPOS) ? line.erase(0, (key.size())) : line.erase(0, (key.size() + 1));
 			val = line;
-			if (val.size())
-				val = line.substr(line.find_first_not_of(" "), line.find_last_not_of(" ") - line.find_first_not_of(" ") + 1);
+			if (val.size() && val.find_first_not_of(" ,") != NPOS)
+				val = line.substr(line.find_first_not_of(" ,"), line.find_last_not_of(" ,") - line.find_first_not_of(" ,") + 1);
+			else
+				val = "";
 			if (key.find(" ") != NPOS) {
 				return (400);
 			} if (key == "host") {
