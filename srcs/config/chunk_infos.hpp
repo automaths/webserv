@@ -38,30 +38,70 @@ class Chunk_Infos {
         _chunk.erase(_chunk.find_last_of('}'), 1);
         while (_chunk.find('#', 0) != std::string::npos)
             _chunk.erase(_chunk.find('#', 0), _chunk.find_first_of('\n', _chunk.find('#', 0)) - _chunk.find('#', 0));
-        
-        
-        
-        
-        
-        // while (_chunk.find(';', 0) != std::string::npos)
-        // {
-        //     _configs.push_back(_chunk.substr(0, _chunk.find_first_of(';', 0)));
-        //     _chunk.erase(0, _chunk.find_first_of(';', 0) + 1);
-        // }
-        // for (std::list<std::string>::iterator it = _configs.begin(); it != _configs.end(); ++it)
-        // {
-        //     if (it->find_first_not_of("\t\v\n\r\f ", 0) == it->find_first_of("location"))
-        //     {
 
-        //     }
-        // }
+        extract_location_blocks();
+        extract_directive_lines();
 
+        while (_directive_lines.size() != 0)
+        {
+            if (_directive_lines.back().find("listen") == _directive_lines.back().find_first_not_of("\t\v\n\r\f "))
+            {
+                if (_directive_lines.back().find_first_of("\t\v\n\r\f ", _directive_lines.back().find("listen")) == (_directive_lines.back().find("listen") + 6))
+                    extract_listen(_directive_lines.back());
+            }
+            else if (_directive_lines.back().find("server_name") == _directive_lines.back().find_first_not_of("\t\v\n\r\f "))
+            {
+                if (_directive_lines.back().find_first_of("\t\v\n\r\f ", _directive_lines.back().find("server_name")) == (_directive_lines.back().find("server_name") + 11))
+                    std::cout << "server_name found" << std::endl;
+            }
+            else if (_directive_lines.back().find("error_page") == _directive_lines.back().find_first_not_of("\t\v\n\r\f "))
+            {
+                if (_directive_lines.back().find_first_of("\t\v\n\r\f ", _directive_lines.back().find("error_page")) == (_directive_lines.back().find("error_page") + 10))
+                    std::cout << "error_page found" << std::endl;
+            }
+            else if (_directive_lines.back().find("client_body_buffer_size") == _directive_lines.back().find_first_not_of("\t\v\n\r\f "))
+            {
+                if (_directive_lines.back().find_first_of("\t\v\n\r\f ", _directive_lines.back().find("client_body_buffer_size")) == (_directive_lines.back().find("client_body_buffer_size") + 23))
+                    std::cout << "client_body_buffer_size found" << std::endl;
+            }
+            else if (_directive_lines.back().find("root") == _directive_lines.back().find_first_not_of("\t\v\n\r\f "))
+            {
+                if (_directive_lines.back().find_first_of("\t\v\n\r\f ", _directive_lines.back().find("root")) == (_directive_lines.back().find("root") + 4))
+                    std::cout << "root found" << std::endl;
+            }
+            else if (_directive_lines.back().find("allow_method") == _directive_lines.back().find_first_not_of("\t\v\n\r\f "))
+            {
+                if (_directive_lines.back().find_first_of("\t\v\n\r\f ", _directive_lines.back().find("allow_method")) == (_directive_lines.back().find("allow_method") + 12))
+                    std::cout << "allow_method found" << std::endl;
+            }
+            else if (_directive_lines.back().find("cgi") == _directive_lines.back().find_first_not_of("\t\v\n\r\f "))
+            {
+                if (_directive_lines.back().find_first_of("\t\v\n\r\f ", _directive_lines.back().find("cgi")) == (_directive_lines.back().find("cgi") + 3))
+                    std::cout << "cgi found" << std::endl;
+            }
+            else if (_directive_lines.back().find("index") == _directive_lines.back().find_first_not_of("\t\v\n\r\f "))
+            {
+                if (_directive_lines.back().find_first_of("\t\v\n\r\f ", _directive_lines.back().find("index")) == (_directive_lines.back().find("index") + 5))
+                    std::cout << "index found" << std::endl;
+            }
+            else if (_directive_lines.back().find("autoindex") == _directive_lines.back().find_first_not_of("\t\v\n\r\f "))
+            {
+                if (_directive_lines.back().find_first_of("\t\v\n\r\f ", _directive_lines.back().find("autoindex")) == (_directive_lines.back().find("autoindex") + 9))
+                    std::cout << "autoindex found" << std::endl;
+            }
+            else if (_directive_lines.back().find("try_files") == _directive_lines.back().find_first_not_of("\t\v\n\r\f "))
+            {
+                if (_directive_lines.back().find_first_of("\t\v\n\r\f ", _directive_lines.back().find("try_files")) == (_directive_lines.back().find("try_files") + 9))
+                    std::cout << "try_files found" << std::endl;
+            }
+            _directive_lines.pop_back();
+        }
 
-
-        // extract_location();
-
-        
-
+        if (_address.size() == 0)
+        {
+            _address = "*";
+            _port = "80";           
+        }
 
         // extract_address_port();
         // extract_server_name();
@@ -74,6 +114,48 @@ class Chunk_Infos {
         // extract_autoindex();
         // extract_try_files();
 
+
+
+
+
+
+
+        // std::ofstream ofs;
+        // ofs.open("config_result.txt");
+
+        // int n = 1;
+        // for (std::list<std::string>::iterator it = _directive_lines.begin(); it != _directive_lines.end(); ++it)
+        //     ofs << "\nthe line " << n++ << " is:\n" << *it << std::endl;;
+
+
+        // ofs << _chunk;
+
+
+
+        // for (std::list<std::string>::iterator it = locations.begin(); it != locations.end(); ++it)
+            // ofs << *it << std::endl;
+
+        // ofs << copy;
+
+        // while (_chunk.find(';', 0) != std::string::npos)
+        // {
+        //     _configs.push_back(_chunk.substr(0, _chunk.find_first_of(';', 0) + 1));
+        //     _chunk.erase(0, _chunk.find_first_of(';', 0) + 1);
+        // }
+        
+
+        // for (std::list<std::string>::iterator it = _configs.begin(); it != _configs.end(); ++it)
+        // {
+        //     if (it->find_first_not_of("\t\v\n\r\f ", 0) == it->find_first_of("location"))
+        //     {
+
+        //     }
+        // }
+
+        // extract_location();
+
+
+
         print_result();
     }
 
@@ -81,10 +163,10 @@ class Chunk_Infos {
     //     if (_chunk.first_first)
     // }
 
+    void extract_location_blocks();
+    void extract_directive_lines();
 
-
-    void extract_location();
-    void extract_address_port();
+    void extract_listen(std::string listen_dir);
     void extract_server_name();
     void extract_default_error_pages();
     void extract_client_body_buffer_size();
@@ -99,9 +181,16 @@ class Chunk_Infos {
 
     private:
 
+    std::string _chunk;
+    std::list<std::string> _location_blocks;
+    std::list<std::string> _directive_lines;
+
+
+
+
+
     std::list<std::string> _configs;
 
-    std::string _chunk;
 
     std::string _address;
     std::string _port;
@@ -112,7 +201,6 @@ class Chunk_Infos {
     std::string _client_body_buffer_size;
     std::string _autoindex;
     std::string _root;
-    std::list<std::string> _location_blocks;
     
     std::list<std::string> _allow_method;
     std::list<std::pair<std::string, std::string> > _cgi;
