@@ -1,6 +1,7 @@
 
 server {
-    listen localhost:8000;
+
+    listen  127.0.0.1;
 
     index index.html index.htm index.php;
 
@@ -8,7 +9,7 @@ server {
     
     error_page 404 403 402 /one.html;
     error_page 401 /two.html;
-
+    
     client_body_buffer_size 200M;
 
     cgi .php /usr/lib/cgi-bin/php .py /usr/lib/cgi-bin/python;
@@ -22,16 +23,15 @@ server {
 
     #fsdkljgsdf
 
-
     location /images/ {
-        root /my_images;
-        index index.html index.htm;
-        allow_method GET POST HEAD;
-        allow_method PUT;
+        root /my_images
+        index index.html index.htm
+        allow_method GET POST HEAD
+        allow_method PUT
     } #asdfajsdfkl
 
     location /videos/ {
-        root /my_videos;
+        root /my_videos
     }
     root /my_root; #flkdjafasfasdfa
 

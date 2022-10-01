@@ -1,35 +1,26 @@
 #include "library.hpp"
 #include "chunk_infos.hpp"
 
-void Chunk_Infos::extract_address_port(){
-    if (_chunk.find("listen ", 0) != std::string::npos)
+void Chunk_Infos::extract_listen(std::string listen_dir){
+    listen_dir.erase(0, listen_dir.find("listen") + 6);
+    if (listen_dir.find_first_of(':', 0) != std::string::npos)
     {
-        std::string listen_dir = _chunk.substr(_chunk.find("listen ", 0), _chunk.find_first_of(';', _chunk.find("listen ", 0)) - _chunk.find("listen ", 0));
-        listen_dir.erase(0, listen_dir.find_first_of("listen ") + 7);
-        if (listen_dir.find_first_of(':', 0) != std::string::npos)
-        {
-            _address = listen_dir.substr(0, listen_dir.find_first_of(':', 0));
-            listen_dir.erase(0, listen_dir.find_first_of(':', 0) + 1);
-            _port = listen_dir;
-        }
-        else
-        {
-            if (listen_dir.find_first_not_of("\t\v\n\r\f 0123456789") == std::string::npos)
-            {
-                _port = listen_dir;
-                _address = "*";
-            }
-            else
-            {
-                _port = "80";
-                _address = listen_dir;
-            }
-        }
+        _address = listen_dir.substr(0, listen_dir.find_first_of(':', 0));
+        listen_dir.erase(0, listen_dir.find_first_of(':', 0) + 1);
+        _port = listen_dir;
     }
     else
     {
-        _address = "*";
-        _port = "80";
+        if (listen_dir.find_first_not_of("\t\v\n\r\f 0123456789") == std::string::npos)
+        {
+            _port = listen_dir;
+            _address = "*";
+        }
+        else
+        {
+            _port = "80";
+            _address = listen_dir;
+        }
     }
 }
 
@@ -252,19 +243,62 @@ void Chunk_Infos::extract_try_files() {
         _try_files.push_back("");
 }
 
-// void Chunk_Infos::extract_location() {
-//     while ((_chunk.find("location ", 0) >= 0) && (_chunk[_chunk.find_first_not_of(" \t\v\n\r\f", _chunk.find("location", 0) + 8)] == '/'))
-//     {
-//         _location_blocks.push_back(_chunk.substr(_chunk.find("location", 0), _chunk.find_first_of('}', _chunk.find("location", 0)) - _chunk.find("location", 0) + 1));
-//         //little trick here to stop while loop
-//         _chunk.erase(_chunk.find("location ", 0), _chunk.find_first_of('}', _chunk.find("location", 0)) - _chunk.find("location", 0) + 1);
-//     }
-//     //then reiterate to the same parsing than server
-// }
+void Chunk_Infos::extract_location_blocks() {  
+    std::string copy = _chunk;
+    while (copy.find(';', 0) != std::string::npos || copy.find('}') != std::string::npos)
+    {
+        if (copy.find('}', 0) == std::string::npos)
+            copy.erase(0, copy.find(';', 0) + 1);
+        else if (copy.find(';', 0) == std::string::npos)
+            copy.erase(0, copy.find('}', 0) + 1);
+        else 
+        {
+            if (copy.find(';', 0) < copy.find('}', 0))
+                copy.erase(0, copy.find(';', 0) + 1);
+            else
+                copy.erase(0, copy.find('}', 0) + 1);
+        }
+        if (copy.find_first_not_of("\t\v\n\r\f ", 0) == copy.find("location", 0) && copy.find("location", 0) != std::string::npos)
+        {
+            std::string::iterator it = copy.begin();
+            for (unsigned int i = 0; i < copy.find("location", 0) + 1; ++i)
+                ++it;
+            std::string::iterator tmp = it;
+            while (it != copy.end() && *it != '{')
+                ++it;
+            ++it;
+            int n = 1;
+            while (it != copy.end() && n > 0)
+            {
+                if (*it == '{')
+                    ++n;
+                if (*it == '}')
+                    --n;
+                ++it;
+            }
+            n = 0;
+            while (tmp != it)
+            {
+                ++n;
+                ++tmp;
+            }
+            _location_blocks.push_back(copy.substr(copy.find("location", 0), n + 1));
+            _chunk.erase(_chunk.find(_location_blocks.back(), 0), _location_blocks.back().size());
+        }
+    }
+}
+
+void Chunk_Infos::extract_directive_lines() {
+    while (_chunk.find(';', 0) != std::string::npos)
+    {
+        _directive_lines.push_back(_chunk.substr(0, _chunk.find(';')));
+        _chunk.erase(0, _chunk.find(';', 0) + 1);
+    }
+}
 
 void Chunk_Infos::print_result() {
-    // std::cout << "the address is: " << _address << std::endl;
-    // std::cout << "the port is: " << _port << std::endl;
+    std::cout << "the address is: " << _address << std::endl;
+    std::cout << "the port is: " << _port << std::endl;
     // for (std::list<std::string>::iterator it = _server_names.begin(); it != _server_names.end(); ++it)
     //     std::cout << "server_name: " << *it << std::endl;
     // for (std::list<std::string>::iterator it = _index.begin(); it != _index.end(); ++it)
@@ -290,10 +324,11 @@ void Chunk_Infos::print_result() {
     // for (std::list<std::string>::iterator it = _location_blocks.begin(); it != _location_blocks.end(); ++it)
     //     std::cout << "location block: " << *it << std::endl;
 
-    std::ofstream ofs;
-    ofs.open("config_result.txt");
-    ofs << "THE CONFIGS\n" << std::endl;
-    for (std::list<std::string>::iterator it = _configs.begin(); it != _configs.end(); ++it)
-        ofs << *it;
-    ofs << "\n\nTHE LOCATIONS\n" << std::endl;
+    // std::ofstream ofs;
+    // ofs.open("config_result.txt");
+    // ofs << _chunk;
+    // ofs << "THE CONFIGS\n" << std::endl;
+    // for (std::list<std::string>::iterator it = _configs.begin(); it != _configs.end(); ++it)
+    //     ofs << *it;
+    // ofs << "\n\nTHE LOCATIONS\n" << std::endl;
 }
