@@ -23,14 +23,9 @@ class Server {
     ~Server();
 
     struct sockaddr_in getAddr(void);
-
     void initing(void);
-
-//	bool	acceptIncomingConnection(struct epoll_event event[i])
-
     void execute(void);
 
-	void	closeTimedoutConnections(void);
 
     private:
     
@@ -40,6 +35,8 @@ class Server {
     struct sockaddr_in		_address;			// Address to bind to a socket
 
 	bool	epollSockets(void);
+	bool	acceptIncomingConnection(struct epoll_event & event);
+	void	closeTimedoutConnections(void);
 
     class SocketCreationException : public std::exception {virtual const char* what() const throw(){return ("An error occured during socket creation");}};
     class BindException : public std::exception {virtual const char* what() const throw(){return ("An error occured during bind");}};

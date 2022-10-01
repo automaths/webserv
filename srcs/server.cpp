@@ -6,7 +6,7 @@
 /*   By: bdetune <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/28 13:45:50 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/01 17:07:32 by bdetune          ###   ########.fr       */
+/*   Updated: 2022/10/01 17:58:41 by bdetune          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,8 +30,8 @@ Server::~Server(void)
 	{
 		close((*st).first);
 	}
-	this->_listen_sockets.clear();
 	this->_client_sockets.clear();
+	this->_listen_sockets.clear();
 }
 
 struct sockaddr_in Server::getAddr(void)
@@ -75,11 +75,26 @@ bool	Server::epollSockets(void)
 	return (true);
 }
 
+bool	Server::acceptIncomingConnection(struct epoll_event & event)
+{
+	Client				tmp(this->_listen_sockets[event.data.fd]);
+	struct epoll_event	ev;
+    int					addrlen	=sizeof(_address);
+
+	std::memset(&ev, '\0', sizeof(struct epoll_event));
+	ev.events = EPOLLIN;
+	ev.data.fd = accept(event.data.fd, (struct sockaddr *)&_address, (socklen_t*)&addrlen);
+	if (ev.data.fd < 0)
+		return (false);
+	this->_client_sockets.insert(std::pair<int, Client>(ev.data.fd, tmp));
+	if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_ADD, ev.data.fd, &ev) == -1)
+		return (false);
+	return (true);
+}
+
 void Server::execute(){
-		std::map<int, int>::iterator	serv;
 		struct epoll_event	ev, event[10];
         int result, ready;
-        int addrlen = sizeof(_address);
 
 		if (!this->epollSockets())
 			throw EpollCreateException();
@@ -93,17 +108,10 @@ void Server::execute(){
 				throw EpollCreateException();
 			for (int i = 0; i < ready; i++)
 			{
-				if ((serv = this->_listen_sockets.find(event[i].data.fd)) != this->_listen_sockets.end())
+				if (this->_listen_sockets.find(event[i].data.fd) != this->_listen_sockets.end())
 				{
-//					acceptIncomingConnection(event[i]);
-					Client	tmp(this->_listen_sockets[event[i].data.fd]);
-					ev.events = EPOLLIN;
-					ev.data.fd = accept((*serv).first, (struct sockaddr *)&_address, (socklen_t*)&addrlen);
-					if (ev.data.fd < 0)
-                        throw AcceptException();
-					if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_ADD, ev.data.fd, &ev) == -1)
-						throw EpollCreateException();
-					this->_client_sockets.insert(std::pair<int, Client>(ev.data.fd, tmp));
+					if (!acceptIncomingConnection(event[i]))
+						std::cerr << "Cannot accept incoming connection" << std::endl;
 				}
 				else if (event[i].events == EPOLLIN)
 				{
