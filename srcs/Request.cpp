@@ -6,7 +6,7 @@
 /*   By: tnaton <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:32:13 by tnaton            #+#    #+#             */
-/*   Updated: 2022/09/30 21:54:10 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/01 15:30:41 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,9 +79,9 @@ void Request::parseHeaders(void) {
 		while (val != map->second.end()) {
 			if (val->find(",") != NPOS) {
 				std::string tmp = val->substr(val->find(",") + 1);
-				map->second.push_back(tmp.substr(tmp.find_first_not_of(" "), tmp.find_last_not_of(" ") + 1));
+				map->second.push_back(tmp.substr(tmp.find_first_not_of(" ,"), tmp.find_last_not_of(" ,") + 1));
 				*val = val->erase(val->find(","));
-				*val = val->substr(val->find_first_not_of(" "), val->find_last_not_of(" ") + 1);
+				*val = val->substr(val->find_first_not_of(" ,"), val->find_last_not_of(" ,") + 1);
 			}
 			std::cout << "Val :" << *val << std::endl;
 			val++;

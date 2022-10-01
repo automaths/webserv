@@ -6,7 +6,7 @@
 #    By: tnaton <marvin@42.fr>                      +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/09/27 13:15:29 by tnaton            #+#    #+#              #
-#    Updated: 2022/09/30 17:21:50 by bdetune          ###   ########.fr        #
+#    Updated: 2022/10/01 12:24:23 by tnaton           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -22,7 +22,7 @@ source = $(addprefix srcs/,$(SRCS))
 
 include = $(addprefix srcs/,$(INC))
 
-CPPFLAGS = -Wall -Wextra -Werror -g -std=c++98
+CPPFLAGS = -Wall -Wextra -Werror -g -std=c++98 #-fsanitize=address
 
 CXX = c++
 
