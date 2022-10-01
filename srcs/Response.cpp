@@ -6,7 +6,7 @@
 /*   By: bdetune <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/29 12:29:34 by bdetune           #+#    #+#             */
-/*   Updated: 2022/09/29 19:25:55 by bdetune          ###   ########.fr       */
+/*   Updated: 2022/10/01 18:36:35 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,27 +54,47 @@ Response &	Response::operator=(Response const & rhs)
 void	Response::errorResponse(int error)
 {
 	std::stringstream	header;
+	std::stringstream	status;
+	std::string			body;
 
 	this->_close = true;
 	switch (error)
 	{
 		case 400:
-			header << "HTTP/1.1 400 " << DEFAULT400STATUS << "\r\n";
-			header << setBaseHeader();
-			header << "Content-type: text/html\r\n";
-			header << "Content-Length: " << std::string(DEFAULT400BODY).size() << "\r\n";
-			header << "Connection: close\r\n";
-			header << "\r\n";
-			this->_header = header.str();
-			this->_headerSize = this->_header.size();
-			this->_body = DEFAULT400BODY;
-			this->_bodySize = this->_body.size();
+			status << " 400 " << DEFAULT400STATUS;
+			body = DEFAULT400BODY;
+			break ;
+		case 401:
+			status << " 401 " << DEFAULT401STATUS;
+			body = DEFAULT401BODY;
+			break ;
+		case 403:
+			status << " 403 " << DEFAULT403STATUS;
+			body = DEFAULT403BODY;
+		case 404:
+			status << " 404 " << DEFAULT404STATUS;
+			body = DEFAULT404BODY;
+			break;
+		case 505:
+			status << " 505 " << DEFAULT505STATUS;
+			body = DEFAULT505BODY;
 			break ;
 		default:
 			header << "HTTP/1.1 400 " << "Oupsy daisy" << "\r\n";
 			this->_header = header.str();
 			break;
 	}
+
+	header << "HTTP/1.1" << status.str() << "\r\n";
+	header << setBaseHeader();
+	header << "Content-type: text/html\r\n";
+	header << "Content-Length: " << body.size() << "\r\n";
+	header << "Connection: close\r\n";
+	header << "\r\n";
+	this->_header = header.str();
+	this->_headerSize = this->_header.size();
+	this->_body = body;
+	this->_bodySize = this->_body.size();
 }
 
 void	Response::basicResponse(void)
