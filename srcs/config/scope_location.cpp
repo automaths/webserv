@@ -221,7 +221,6 @@ void LocationScope::extract_rules(std::string rule)
             if (rule.find_first_of("\t\v\n\r\f ", rule.find(_directive_types[i])) == (rule.find(_directive_types[i]) + _directive_types[i].size()))
                 (this->*exec[i])(rule);
         }
-
     }
 }
 
