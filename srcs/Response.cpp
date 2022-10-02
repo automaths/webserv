@@ -71,6 +71,7 @@ void	Response::errorResponse(int error)
 		case 403:
 			status << " 403 " << DEFAULT403STATUS;
 			body = DEFAULT403BODY;
+			break ;
 		case 404:
 			status << " 404 " << DEFAULT404STATUS;
 			body = DEFAULT404BODY;
