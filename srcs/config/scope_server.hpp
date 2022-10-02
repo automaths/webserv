@@ -37,8 +37,8 @@ class ServerScope {
         extract_directives();
         apply_default();
         for (std::list<std::string>::iterator it = _location_blocks.begin(); it != _location_blocks.end(); ++it)
-            _locations.push_back(LocationInfos(*it));
-        print_result();
+            _locations.push_back(LocationScope(*it));
+        // print_result();
     }
     ServerScope& operator=(ServerScope &other) {
         if (this != &other)
@@ -75,7 +75,7 @@ class ServerScope {
     void                                extract_index(std::string directive);
     void                                extract_autoindex(std::string directive);
     void                                extract_try_files(std::string directive);
-    // void                                setLocations(std::list<LocationInfos> arg) { _locations = arg; }
+    // void                                setLocations(std::list<LocationScope> arg) { _locations = arg; }
     void                                setAddress(std::string arg) { _address = arg; }
     void                                setPort(std::string arg) { _port = arg; }
     void                                setServerName(std::list<std::string> arg) { _server_names = arg; }
@@ -85,9 +85,9 @@ class ServerScope {
     void                                setAutoIndex(std::string arg) { _autoindex = arg; }
     void                                setRoot(std::string arg) { _root = arg; }
     void                                setAllowMethod(std::list<std::string> arg) { _allow_method = arg; }
-    void                                getCgi(std::map<std::string, std::string> arg) { _cgi = arg; }
-    void                                getDefaultErrorPage(std::map<std::string, std::string> arg) { _default_error_pages = arg; }
-    std::list<LocationInfos>            getLocations() { return _locations; }
+    void                                setCgi(std::map<std::string, std::string> arg) { _cgi = arg; }
+    void                                setDefaultErrorPage(std::map<std::string, std::string> arg) { _default_error_pages = arg; }
+    std::list<LocationScope>            getLocations() { return _locations; }
     std::string                         getAddress() { return _address; }
     std::string                         getPort() { return _port; }
     std::list<std::string>              getServerName() { return _server_names; }
@@ -102,7 +102,7 @@ class ServerScope {
 
     private:
 
-    std::list<LocationInfos>                            _locations;
+    std::list<LocationScope>                            _locations;
     std::string                                         _address;
     std::string                                         _port;
     std::list<std::string>                              _server_names;

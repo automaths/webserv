@@ -26,7 +26,7 @@ void ServerScope::extract_listen(std::string directive){
 
 void ServerScope::extract_server_name(std::string directive) {
     directive.erase(0, directive.find("server_name") + 11);
-    while(directive.find_first_not_of(" \t\v\n\r\f") == 0)
+    while(directive.find_first_not_of(" \t\v\n\r\f") > 0)
         directive.erase(0, 1);
     while (directive.size() != 0)
     {  

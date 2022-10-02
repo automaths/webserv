@@ -5,8 +5,8 @@ int main()
 {
 	std::ifstream ifs;
     ifs.open("./configurations/configuration.txt");
-    std::ofstream ofs;
-    ofs.open("./configurations/parsed.txt");
+    // std::ofstream ofs;
+    // ofs.open("./configurations/parsed.txt");
     std::string buffer; 
     char c = ifs.get();
     while (ifs.good())

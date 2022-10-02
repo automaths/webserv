@@ -35,6 +35,25 @@ server {
 
         location /coucou/ {
             allow_method GET;
+
+            location /bloup/ {
+                heyhey;
+
+                location /rehey/ {
+                    coucoux;
+                }
+
+            }
+
+            salut;
+
+            location /bloupo/ {
+                coucou;
+                location /hey/ {
+                    wouaw;
+                }
+            }
+
         }
 
     }
@@ -44,8 +63,13 @@ server {
 
 http {
 
+    cgi .php /usr/lib/cgi-bin/php .py /usr/lib/cgi-bin/python;
+    error_page 404 403 402 /one.html;
+
     index index.html;
     autoindex on;
+    client_body_buffer_size 200M;
+
 
     server {
 

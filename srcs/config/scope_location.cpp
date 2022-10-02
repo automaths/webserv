@@ -1,17 +1,17 @@
 #include "library.hpp"
 #include "scope_location.hpp"
 
-void LocationInfos::extract_client_body_buffer_size(std::string directive) {
+void LocationScope::extract_client_body_buffer_size(std::string directive) {
     directive.erase(0, directive.find("client_body_buffer_size") + 23);
     _client_body_buffer_size = directive.substr(directive.find_first_not_of("\t\v\n\r\f "), directive.find_first_of("\t\v\n\r\f ", directive.find_first_not_of("\t\v\n\r\f ")));
 }
 
-void LocationInfos::extract_root(std::string directive) {
+void LocationScope::extract_root(std::string directive) {
     directive.erase(0, directive.find_first_of("root") + 4);
     _root = directive.substr(directive.find_first_not_of("\t\v\n\r\f "), directive.find_first_of("\t\v\n\r\f ", directive.find_first_not_of("\t\v\n\r\f ")));
 }
 
-void LocationInfos::extract_allow_method(std::string directive) {
+void LocationScope::extract_allow_method(std::string directive) {
     directive.erase(0, directive.find("allow_method") + 12);
     while (directive.find_first_of(" \t\v\n\r\f") == 0)
         directive.erase(0, 1);
@@ -32,7 +32,7 @@ void LocationInfos::extract_allow_method(std::string directive) {
     }
 }
 
-void LocationInfos::extract_cgi(std::string cgi_dir) {
+void LocationScope::extract_cgi(std::string cgi_dir) {
     std::list<std::string> content;
     cgi_dir.erase(0, cgi_dir.find_first_of("cgi") + 3);
     while (cgi_dir.find_first_of(" \t\v\n\r\f") == 0)
@@ -61,7 +61,7 @@ void LocationInfos::extract_cgi(std::string cgi_dir) {
     }
 }
 
-void LocationInfos::extract_index(std::string index_dir) {
+void LocationScope::extract_index(std::string index_dir) {
     index_dir.erase(0, index_dir.find("index") + 5);
     while (index_dir.find_first_of(" \t\v\n\r\f") == 0)
         index_dir.erase(0, 1);
@@ -82,7 +82,7 @@ void LocationInfos::extract_index(std::string index_dir) {
     }
 }
 
-void LocationInfos::extract_default_error_pages(std::string error_page_dir) {
+void LocationScope::extract_default_error_pages(std::string error_page_dir) {
     error_page_dir.erase(0, error_page_dir.find("error_page") + 10);
     while (error_page_dir.find_first_of(" \t\v\n\r\f") == 0)
         error_page_dir.erase(0, 1);
@@ -109,14 +109,14 @@ void LocationInfos::extract_default_error_pages(std::string error_page_dir) {
         _default_error_pages.insert(std::make_pair(*it, path));
 }
 
-void LocationInfos::extract_autoindex(std::string autoindex_dir) {
+void LocationScope::extract_autoindex(std::string autoindex_dir) {
     autoindex_dir.erase(0, autoindex_dir.find("autoindex ") + 9);
     _autoindex = autoindex_dir.substr(autoindex_dir.find_first_not_of("\t\v\n\r\f ", 0), autoindex_dir.find_first_of("\t\v\n\r\f ", autoindex_dir.find_first_not_of("\t\v\n\r\f ", 0)));
     if (_autoindex.compare("on") != 0)
         _autoindex = "off";
 }
 
-void LocationInfos::extract_try_files(std::string try_files_dir) {
+void LocationScope::extract_try_files(std::string try_files_dir) {
     try_files_dir.erase(0, try_files_dir.find("try_files") + 9);
     while (try_files_dir.find_first_of(" \t\v\n\r\f") == 0)
         try_files_dir.erase(0, 1);
@@ -137,7 +137,7 @@ void LocationInfos::extract_try_files(std::string try_files_dir) {
     }
 }
 
-void LocationInfos::extract_location_blocks() {  
+void LocationScope::extract_location_blocks() {  
     std::string copy = _chunk;
     while (copy.find(';', 0) != std::string::npos || copy.find('}') != std::string::npos)
     {
@@ -200,7 +200,7 @@ void LocationInfos::extract_location_blocks() {
         _chunk.erase(_chunk.find(*it), it->size());
 }
 
-void LocationInfos::extract_lines() {
+void LocationScope::extract_lines() {
     while (_chunk.find(';', 0) != std::string::npos)
     {
         _directives.push_back(_chunk.substr(0, _chunk.find(';')));
@@ -208,7 +208,7 @@ void LocationInfos::extract_lines() {
     }
 }
 
-void LocationInfos::extract_rules(std::string rule)
+void LocationScope::extract_rules(std::string rule)
 {
     for (unsigned int i = 0; i < 10; ++i)
     {
@@ -221,7 +221,7 @@ void LocationInfos::extract_rules(std::string rule)
     }
 }
 
-void LocationInfos::extract_main_path()
+void LocationScope::extract_main_path()
 {
     _chunk.erase(0, _chunk.find("location") + 8);
     _main_path = _chunk.substr(0, _chunk.find('{'));
@@ -229,7 +229,7 @@ void LocationInfos::extract_main_path()
     _chunk.erase(_chunk.find_last_of('}'), 1);
 }
 
-void LocationInfos::extract_directives() {
+void LocationScope::extract_directives() {
     while (_directives.size() != 0)
     {
         extract_rules(_directives.back());
@@ -237,14 +237,14 @@ void LocationInfos::extract_directives() {
     }
 }
 
-void LocationInfos::apply_default() {
+void LocationScope::apply_default() {
     if (_root.size() == 0)
         _root = "html";
     if(_autoindex.size() == 0)
         _autoindex = "off";
 }
 
-void LocationInfos::print_result() {
+void LocationScope::print_result() {
     std::ofstream ofs;
     ofs.open("./configurations/parsed.txt", std::ios_base::app);
     ofs << " \n()()()()()()()()()()()()()()()()\n" << std::endl;
