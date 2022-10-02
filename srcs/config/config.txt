@@ -42,22 +42,29 @@ server {
 
 }
 
-server {
+http {
 
-    listen 127.0.0.1:8000;
-}
-server {
+    index index.html;
+    autoindex on;
 
-    listen 127.0.0.1;
+    server {
 
-}
-server {
+        listen 127.0.0.1:8000;
+    }
+    server {
 
-    listen 8000;
+        listen 127.0.0.1;
 
-}
-server {
+    }
+    server {
 
-    listen *:8000;
+        listen 8000;
+
+    }
+    server {
+
+        listen *:8000;
+
+    }
 
 }

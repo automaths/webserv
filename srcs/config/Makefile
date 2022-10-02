@@ -8,6 +8,7 @@ SRC		=	main.cpp \
 			config.cpp \
 			chunk_infos.cpp \
 			location_infos.cpp \
+			block_infos.cpp \
 
 OBJ		:=	$(addprefix ./obj/,$(SRC:%.cpp=%.o))
 

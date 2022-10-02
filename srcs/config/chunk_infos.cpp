@@ -244,6 +244,8 @@ void ChunkInfos::extract_location_blocks() {
             copy.erase(copy.find("location", 0), n);
         }
     }
+    for (std::list<std::string>::iterator it = _location_blocks.begin(); it != _location_blocks.end(); ++it)
+        _chunk.erase(_chunk.find(*it), it->size());
 }
 
 void ChunkInfos::extract_lines() {

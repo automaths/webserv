@@ -1,5 +1,6 @@
 #include "library.hpp"
 #include "chunk_infos.hpp"
+#include "block_infos.hpp"
 
 // Choisir le port et lhost de chaque "serveur".
 // Setup server_names ou pas.
@@ -56,13 +57,17 @@ class Config {
             }
         }
 
-        ChunkInfos(_chunks.front());
+        BlockInfos(_chunks.front());
+        _chunks.pop_front();
+        BlockInfos(_chunks.front());
 
-        // int n = 1;
-        // std::ofstream ofs;
-        // ofs.open("config_result.txt");
-        // for (std::list<std::string>::iterator tmp = _chunks.begin(); tmp != _chunks.end(); ++tmp)
-        //     ofs << "\nTHE CHUNK " << n++ << " IS: \n\n" << *tmp << std::endl;
+        // ChunkInfos(_chunks.front());
+
+        int n = 1;
+        std::ofstream ofs;
+        ofs.open("config_result.txt");
+        for (std::list<std::string>::iterator tmp = _chunks.begin(); tmp != _chunks.end(); ++tmp)
+            ofs << "\nTHE CHUNK " << n++ << " IS: \n\n" << *tmp << std::endl;
     }
 
     void check_brackets();
