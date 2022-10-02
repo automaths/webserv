@@ -1,14 +1,14 @@
-NAME	=	configo
+NAME	=	goloco
 
 CC		=	c++
 
 FLAGS	=	-Wall -Wextra -Werror -g -MMD -MP -std=c++98
 
 SRC		=	main.cpp \
-			config.cpp \
-			chunk_infos.cpp \
-			location_infos.cpp \
-			block_infos.cpp \
+			scope_configuration.cpp \
+			scope_http.cpp \
+			scope_server.cpp \
+			scope_location.cpp \
 
 OBJ		:=	$(addprefix ./obj/,$(SRC:%.cpp=%.o))
 

@@ -1,0 +1,106 @@
+
+server {
+
+    listen 127.0.0.1:8080;
+
+    server_name ouaiouaiouai.com coucou.fr;
+
+    root /my_root;
+
+    client_body_buffer_size 200M;
+
+    location /images/ {
+        root /my_images;
+        index index.html index.htm;
+        add_header Allow "GET, POST, HEAD" always;
+    }
+
+    location /videos/ {
+        return 300 http://www.example-redirection.com; 
+    }
+
+    location / {
+        root /data;
+        autoindex on;
+    }
+
+    error_page 404 403 402 /404.html;
+}
+
+listen combinations:
+    listen 127.0.0.1:8000;
+    listen 127.0.0.1;
+    listen 8000;
+    listen *:8000;
+    listen localhost:8000;
+
+server {
+
+    listen  127.0.0.1;
+
+    index index.html index.htm index.php;
+
+    server_name       cavalazoone.com ouaiouaiouai.com coucou.fr;
+    
+    error_page 404 403 402 /one.html;
+    error_page 401 /two.html;
+    
+    client_body_buffer_size 200M;
+
+    cgi .php /usr/lib/cgi-bin/php .py /usr/lib/cgi-bin/python;
+    cgi .js /usr/lib/cgi-bin/javascript;
+
+    allow_method GET POST;
+
+    autoindex on;
+
+    try_files /example/index.html /other/ /default/index.html;
+
+    #fsdkljgsdf
+
+    location /images/ {
+        root /my_images;
+        index index.html index.htm;
+        allow_method GET POST HEAD;
+        allow_method PUT;
+    } #asdfajsdfkl
+
+    location /videos/ {
+        root /my_videos;
+
+        location /coucou/ {
+            allow_method GET;
+        }
+
+    }
+    root /my_root; #flkdjafasfasdfa
+
+}
+
+http {
+
+    index index.html;
+    autoindex on;
+
+    server {
+
+        listen 127.0.0.1:8000;
+    }
+    server {
+
+        listen 127.0.0.1;
+
+    }
+    server {
+
+        listen 8000;
+
+    }
+    server {
+
+        listen *:8000;
+
+    }
+
+}
+

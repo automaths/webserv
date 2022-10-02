@@ -1,7 +1,7 @@
 #pragma once
 
 #include "library.hpp"
-#include "location_infos.hpp"
+#include "scope_location.hpp"
 
 class LocationInfos {
 
@@ -37,7 +37,7 @@ class LocationInfos {
             _locations.push_back(LocationInfos(_location_blocks.front()));
             _location_blocks.pop_front();
         }
-        // print_result();
+        print_result();
     }
     LocationInfos& operator=(LocationInfos &other) {
         if (this != &other)

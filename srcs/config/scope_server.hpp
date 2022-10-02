@@ -1,37 +1,15 @@
 #pragma once
 
-// Votre serveur doit pouvoir ecouter sur plusieurs ports.
-// Choisir le port et lhost de chaque "serveur".
-// Setup server_names ou pas.
-// Le premier serveur pour un host:port sera le serveur par défaut pour cet host:port (ce qui signifie quil répondra à toutes les requêtes qui nappartiennent pas à un autre serveur).
-// Setup des pages derreur par défaut.
-// Limiter la taille du body des clients.
-// Setup des routes avec une ou plusieurs des règles/configurations suivantes (les routes nutiliseront pas de regexp) :
-    // Définir une liste de méthodes HTTP acceptées pour la route.
-    // Définir une redirection HTTP.
-    // Définir un répertoire ou un fichier à partir duquel le fichier doit être recherché (par exemple si lurl /kapouet est rootée sur /tmp/www, lurl /kapouet/pouic/toto/pouet est /tmp/www/pouic/toto/pouet).
-    // Activer ou désactiver le listing des répertoires.
-    // Set un fichier par défaut comme réponse si la requête est un répertoire.
-    // Exécuter CGI en fonction de certaines extensions de fichier (par exemple .php).
-    // Rendre la route capable daccepter les fichiers téléchargés et configurer où cela doit être enregistré.
-        // Vous vous demandez ce quest un CGI ?
-        // Parce que vous nallez pas appeler le CGI mais utiliser directement le chemin complet comme PATH_INFO.
-        // Souvenezvous simplement que pour les requêtes fragmentées, votre serveur doit la défragmenter et le CGI attendra EOF comme fin du body.
-        // Même chosespour la sortie du CGI. Si aucun content_length nest renvoyé par le CGI, EOF signifiera la fin des données renvoyées.
-        // Votre programme doit appeler le CGI avec le fichier demandé comme premier argument.
-        // Le CGI doit être exécuté dans le bon répertoire pour laccès au fichier de chemin relatif.
-        // votre serveur devrait fonctionner avec un seul CGI (phpCGI, Python, etc.). Vous devez fournir des fichiers de configuration et des fichiers de base par défaut pour tester et démontrer que chaque fonctionnalité fonctionne pendant lévaluation.
-
 #include "library.hpp"
-#include "location_infos.hpp"
+#include "scope_location.hpp"
 
-class ChunkInfos {
+class ServerScope {
 
     public:
 
-    ChunkInfos(){}
-    ~ChunkInfos(){}
-    ChunkInfos(std::string str){
+    ServerScope(){}
+    ~ServerScope(){}
+    ServerScope(std::string str){
         _chunk = str;
         clean_comments_header();
         extract_location_blocks();
@@ -46,26 +24,23 @@ class ChunkInfos {
         _directive_types[7] = "index";
         _directive_types[8] = "autoindex";
         _directive_types[9] = "try_files";
-        exec[0] = &ChunkInfos::extract_listen;
-        exec[1] = &ChunkInfos::extract_server_name;
-        exec[2] = &ChunkInfos::extract_default_error_pages;
-        exec[3] = &ChunkInfos::extract_client_body_buffer_size;
-        exec[4] = &ChunkInfos::extract_root;
-        exec[5] = &ChunkInfos::extract_allow_method;
-        exec[6] = &ChunkInfos::extract_cgi;
-        exec[7] = &ChunkInfos::extract_index;
-        exec[8] = &ChunkInfos::extract_autoindex;
-        exec[9] = &ChunkInfos::extract_try_files;
+        exec[0] = &ServerScope::extract_listen;
+        exec[1] = &ServerScope::extract_server_name;
+        exec[2] = &ServerScope::extract_default_error_pages;
+        exec[3] = &ServerScope::extract_client_body_buffer_size;
+        exec[4] = &ServerScope::extract_root;
+        exec[5] = &ServerScope::extract_allow_method;
+        exec[6] = &ServerScope::extract_cgi;
+        exec[7] = &ServerScope::extract_index;
+        exec[8] = &ServerScope::extract_autoindex;
+        exec[9] = &ServerScope::extract_try_files;
         extract_directives();
         apply_default();
-        while (_location_blocks.size() != 0)
-        {
-            _locations.push_back(LocationInfos(_location_blocks.front()));
-            _location_blocks.pop_front();
-        }
-        // print_result();
+        for (std::list<std::string>::iterator it = _location_blocks.begin(); it != _location_blocks.end(); ++it)
+            _locations.push_back(LocationInfos(*it));
+        print_result();
     }
-    ChunkInfos& operator=(ChunkInfos &other) {
+    ServerScope& operator=(ServerScope &other) {
         if (this != &other)
         {
             // _locations = other._locations;
@@ -145,6 +120,6 @@ class ChunkInfos {
     std::list<std::string>                              _directives;
     std::list<std::string>                              _configs;
     std::string                                         _directive_types[10];
-    void (ChunkInfos::*exec[10])(std::string str);
+    void (ServerScope::*exec[10])(std::string str);
 };
 

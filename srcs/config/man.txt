@@ -1,5 +1,0 @@
-The words listen, index, server_name, error_page, 
-          client_body_buffer_size, cgi, allow_method, 
-          autoindex, try_files, location, root
-    are only for directives
-

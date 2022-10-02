@@ -1,24 +1,19 @@
 #include "library.hpp"
-#include "chunk_infos.hpp"
-#include "location_infos.hpp"
-#include "block_infos.hpp"
+#include "scope_server.hpp"
+#include "scope_location.hpp"
+#include "scope_http.hpp"
 
-
-        // exec[0] = &BlockInfos::extract_default_error_pages;
-        // exec[5] = &BlockInfos::extract_autoindex;
-
-
-void BlockInfos::extract_client_body_buffer_size(std::string directive) {
+void HttpScope::extract_client_body_buffer_size(std::string directive) {
     directive.erase(0, directive.find("client_body_buffer_size") + 23);
     _client_body_buffer_size = directive.substr(directive.find_first_not_of("\t\v\n\r\f "), directive.find_first_of("\t\v\n\r\f ", directive.find_first_not_of("\t\v\n\r\f ")));
 }
 
-void BlockInfos::extract_root(std::string directive) {
+void HttpScope::extract_root(std::string directive) {
     directive.erase(0, directive.find_first_of("root") + 4);
     _root = directive.substr(directive.find_first_not_of("\t\v\n\r\f "), directive.find_first_of("\t\v\n\r\f ", directive.find_first_not_of("\t\v\n\r\f ")));
 }
 
-void BlockInfos::extract_cgi(std::string cgi_dir) {
+void HttpScope::extract_cgi(std::string cgi_dir) {
     std::list<std::string> content;
     cgi_dir.erase(0, cgi_dir.find_first_of("cgi") + 3);
     while (cgi_dir.find_first_of(" \t\v\n\r\f") == 0)
@@ -47,7 +42,7 @@ void BlockInfos::extract_cgi(std::string cgi_dir) {
     }
 }
 
-void BlockInfos::extract_index(std::string index_dir) {
+void HttpScope::extract_index(std::string index_dir) {
     index_dir.erase(0, index_dir.find("index") + 5);
     while (index_dir.find_first_of(" \t\v\n\r\f") == 0)
         index_dir.erase(0, 1);
@@ -68,7 +63,7 @@ void BlockInfos::extract_index(std::string index_dir) {
     }
 }
 
-void BlockInfos::extract_default_error_pages(std::string error_page_dir) {
+void HttpScope::extract_default_error_pages(std::string error_page_dir) {
     error_page_dir.erase(0, error_page_dir.find("error_page") + 10);
     while (error_page_dir.find_first_of(" \t\v\n\r\f") == 0)
         error_page_dir.erase(0, 1);
@@ -95,7 +90,7 @@ void BlockInfos::extract_default_error_pages(std::string error_page_dir) {
         _default_error_pages.insert(std::make_pair(*it, path));
 }
 
-void BlockInfos::extract_autoindex(std::string autoindex_dir) {
+void HttpScope::extract_autoindex(std::string autoindex_dir) {
     autoindex_dir.erase(0, autoindex_dir.find("autoindex ") + 9);
     _autoindex = autoindex_dir.substr(autoindex_dir.find_first_not_of("\t\v\n\r\f ", 0), autoindex_dir.find_first_of("\t\v\n\r\f ", autoindex_dir.find_first_not_of("\t\v\n\r\f ", 0)));
     if (_autoindex.compare("on") != 0)
@@ -103,7 +98,7 @@ void BlockInfos::extract_autoindex(std::string autoindex_dir) {
 }
 
 
-void BlockInfos::extract_server_blocks() {  
+void HttpScope::extract_server_blocks() {  
     std::string copy = _block;
     while (copy.find(';', 0) != std::string::npos || copy.find('}') != std::string::npos)
     {
@@ -170,7 +165,7 @@ void BlockInfos::extract_server_blocks() {
         _block.erase(_block.find(*it), it->size());
 }
 
-void BlockInfos::extract_lines() {
+void HttpScope::extract_lines() {
     while (_block.find(';', 0) != std::string::npos)
     {
         _directives.push_back(_block.substr(0, _block.find(';')));
@@ -178,7 +173,7 @@ void BlockInfos::extract_lines() {
     }
 }
 
-void BlockInfos::clean_http_header()
+void HttpScope::clean_http_header()
 {
     if (_block.find("http") == _block.find_first_not_of("\t\v\n\r\f "))
     {
@@ -189,7 +184,7 @@ void BlockInfos::clean_http_header()
         _block.erase(_block.find('#', 0), _block.find_first_of('\n', _block.find('#', 0)) - _block.find('#', 0));
 }
 
-void BlockInfos::extract_directives() {
+void HttpScope::extract_directives() {
     while (_directives.size() != 0)
     {
         extract_rules(_directives.back());
@@ -197,7 +192,7 @@ void BlockInfos::extract_directives() {
     }
 }
 
-void BlockInfos::extract_rules(std::string rule)
+void HttpScope::extract_rules(std::string rule)
 {
     for (unsigned int i = 0; i < 10; ++i)
     {
@@ -210,35 +205,32 @@ void BlockInfos::extract_rules(std::string rule)
     }
 }
 
-void BlockInfos::apply_default() {
+void HttpScope::apply_default() {
     if (_root.size() == 0)
         _root = "html";
     if(_autoindex.size() == 0)
         _autoindex = "off";
 }
 
-void BlockInfos::print_result() {
-    std::cout << "THE FIRST SCOPE: HTTP\n" << std::endl;
+void HttpScope::print_result() {
 
+    std::ofstream ofs;
+    ofs.open("./configurations/parsed.txt", std::ios_base::app);
+
+    ofs << " \n|||||||||||||||||||||||||||||||\n" << std::endl;
+    ofs << "SCOPE: HTTP\n" << std::endl;
     for (std::list<std::string>::iterator it = _index.begin(); it != _index.end(); ++it)
-        std::cout << "index: " << *it << std::endl;
+        ofs << "index: " << *it << std::endl;
     for (std::map<std::string, std::string>::iterator it = _default_error_pages.begin(); it != _default_error_pages.end(); ++it)
-        std::cout << "error page " << it->first << " associated path " << it->second << std::endl;
-    std::cout << "body max: " << _client_body_buffer_size << std::endl;
-    std::cout << "root: " << _root << std::endl;
-    std::cout << "allowed method: ";
+        ofs << "error page " << it->first << " associated path " << it->second << std::endl;
+    ofs << "body max: " << _client_body_buffer_size << std::endl;
+    ofs << "root: " << _root << std::endl;
+    ofs << "allowed method: ";
     for (std::map<std::string, std::string>::iterator it = _cgi.begin(); it != _cgi.end(); ++it)
-        std::cout << "cgi: " << it->first << " associated to path " << it->second << std::endl;
-    std::cout << "autoindex: " << _autoindex << std::endl;
-    for (std::list<std::string>::iterator it = _server_blocks.begin(); it != _server_blocks.end(); ++it)
-        std::cout << "server block: " << *it << std::endl;
-
-    // std::ofstream ofs;
-    // ofs.open("config_result.txt");
-    // ofs << _chunk;
-    // ofs << "THE CONFIGS\n" << std::endl;
-    // for (std::list<std::string>::iterator it = _configs.begin(); it != _configs.end(); ++it)
-    //     ofs << *it;
-    // ofs << "\n\nTHE LOCATIONS\n" << std::endl;
+        ofs << "cgi: " << it->first << " associated to path " << it->second << std::endl;
+    ofs << std::endl;
+    ofs << "autoindex: " << _autoindex << std::endl;
+    // for (std::list<std::string>::iterator it = _server_blocks.begin(); it != _server_blocks.end(); ++it)
+    //     ofs << "server block: " << *it << std::endl;
 }
 

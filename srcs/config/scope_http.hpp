@@ -1,14 +1,14 @@
 #pragma once
 
 #include "library.hpp"
-#include "chunk_infos.hpp"
-#include "location_infos.hpp"
+#include "scope_server.hpp"
+#include "scope_location.hpp"
 
-class BlockInfos {
+class HttpScope {
     public:
 
-    BlockInfos(){}
-    ~BlockInfos(){}
+    HttpScope(){}
+    ~HttpScope(){}
 
     void extract_server_blocks();
     void extract_lines();
@@ -26,7 +26,7 @@ class BlockInfos {
 
     void print_result();
 
-    BlockInfos(std::string str) {
+    HttpScope(std::string str) {
         _block = str;
         clean_http_header();
         extract_server_blocks();
@@ -38,34 +38,26 @@ class BlockInfos {
         _directive_types[3] = "cgi";
         _directive_types[4] = "index";
         _directive_types[5] = "autoindex";
-        exec[0] = &BlockInfos::extract_default_error_pages;
-        exec[1] = &BlockInfos::extract_client_body_buffer_size;
-        exec[2] = &BlockInfos::extract_root;
-        exec[3] = &BlockInfos::extract_cgi;
-        exec[4] = &BlockInfos::extract_index;
-        exec[5] = &BlockInfos::extract_autoindex;
+        exec[0] = &HttpScope::extract_default_error_pages;
+        exec[1] = &HttpScope::extract_client_body_buffer_size;
+        exec[2] = &HttpScope::extract_root;
+        exec[3] = &HttpScope::extract_cgi;
+        exec[4] = &HttpScope::extract_index;
+        exec[5] = &HttpScope::extract_autoindex;
         extract_directives();
         //maybe after all the parsing is done, to be considered
         apply_default();
-    
+        for (std::list<std::string>::iterator it = _server_blocks.begin(); it != _server_blocks.end(); ++it)
+            _servers.push_back(ServerScope(*it));
         print_result();
-        while (_server_blocks.size() != 0)
-        {
-            _servers.push_back(ChunkInfos(_server_blocks.front()));
-            _server_blocks.pop_front();
-        }
-
-
-
     }
 
     private:
 
     std::string                                         _block;
     std::list<std::string>                              _server_blocks;
-    std::list<ChunkInfos>                               _servers;
+    std::list<ServerScope>                               _servers;
     std::list<std::string>                              _directives;
-
 
     std::string                                         _client_body_buffer_size;
     std::map<std::string, std::string>                  _default_error_pages;
@@ -74,5 +66,5 @@ class BlockInfos {
     std::string                                         _autoindex;
     std::map<std::string, std::string>                  _cgi;
     std::string                                         _directive_types[6];
-    void (BlockInfos::*exec[6])(std::string str);
+    void (HttpScope::*exec[6])(std::string str);
 };
