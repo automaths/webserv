@@ -69,7 +69,7 @@ int Request::checkType(std::string & type) {
 void Request::parseHeaders(void) {
 	std::map<std::string, std::list<std::string> >::iterator map = _headers.begin();
 
-	if (NOT_OLD) {
+	if (_headers.find("host") != _headers.end()) {
 		std::string & tmp = _headers["host"].front();
 		tmp = tmp.substr(0, tmp.find(":"));
 	}
