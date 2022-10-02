@@ -1,6 +1,13 @@
 
 server {
 
+    location /images/ {
+        root /my_images;
+        index index.html index.htm;
+        allow_method GET POST HEAD;
+        allow_method PUT;
+    } 
+    
     listen  127.0.0.1;
 
     index index.html index.htm index.php;
@@ -23,12 +30,6 @@ server {
 
     #fsdkljgsdf
 
-    location /images/ {
-        root /my_images;
-        index index.html index.htm;
-        allow_method GET POST HEAD;
-        allow_method PUT;
-    } #asdfajsdfkl
 
     location /videos/ {
         root /my_videos;
@@ -37,7 +38,6 @@ server {
             allow_method GET;
 
             location /bloup/ {
-                heyhey;
 
                 location /rehey/ {
                     coucoux;

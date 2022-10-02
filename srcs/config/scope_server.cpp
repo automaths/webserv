@@ -185,6 +185,33 @@ void ServerScope::extract_location_blocks() {
     std::string copy = _chunk;
     while (copy.find(';', 0) != std::string::npos || copy.find('}') != std::string::npos)
     {
+        if (copy.find_first_not_of("\t\v\n\r\f ") == copy.find("location") && copy.find("location") != std::string::npos)
+        {
+            std::string::iterator it = copy.begin();
+            for (unsigned int i = 0; i < copy.find("location", 0) + 1; ++i)
+                ++it;
+            std::string::iterator tmp = it;
+            while (it != copy.end() && *it != '{')
+                ++it;
+            ++it;
+            int n = 1;
+            while (it != copy.end() && n > 0)
+            {
+                if (*it == '{')
+                    ++n;
+                if (*it == '}')
+                    --n;
+                ++it;
+            }
+            n = 0;
+            while (tmp != it)
+            {
+                ++n;
+                ++tmp;
+            }
+            _location_blocks.push_back(copy.substr(copy.find("location", 0), n + 1));
+            copy.erase(copy.find("location", 0), n);
+        }
         if (copy.find('}', 0) == std::string::npos)
         {
             while (copy.find(';') > 0 && copy.find(';') != std::string::npos)
@@ -215,33 +242,6 @@ void ServerScope::extract_location_blocks() {
                 if (copy.size() > 0)
                     copy.erase(0, 1);
             }
-        }
-        if (copy.find_first_not_of("\t\v\n\r\f ") == copy.find("location") && copy.find("location") != std::string::npos)
-        {
-            std::string::iterator it = copy.begin();
-            for (unsigned int i = 0; i < copy.find("location", 0) + 1; ++i)
-                ++it;
-            std::string::iterator tmp = it;
-            while (it != copy.end() && *it != '{')
-                ++it;
-            ++it;
-            int n = 1;
-            while (it != copy.end() && n > 0)
-            {
-                if (*it == '{')
-                    ++n;
-                if (*it == '}')
-                    --n;
-                ++it;
-            }
-            n = 0;
-            while (tmp != it)
-            {
-                ++n;
-                ++tmp;
-            }
-            _location_blocks.push_back(copy.substr(copy.find("location", 0), n + 1));
-            copy.erase(copy.find("location", 0), n);
         }
     }
     for (std::list<std::string>::iterator it = _location_blocks.begin(); it != _location_blocks.end(); ++it)
