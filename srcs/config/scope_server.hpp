@@ -56,7 +56,7 @@ class ServerScope {
             _default_error_pages = _in_default_error_pages;
     }
 
-    ServerScope& operator=(ServerScope &other) {
+    ServerScope& operator=(ServerScope const &other) {
         if (this != &other)
         {
             _locations = other._locations;

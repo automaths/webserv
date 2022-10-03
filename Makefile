@@ -6,7 +6,7 @@
 #    By: tnaton <marvin@42.fr>                      +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/09/27 13:15:29 by tnaton            #+#    #+#              #
-#    Updated: 2022/10/01 12:24:23 by tnaton           ###   ########.fr        #
+#    Updated: 2022/10/03 17:05:45 by bdetune          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -14,9 +14,10 @@ NAME = webserv
 
 OBJDIR := objs
 
-SRCS = webserv.cpp Request.cpp Response.cpp Client.cpp server.cpp
+SRCS = webserv.cpp Request.cpp Response.cpp Client.cpp server.cpp config/scope_configuration.cpp config/scope_http.cpp config/scope_server.cpp config/scope_location.cpp
 
-INC = server.hpp Request.hpp Client.hpp Response.hpp
+INC = server.hpp Request.hpp Client.hpp Response.hpp config/scope_configuration.hpp config/scope_http.hpp config/scope_server.hpp config/scope_location.hpp
+
 
 source = $(addprefix srcs/,$(SRCS))
 
