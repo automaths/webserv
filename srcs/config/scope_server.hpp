@@ -35,15 +35,34 @@ class ServerScope {
         exec[8] = &ServerScope::extract_autoindex;
         exec[9] = &ServerScope::extract_try_files;
         extract_directives();
-        apply_default();
+        // apply_default();
         for (std::list<std::string>::iterator it = _location_blocks.begin(); it != _location_blocks.end(); ++it)
             _locations.push_back(LocationScope(*it));
+
+        exec_inheritance();
+
         // print_result();
     }
+
+    void inheritance(){
+        _client_body_buffer_size = "800M";
+    }
+
+
+    void exec_inheritance() {
+
+        // if (_client_body_buffer_size.size() == 0)
+        _client_body_buffer_size = _in_client_body_buffer_size;
+        std::cout << _in_client_body_buffer_size << std::endl;
+
+    }
+
+
+
     ServerScope& operator=(ServerScope &other) {
         if (this != &other)
         {
-            // _locations = other._locations;
+            _locations = other._locations;
             _address = other._address;
             _port = other._port;
             _server_names = other._server_names;
@@ -81,7 +100,7 @@ class ServerScope {
     void                                setServerName(std::list<std::string> arg) { _server_names = arg; }
     void                                setTryFiles(std::list<std::string> arg) { _try_files = arg; }
     void                                setIndex(std::list<std::string> arg) { _index = arg; }
-    void                                setClientBodyBufferMax(std::string arg) { _client_body_buffer_size = arg; }
+    void                                setClientBodyBufferMax(std::string arg) {_client_body_buffer_size = arg; }
     void                                setAutoIndex(std::string arg) { _autoindex = arg; }
     void                                setRoot(std::string arg) { _root = arg; }
     void                                setAllowMethod(std::list<std::string> arg) { _allow_method = arg; }
@@ -93,12 +112,20 @@ class ServerScope {
     std::list<std::string>              getServerName() { return _server_names; }
     std::list<std::string>              getTryFiles() { return _try_files; }
     std::list<std::string>              getIndex() { return _index; }
-    std::string                         getClientBodyBufferMax() { return _client_body_buffer_size; }
+    std::string&                        getClientBodyBufferMax() { return _client_body_buffer_size; }
     std::string                         getAutoIndex() { return _autoindex; }
     std::string                         getRoot() { return _root; }
     std::list<std::string>              getAllowMethod() { return _allow_method; }
     std::map<std::string, std::string>  getCgi() { return _cgi; }
     std::map<std::string, std::string>  getDefaultErrorPage() { return _default_error_pages; }
+
+    std::string&                         getClientBodyBufferMaxIn() { return _in_client_body_buffer_size; }
+    void                         setClientBodyBufferMaxIn(std::string str) { _in_client_body_buffer_size = str; }
+
+
+
+
+
 
     private:
 
@@ -114,6 +141,8 @@ class ServerScope {
     std::list<std::string>                              _allow_method;
     std::map<std::string, std::string>                  _cgi;
     std::map<std::string, std::string>                  _default_error_pages;
+
+    std::string                                         _in_client_body_buffer_size;
 
     std::string                                         _chunk;
     std::list<std::string>                              _location_blocks;

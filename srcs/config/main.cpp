@@ -17,6 +17,12 @@ int main()
     try 
     {
         Configuration la_config(buffer);
+
+        la_config.apply_inheritance();
+
+        la_config.getHttpScope().front().setRoot("nononon");
+
+        la_config.print_configurations();
     }
     catch (std::exception &e) 
     {

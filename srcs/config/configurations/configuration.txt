@@ -37,7 +37,7 @@ server {
         location /coucou/ {
             allow_method GET;
 
-            location /bloup/ {
+            location /coucou/ {
 
                 location /rehey/ {
                     coucoux;
@@ -74,6 +74,8 @@ http {
     server {
 
         listen 127.0.0.1:8000;
+        client_body_buffer_size 200M;
+
     }
     server {
 

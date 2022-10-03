@@ -39,11 +39,11 @@ class LocationScope {
         }
         // print_result();
     }
-    LocationScope& operator=(LocationScope &other) {
+    LocationScope& operator=(LocationScope const &other) {
         if (this != &other)
         {
             _main_path = other._main_path;
-            // _locations = other._locations;
+            _locations = other._locations;
             _try_files = other._try_files;
             _index = other._index;
             _client_body_buffer_size = other._client_body_buffer_size;
