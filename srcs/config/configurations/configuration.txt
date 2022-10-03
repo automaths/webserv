@@ -72,25 +72,19 @@ http {
 
 
     server {
-
         listen 127.0.0.1:8000;
         client_body_buffer_size 200M;
-
+        error_page 404 /inheritance.html;
     }
     server {
-
         listen 127.0.0.1;
-
+        index in_index.html;
     }
     server {
-
         listen 8000;
-
+        cgi .php /inheritance;
     }
     server {
-
         listen *:8000;
-
     }
-
 }

@@ -18,7 +18,7 @@ root: nononon
     try_files: /default/index.html
     allow_method: GET
     allow_method: POST
-    client_body_buffer_size: 800M
+    client_body_buffer_size: 200M
     default error page 401 associated to path /two.html
     default error page 402 associated to path /one.html
     default error page 403 associated to path /one.html
@@ -48,30 +48,51 @@ cgi: extension .py associated to path /usr/lib/cgi-bin/python
 
     address:  127.0.0.1
     port: 8000
-    client_body_buffer_size: 800M
-    autoindex: 
+    client_body_buffer_size: 200M
+    default error page 404 associated to path /inheritance.html
+    index: index.html
+    autoindex: on
     root: 
+    cgi: extension .php associated to path /usr/lib/cgi-bin/php
+    cgi: extension .py associated to path /usr/lib/cgi-bin/python
 
             -------| THE SERVER SCOPE |-------            
 
     address:  127.0.0.1
     port: 80
-    client_body_buffer_size: 800M
-    autoindex: 
+    client_body_buffer_size: 200M
+    default error page 402 associated to path /one.html
+    default error page 403 associated to path /one.html
+    default error page 404 associated to path /one.html
+    index: in_index.html
+    autoindex: on
     root: 
+    cgi: extension .php associated to path /usr/lib/cgi-bin/php
+    cgi: extension .py associated to path /usr/lib/cgi-bin/python
 
             -------| THE SERVER SCOPE |-------            
 
     address: *
     port:  8000
-    client_body_buffer_size: 800M
-    autoindex: 
+    client_body_buffer_size: 200M
+    default error page 402 associated to path /one.html
+    default error page 403 associated to path /one.html
+    default error page 404 associated to path /one.html
+    index: index.html
+    autoindex: on
     root: 
+    cgi: extension .php associated to path /inheritance
 
             -------| THE SERVER SCOPE |-------            
 
     address:  *
     port: 8000
-    client_body_buffer_size: 800M
-    autoindex: 
+    client_body_buffer_size: 200M
+    default error page 402 associated to path /one.html
+    default error page 403 associated to path /one.html
+    default error page 404 associated to path /one.html
+    index: index.html
+    autoindex: on
     root: 
+    cgi: extension .php associated to path /usr/lib/cgi-bin/php
+    cgi: extension .py associated to path /usr/lib/cgi-bin/python

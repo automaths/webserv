@@ -35,16 +35,15 @@ class HttpScope {
         for (std::list<std::string>::iterator it = _server_blocks.begin(); it != _server_blocks.end(); ++it)
         {
             _servers.push_back(ServerScope(*it));
-            // _client_body_buffer_size = "600M";~
-            _servers.back().getClientBodyBufferMaxIn() = "600M";
+            _servers.back().setClientBodyBufferMaxIn(_client_body_buffer_size);
+            _servers.back().setIndexIn(_index);
+            _servers.back().setAutoIndexIn(_autoindex);
+            _servers.back().setRootIn(_root);
+            _servers.back().setCgiIn(_cgi);
+            _servers.back().setDefaultErrorPageIn(_default_error_pages);
         }
-
         for (std::list<ServerScope>::iterator it = _servers.begin(); it != _servers.end(); ++it)
-        {
             it->inheritance();
-        }
-
-
         // print_result();
     }
 
@@ -69,7 +68,7 @@ class HttpScope {
     void                                setCgi(std::map<std::string, std::string> arg) { _cgi = arg; }
     void                                settDefaultErrorPage(std::map<std::string, std::string> arg) { _default_error_pages = arg; }
     std::list<std::string>              getIndex() { return _index; }
-    std::string&                         getClientBodyBufferMax() { return _client_body_buffer_size; }
+    std::string&                        getClientBodyBufferMax() { return _client_body_buffer_size; }
     std::string                         getAutoIndex() { return _autoindex; }
     std::string                         getRoot() { return _root; }
     std::map<std::string, std::string>  getCgi() { return _cgi; }

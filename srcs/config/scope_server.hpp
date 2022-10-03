@@ -38,26 +38,23 @@ class ServerScope {
         // apply_default();
         for (std::list<std::string>::iterator it = _location_blocks.begin(); it != _location_blocks.end(); ++it)
             _locations.push_back(LocationScope(*it));
-
-        exec_inheritance();
-
         // print_result();
     }
 
     void inheritance(){
-        _client_body_buffer_size = "800M";
+        if (_client_body_buffer_size.size() == 0)
+            _client_body_buffer_size = _in_client_body_buffer_size;
+        if (_index.size() == 0)
+            _index = _in_index;
+        if (_autoindex.size() == 0)
+            _autoindex = _in_autoindex;
+        if (_root.size() == 0)
+            _root = _in_root;
+        if (_cgi.size() == 0)
+            _cgi = _in_cgi;
+        if (_default_error_pages.size() == 0)
+            _default_error_pages = _in_default_error_pages;
     }
-
-
-    void exec_inheritance() {
-
-        // if (_client_body_buffer_size.size() == 0)
-        _client_body_buffer_size = _in_client_body_buffer_size;
-        std::cout << _in_client_body_buffer_size << std::endl;
-
-    }
-
-
 
     ServerScope& operator=(ServerScope &other) {
         if (this != &other)
@@ -119,13 +116,12 @@ class ServerScope {
     std::map<std::string, std::string>  getCgi() { return _cgi; }
     std::map<std::string, std::string>  getDefaultErrorPage() { return _default_error_pages; }
 
-    std::string&                         getClientBodyBufferMaxIn() { return _in_client_body_buffer_size; }
-    void                         setClientBodyBufferMaxIn(std::string str) { _in_client_body_buffer_size = str; }
-
-
-
-
-
+    void                                setClientBodyBufferMaxIn(std::string arg) { _in_client_body_buffer_size = arg; }
+    void                                setIndexIn(std::list<std::string> arg) { _in_index = arg; }
+    void                                setAutoIndexIn(std::string arg) { _in_autoindex = arg; }
+    void                                setRootIn(std::string arg) { _in_root = arg; }
+    void                                setCgiIn(std::map<std::string, std::string> arg) { _in_cgi = arg; }
+    void                                setDefaultErrorPageIn(std::map<std::string, std::string> arg) { _in_default_error_pages = arg; }
 
     private:
 
@@ -143,6 +139,11 @@ class ServerScope {
     std::map<std::string, std::string>                  _default_error_pages;
 
     std::string                                         _in_client_body_buffer_size;
+    std::map<std::string, std::string>                  _in_default_error_pages;
+    std::string                                         _in_root;
+    std::list<std::string>                              _in_index;
+    std::string                                         _in_autoindex;
+    std::map<std::string, std::string>                  _in_cgi;
 
     std::string                                         _chunk;
     std::list<std::string>                              _location_blocks;
