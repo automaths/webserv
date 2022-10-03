@@ -8,9 +8,11 @@
 #include <netinet/in.h>
 #include <unistd.h>
 #include "Client.hpp"
+#include "config/scope_server.hpp"
 #include <utility>
 #include <ctime>
 #include <cstring>
+#include <cstdlib>
 #include <csignal>
 #define PORT 8080
 
@@ -23,17 +25,18 @@ class Server {
     ~Server();
 
     struct sockaddr_in getAddr(void);
-    void initing(void);
+    void initing(std::list<ServerScope> & virtual_servers);
     void execute(void);
 
 
     private:
     
-	int						_epoll_fd;			//fd for epoll queue
-	char					_rdBuffer[1048577];	//Reading buffer
-	std::map<int, int>		_listen_sockets;	//Listening sockets: <fd, port>
-	std::map<int, Client>	_client_sockets;	//Accepted connections sockets: <fd, Client>
-    struct sockaddr_in		_address;			// Address to bind to a socket
+	int										_epoll_fd;			//fd for epoll queue
+	char									_rdBuffer[1048577];	//Reading buffer
+	std::map<int, std::list<ServerScope> >	_virtual_servers;	//List of servers per ports
+	std::map<int, int>						_listen_sockets;	//Listening sockets: <fd, port>
+	std::map<int, Client>					_client_sockets;	//Accepted connections sockets: <fd, Client>
+    struct sockaddr_in						_address;			// Address to bind to a socket
 
 	bool	epollSockets(void);
 	void	acceptIncomingConnection(struct epoll_event & event);

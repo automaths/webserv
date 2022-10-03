@@ -6,7 +6,7 @@
 /*   By: bdetune <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/29 12:29:34 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/03 14:12:34 by bdetune          ###   ########.fr       */
+/*   Updated: 2022/10/03 19:56:43 by bdetune          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,6 +75,10 @@ void	Response::errorResponse(int error)
 		case 404:
 			status << " 404 " << DEFAULT404STATUS;
 			body = DEFAULT404BODY;
+			break;
+		case 416:
+			status << " 416 " << DEFAULT416STATUS;
+			body = DEFAULT416BODY;
 			break;
 		case 505:
 			status << " 505 " << DEFAULT505STATUS;

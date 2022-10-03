@@ -6,7 +6,7 @@
 /*   By: bdetune <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/28 13:45:50 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/03 15:55:46 by bdetune          ###   ########.fr       */
+/*   Updated: 2022/10/03 20:37:56 by bdetune          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,25 +39,33 @@ struct sockaddr_in Server::getAddr(void)
 	return (this->_address);
 }
 
-void Server::initing(void)
+void Server::initing(std::list<ServerScope> & virtual_servers)
 {
 	int	_server_fd;
 	int	enable = 1;
-        if ((_server_fd = socket(AF_INET, SOCK_STREAM, 0)) == -1) // creating the socket
-            throw SocketCreationException();
-        _address.sin_family = AF_INET; // socket configuration
-        _address.sin_addr.s_addr = INADDR_ANY;
-        _address.sin_port = htons( PORT );
-        memset(_address.sin_zero, '\0', sizeof _address.sin_zero); // applying configurations on the created socket
+
+	for (std::list<ServerScope>::iterator first = virtual_servers.begin(); first != virtual_servers.end(); first++)
+	{
+		this->_virtual_servers[atoi(first->getPort().data())].push_back(*first);
+	}
+	for (std::map<int, std::list<ServerScope> >::iterator first = this->_virtual_servers.begin(); first != this->_virtual_servers.end(); first++)
+	{	
+		if ((_server_fd = socket(AF_INET, SOCK_STREAM, 0)) == -1) // creating the socket
+			throw SocketCreationException();
+		_address.sin_family = AF_INET; // socket configuration
+		_address.sin_addr.s_addr = INADDR_ANY;
+		_address.sin_port = htons( (*first).first );
+		memset(_address.sin_zero, '\0', sizeof _address.sin_zero); // applying configurations on the created socket
 		if (setsockopt(_server_fd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)))
-            throw BindException();
-        if (bind(_server_fd, (struct sockaddr *)&_address, sizeof(_address)) < 0)
-            throw BindException();
-        if (listen(_server_fd, 10) < 0) // opening the socket to the port
-            throw ListenException();
-		this->_listen_sockets.insert(std::pair<int, int>(_server_fd, PORT));
-		if ((this->_epoll_fd = epoll_create(1)) == -1)
-			throw EpollCreateException();
+			throw BindException();
+		if (bind(_server_fd, (struct sockaddr *)&_address, sizeof(_address)) < 0)
+			throw BindException();
+		if (listen(_server_fd, 1000) < 0) // opening the socket to the port
+			throw ListenException();
+		this->_listen_sockets.insert(std::pair<int, int>(_server_fd, (*first).first));
+	}
+	if ((this->_epoll_fd = epoll_create(1)) == -1)
+		throw EpollCreateException();
 }
 
 bool	Server::epollSockets(void)

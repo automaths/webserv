@@ -20,6 +20,7 @@
 #
 server {
 	listen 8080;
+	listen 7979;
 	listen [::]:8080;
 
 	root /var/www/html/default;

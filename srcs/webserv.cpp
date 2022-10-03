@@ -25,6 +25,11 @@ int main(int ac, char **av)
 
 	std::signal(SIGINT, interrupt);
 	std::signal(SIGQUIT, interrupt);
+	if (ac > 2)
+	{
+		std::cerr << "Too many configuration files supplied, this program expects at most one argument" << std::endl;
+		return (1);
+	}
 	if (ac == 2)
 	{
 		ifs.open(av[1]);
@@ -44,24 +49,27 @@ int main(int ac, char **av)
 			std::cerr << "Configuration file too big" << std::endl;
 			return (1);
 		}
-		std::cout << buffer.str();
-		Configuration			current_config(buffer.str());
-		// current_config.apply_inheritance();
-		virtual_servers = current_config.getHttpScope().front().getServers();
-		for (std::list<ServerScope>::iterator st = virtual_servers.begin(); st != virtual_servers.end(); st++)
-		{
-			std::cout << "Ports:" << st->getPort() << std::endl;
-			std::list<std::string>	tmp = st->getServerName();
-			for (std::list<std::string>::iterator first = tmp.begin(); first != tmp.end(); first++)
-			{
-				std::cout << "Server_Name:" << *first << std::endl;
-			}
-			std::cout << "Root:" << st->getRoot()<<std::endl;
-		}	
+		ifs.close();
 	}
+	else
+		buffer << "http {" << std::endl << "server {" << std::endl << "listen 8080;" << std::endl << "}" << std::endl << "}" << std::endl;
+	std::cout << buffer.str();
+	Configuration			current_config(buffer.str());
+//	current_config.apply_inheritance();
+	virtual_servers = current_config.getHttpScope().front().getServers();
+	for (std::list<ServerScope>::iterator st = virtual_servers.begin(); st != virtual_servers.end(); st++)
+	{
+		std::cout << "Ports:" << st->getPort() << std::endl;
+		std::list<std::string>	tmp = st->getServerName();
+		for (std::list<std::string>::iterator first = tmp.begin(); first != tmp.end(); first++)
+		{
+			std::cout << "Server_Name:" << *first << std::endl;
+		}
+		std::cout << "Root:" << st->getRoot()<<std::endl;
+	}	
     try
     {
-        webserv.initing();
+        webserv.initing(virtual_servers);
         webserv.execute();
     }
     catch (std::exception &e)
