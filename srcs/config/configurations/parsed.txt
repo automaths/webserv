@@ -7,29 +7,17 @@ root: html
 
             -------| THE SERVER SCOPE |-------            
 
-    address:   127.0.0.1
+    address: *
     port: 80
-    server_name: cavalazoone.com
-    server_name: ouaiouaiouai.com
-    server_name: coucou.fr
-    try_files: /example/index.html
-    try_files: /other/
-    try_files: /default/index.html
-    allow_method: GET
-    allow_method: POST
-    client_body_buffer_size: 200M
-    default error page 401 associated to path /two.html
-    default error page 402 associated to path /one.html
-    default error page 403 associated to path /one.html
-    default error page 404 associated to path /one.html
-    index: index.html
-    index: index.htm
-    index: index.php
-    autoindex: on
-    root: /my_root
-    cgi: extension .js associated to path /usr/lib/cgi-bin/javascript
-    cgi: extension .php associated to path /usr/lib/cgi-bin/php
-    cgi: extension .py associated to path /usr/lib/cgi-bin/python
+    autoindex: off
+    root: html
+
+            -------| THE SERVER SCOPE |-------            
+
+    address: *
+    port: 80
+    autoindex: off
+    root: html
 
      ---------------| THE HTTP SCOPE |---------------        
 
@@ -38,32 +26,31 @@ root: html
 
             -------| THE SERVER SCOPE |-------            
 
-    address:  127.0.0.1
-    port: 8000
-    client_body_buffer_size: 200M
-    default error page 404 associated to path /inheritance.html
-    autoindex: off
-    root: html
-
-            -------| THE SERVER SCOPE |-------            
-
-    address:  127.0.0.1
+    address: *
     port: 80
-    index: in_index.html
     autoindex: off
     root: html
+
+     ---------------| THE HTTP SCOPE |---------------        
+
+autoindex: off
+root: html
 
             -------| THE SERVER SCOPE |-------            
 
     address: *
-    port:  8000
+    port: 80
     autoindex: off
     root: html
-    cgi: extension .php associated to path /inheritance
+
+     ---------------| THE HTTP SCOPE |---------------        
+
+autoindex: off
+root: html
 
             -------| THE SERVER SCOPE |-------            
 
-    address:  *
-    port: 8000
+    address: *
+    port: 80
     autoindex: off
     root: html

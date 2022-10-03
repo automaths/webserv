@@ -34,8 +34,8 @@ std::string Configuration::chunking() {
 
 void Configuration::extract_http_blocks() {
     std::list<std::string> _chunks;
-    while (((_file.find("http", 0) >= 0) && (_file[_file.find_first_not_of(" \t\v\n\r\f", _file.find("http", 0) + 4)] == '{')) || \
-        ((_file.find("server", 0) >= 0) && (_file[_file.find_first_not_of(" \t\v\n\r\f", _file.find("server", 0) + 6)] == '{')))
+    while (((_file.find("http", 0) >= 0) && (_file.find_first_not_of(" \t\v\n\r\f", _file.find("http", 0) + 4) < _file.size() && _file[_file.find_first_not_of(" \t\v\n\r\f", _file.find("http", 0) + 4)] == '{')) || \
+        ((_file.find("server", 0) >= 0) && (_file.find_first_not_of(" \t\v\n\r\f", _file.find("http", 0) + 4) < _file.size() && _file[_file.find_first_not_of(" \t\v\n\r\f", _file.find("server", 0) + 6)] == '{')))
     {
         if (_file.find("http", 0) < _file.find("server") && _file.find("http", 0) != std::string::npos)
         {

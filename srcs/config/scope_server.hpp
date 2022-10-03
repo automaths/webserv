@@ -53,12 +53,8 @@ class ServerScope {
         if (_default_error_pages.size() == 0)
             _default_error_pages = _in_default_error_pages;
     }
-<<<<<<< HEAD
 
     ServerScope& operator=(ServerScope const &other) {
-=======
-    ServerScope& operator=(ServerScope &other) {
->>>>>>> 5a9e88f150fc6e2bb7baad550e9d8220c2de599e
         if (this != &other)
         {
             _locations = other._locations;
