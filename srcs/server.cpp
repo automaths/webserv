@@ -6,7 +6,7 @@
 /*   By: bdetune <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/28 13:45:50 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/03 13:04:21 by bdetune          ###   ########.fr       */
+/*   Updated: 2022/10/03 13:51:20 by bdetune          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,7 +75,7 @@ bool	Server::epollSockets(void)
 	return (true);
 }
 
-bool	Server::acceptIncomingConnection(struct epoll_event & event)
+void	Server::acceptIncomingConnection(struct epoll_event & event)
 {
 	Client				tmp(this->_listen_sockets[event.data.fd]);
 	struct epoll_event	ev;
@@ -85,11 +85,18 @@ bool	Server::acceptIncomingConnection(struct epoll_event & event)
 	ev.events = EPOLLIN;
 	ev.data.fd = accept(event.data.fd, (struct sockaddr *)&_address, (socklen_t*)&addrlen);
 	if (ev.data.fd < 0)
-		return (false);
-	this->_client_sockets.insert(std::pair<int, Client>(ev.data.fd, tmp));
+	{
+		std::cerr << "Could not accept incoming connection" << std::endl;
+		return ;
+	}
 	if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_ADD, ev.data.fd, &ev) == -1)
-		return (close(ev.data.fd), false);
-	return (true);
+	{
+		std::cerr << "Error while adding fd to epoll" << std::endl;
+		close(event.data.fd);
+		return ;
+	}
+	this->_client_sockets.insert(std::pair<int, Client>(ev.data.fd, tmp));
+	return ;
 }
 
 void	Server::readRequest(struct epoll_event & event)
@@ -99,9 +106,7 @@ void	Server::readRequest(struct epoll_event & event)
 
 	recvret = recv(event.data.fd, static_cast<void *>(_rdBuffer), 1048576, MSG_DONTWAIT);
 	if (recvret == -1)
-	{
 		std::cerr << "Error while trying to read socket" << std::endl;
-	}
 	else if (recvret == 0)
 	{
 		std::cerr << "Client closed connection while receiving data" << std::endl;
@@ -121,7 +126,6 @@ void	Server::readRequest(struct epoll_event & event)
 			std::cerr << "Parsing error: " << e.what() << std::endl;
 			return ;
 		}
-		std::cerr << "Result parsing: " << result << std::endl;
 		if (result == 200)
 		{
 			this->_client_sockets[event.data.fd].getResponse() = Response(this->_client_sockets[event.data.fd].getRequest());
@@ -136,7 +140,7 @@ void	Server::readRequest(struct epoll_event & event)
 		}
 		else if (result)
 		{
-			this->_client_sockets[event.data.fd].getResponse() = Response(this->_client_sockets[event.data.fd].getRequest(), 400);
+			this->_client_sockets[event.data.fd].getResponse() = Response(this->_client_sockets[event.data.fd].getRequest(), result);
 			event.events = EPOLLOUT;
 			if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_MOD, event.data.fd, &event) == -1)
 			{
@@ -166,14 +170,9 @@ void Server::execute(){
 			for (int i = 0; i < ready; i++)
 			{
 				if (this->_listen_sockets.find(event[i].data.fd) != this->_listen_sockets.end())
-				{
-					if (!this->acceptIncomingConnection(event[i]))
-						std::cerr << "Cannot accept incoming connection" << std::endl;
-				}
+					this->acceptIncomingConnection(event[i]);
 				else if (event[i].events == EPOLLIN)
-				{
 					this->readRequest(event[i]);
-				}
 				else if (event[i].events == EPOLLOUT)
 				{
 					ssize_t	sendret = 0;

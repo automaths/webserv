@@ -36,17 +36,13 @@ class Server {
     struct sockaddr_in		_address;			// Address to bind to a socket
 
 	bool	epollSockets(void);
-	bool	acceptIncomingConnection(struct epoll_event & event);
+	void	acceptIncomingConnection(struct epoll_event & event);
 	void	closeTimedoutConnections(void);
 	void	readRequest(struct epoll_event & event);
 
     class SocketCreationException : public std::exception {virtual const char* what() const throw(){return ("An error occured during socket creation");}};
     class BindException : public std::exception {virtual const char* what() const throw(){return ("An error occured during bind");}};
     class ListenException : public std::exception {virtual const char* what() const throw(){return ("An error occured during listen");}};
-    class SelectException : public std::exception {virtual const char* what() const throw(){return ("An error occured during select");}};
     class EpollCreateException : public std::exception {virtual const char* what() const throw(){return ("An error occured while creating an epoll instance");}};
-    class AcceptException : public std::exception {virtual const char* what() const throw(){return ("An error occured during accept");}};
-    class ReadException : public std::exception {virtual const char* what() const throw(){return ("An error occured during read");}};
-    class SendException : public std::exception {virtual const char* what() const throw(){return ("An error occured during send");}};
 
 };
