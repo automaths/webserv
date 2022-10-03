@@ -38,14 +38,7 @@ class Configuration {
             std::list<ServerScope> getServers = it_one->getServers();
             for (std::list<ServerScope>::iterator it_two = getServers.begin(); it_two != getServers.end(); ++it_two)
             {
-                if (it_two->getClientBodyBufferMax().size() == 0)
-                {
-                    std::cout << "coucou" << std::endl;   
-                    it_two->getClientBodyBufferMax() = "600";
-                    // it_two->setClientBodyBufferMax("600");
-                    // std::cout << "    client_body_buffer_size: " << it_two->getClientBodyBufferMax() << std::endl;
-                }
-                    // it_two->setClientBodyBufferMax(it_one->getClientBodyBufferMax());
+
 
 
 
