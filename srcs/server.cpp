@@ -6,7 +6,7 @@
 /*   By: bdetune <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/28 13:45:50 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/01 17:58:41 by bdetune          ###   ########.fr       */
+/*   Updated: 2022/10/03 13:04:21 by bdetune          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -88,13 +88,70 @@ bool	Server::acceptIncomingConnection(struct epoll_event & event)
 		return (false);
 	this->_client_sockets.insert(std::pair<int, Client>(ev.data.fd, tmp));
 	if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_ADD, ev.data.fd, &ev) == -1)
-		return (false);
+		return (close(ev.data.fd), false);
 	return (true);
+}
+
+void	Server::readRequest(struct epoll_event & event)
+{
+	int		result;
+	ssize_t	recvret = 0;
+
+	recvret = recv(event.data.fd, static_cast<void *>(_rdBuffer), 1048576, MSG_DONTWAIT);
+	if (recvret == -1)
+	{
+		std::cerr << "Error while trying to read socket" << std::endl;
+	}
+	else if (recvret == 0)
+	{
+		std::cerr << "Client closed connection while receiving data" << std::endl;
+		epoll_ctl(this->_epoll_fd, EPOLL_CTL_DEL, event.data.fd, &event);
+		close(event.data.fd);
+		this->_client_sockets.erase(event.data.fd);
+	}
+	else
+	{
+		_rdBuffer[recvret] = '\0';
+		try
+		{
+			result = this->_client_sockets[event.data.fd].addToRequest(std::string(_rdBuffer));
+		}
+		catch (std::exception const & e)
+		{
+			std::cerr << "Parsing error: " << e.what() << std::endl;
+			return ;
+		}
+		std::cerr << "Result parsing: " << result << std::endl;
+		if (result == 200)
+		{
+			this->_client_sockets[event.data.fd].getResponse() = Response(this->_client_sockets[event.data.fd].getRequest());
+			event.events = EPOLLOUT;
+			if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_MOD, event.data.fd, &event) == -1)
+			{
+				epoll_ctl(this->_epoll_fd, EPOLL_CTL_DEL, event.data.fd, &event);
+				close(event.data.fd);
+				this->_client_sockets.erase(event.data.fd);
+				std::cerr << "Error Trying to switch socket from reading to writing" << std::endl;
+			}
+		}
+		else if (result)
+		{
+			this->_client_sockets[event.data.fd].getResponse() = Response(this->_client_sockets[event.data.fd].getRequest(), 400);
+			event.events = EPOLLOUT;
+			if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_MOD, event.data.fd, &event) == -1)
+			{
+				epoll_ctl(this->_epoll_fd, EPOLL_CTL_DEL, event.data.fd, &event);
+				close(event.data.fd);
+				this->_client_sockets.erase(event.data.fd);
+				std::cerr << "Error Trying to switch socket from reading to writing" << std::endl;
+			}
+		}
+	}
 }
 
 void Server::execute(){
 		struct epoll_event	ev, event[10];
-        int result, ready;
+        int ready;
 
 		if (!this->epollSockets())
 			throw EpollCreateException();
@@ -110,50 +167,12 @@ void Server::execute(){
 			{
 				if (this->_listen_sockets.find(event[i].data.fd) != this->_listen_sockets.end())
 				{
-					if (!acceptIncomingConnection(event[i]))
+					if (!this->acceptIncomingConnection(event[i]))
 						std::cerr << "Cannot accept incoming connection" << std::endl;
 				}
 				else if (event[i].events == EPOLLIN)
 				{
-					char	buffer[10001];
-					ssize_t	recvret = 0;
-
-                    recvret = recv(event[i].data.fd, static_cast<void *>(buffer), 10000, MSG_DONTWAIT);
-					if (recvret == -1)
-						std::cerr << "Error while receiving data" << std::endl;
-					else if (recvret == 0)
-					{
-						epoll_ctl(this->_epoll_fd, EPOLL_CTL_DEL, event[i].data.fd, &event[i]);
-						close(event[i].data.fd);
-						this->_client_sockets.erase(event[i].data.fd);
-					}
-					else
-					{
-						buffer[recvret] = '\0';
-						try
-						{
-							result = this->_client_sockets[event[i].data.fd].addToRequest(std::string(buffer));
-						}
-						catch (std::exception const & e)
-						{
-							std::cerr << "Parsing error: " << e.what() << std::endl;
-						}
-						std::cerr << "Result parsing: " << result << std::endl;
-						if (result == 200)
-						{
-							this->_client_sockets[event[i].data.fd].getResponse() = Response(this->_client_sockets[event[i].data.fd].getRequest());
-							event[i].events = EPOLLOUT;
-							if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_MOD, event[i].data.fd, &event[i]) == -1)
-								throw EpollCreateException();
-						}
-						else if (result)
-						{
-							this->_client_sockets[event[i].data.fd].getResponse() = Response(this->_client_sockets[event[i].data.fd].getRequest(), 400);
-							event[i].events = EPOLLOUT;
-							if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_MOD, event[i].data.fd, &event[i]) == -1)
-								throw EpollCreateException();
-						}
-					}
+					this->readRequest(event[i]);
 				}
 				else if (event[i].events == EPOLLOUT)
 				{

@@ -30,6 +30,7 @@ class Server {
     private:
     
 	int						_epoll_fd;			//fd for epoll queue
+	char					_rdBuffer[1048577];	//Reading buffer
 	std::map<int, int>		_listen_sockets;	//Listening sockets: <fd, port>
 	std::map<int, Client>	_client_sockets;	//Accepted connections sockets: <fd, Client>
     struct sockaddr_in		_address;			// Address to bind to a socket
@@ -37,6 +38,7 @@ class Server {
 	bool	epollSockets(void);
 	bool	acceptIncomingConnection(struct epoll_event & event);
 	void	closeTimedoutConnections(void);
+	void	readRequest(struct epoll_event & event);
 
     class SocketCreationException : public std::exception {virtual const char* what() const throw(){return ("An error occured during socket creation");}};
     class BindException : public std::exception {virtual const char* what() const throw(){return ("An error occured during bind");}};
