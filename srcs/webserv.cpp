@@ -46,7 +46,7 @@ int main(int ac, char **av)
 		}
 		std::cout << buffer.str();
 		Configuration			current_config(buffer.str());
-		current_config.apply_inheritance();
+		// current_config.apply_inheritance();
 		virtual_servers = current_config.getHttpScope().front().getServers();
 		for (std::list<ServerScope>::iterator st = virtual_servers.begin(); st != virtual_servers.end(); st++)
 		{

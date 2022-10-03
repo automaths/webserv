@@ -22,6 +22,8 @@ class Configuration {
     void print_configurations();
     void location_recurs(std::list<LocationScope> location_block, int level);
 
+    std::list<HttpScope>    getHttpScope() { return _http_blocks; }
+
     private:
     std::list<HttpScope>       _http_blocks;
     std::string                 _file;
