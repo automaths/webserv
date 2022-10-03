@@ -7,6 +7,7 @@
 #include <list>
 #include <utility>
 #include <iostream>
+#include <cstdlib>
 
 class Request{
 
@@ -15,7 +16,7 @@ class Request{
 		Request();
 		~Request(){};
 
-		void parseHeaders(void);
+		int parseHeaders(void);
 		int parseChunk(std::string &);
 		int checkType(std::string &);
 		std::string getType(void) const;

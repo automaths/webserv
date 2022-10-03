@@ -6,7 +6,7 @@
 /*   By: tnaton <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:32:13 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/03 16:48:49 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/03 20:48:04 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,7 +66,14 @@ int Request::checkType(std::string & type) {
 	return (1);
 }
 
-void Request::parseHeaders(void) {
+int ft_atoi(std::string & str) {
+	if (str.size() >= 10) {
+		throw (std::exception());
+	}
+	return (atoi(str.c_str()));
+}
+
+int Request::parseHeaders(void) {
 	std::map<std::string, std::list<std::string> >::iterator map = _headers.begin();
 
 	if (_headers.find("host") != _headers.end()) {
@@ -91,6 +98,22 @@ void Request::parseHeaders(void) {
 		if (tolower(tmp) != "bytes" && tolower(tmp.substr(0, tmp.find("="))) == "bytes" && tmp.substr(tmp.find("=") + 1).size()) {
 			_headers["range"].pop_front();
 			_headers["range"].push_front(tmp.substr(tmp.find("=") + 1));
+			for (std::list<std::string>::iterator val = _headers["range"].begin(); val != _headers["range"].end(); val++) {
+				if ((*val).find("-") == NPOS || *val == "-")
+					return (416);
+				std::string lhs = (*val).substr(0, (*val).find("-"));
+				std::string rhs = (*val).substr((*val).find("-") + 1);
+				if (lhs.find_first_not_of("0123456789") != NPOS || rhs.find_first_not_of("0123456789") != NPOS)
+					return (416);
+				if (lhs.size() && rhs.size()) {
+					try {
+						if (ft_atoi(lhs) > ft_atoi(rhs))
+							return (416);
+					} catch (std::exception & e) {
+						return (416);
+					}
+				}
+			}
 		} else {
 			_headers.erase("range");
 		}
@@ -106,6 +129,7 @@ void Request::parseHeaders(void) {
 		}
 		map++;
 	}
+	return (200);
 }
 
 int Request::parseChunk(std::string & chunk) {
@@ -144,7 +168,7 @@ int Request::parseChunk(std::string & chunk) {
 			if (_headers.find("host") == _headers.end() && NOT_OLD)
 				return (400);
 			try {
-				return (parseHeaders(), 200);
+				return (parseHeaders());
 			} catch (std::exception & e) {
 				std::cerr << "Erreur dans le parsing du header :" << e.what() << std::endl;
 				return (200);
