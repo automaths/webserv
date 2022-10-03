@@ -6,7 +6,7 @@
 /*   By: tnaton <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:32:13 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/01 17:45:39 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/03 14:06:48 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -94,65 +94,67 @@ int Request::parseChunk(std::string & chunk) {
 	std::string line;
 
 	std::cerr << "Chunk in parsing : " << chunk << std::endl;
-		if (!_type.size()) {
-			do {
-				line = chunk.substr(0, chunk.find("\r\n"));
-				chunk.erase(0, (line.length() + 2));
-				if (line != "") {
-					if (checkType(line)) {
-						return (400);
-					} else if (NOT_NEW && NOT_OLD) {
-						return (505);
-					}
-					break;
-				}
-			}
-			while (chunk.size());
-		}
-		if (!chunk.size())
-			return (0);
-		std::string key;
-		std::string val;
-
+	if (chunk.find("\x03") != NPOS)
+		return (1);
+	if (!_type.size()) {
 		do {
 			line = chunk.substr(0, chunk.find("\r\n"));
 			chunk.erase(0, (line.length() + 2));
-			if (line == "") {
-				if (_type == POST) {
-					_body = chunk;
-				}
-				if (_headers.find("host") == _headers.end() && NOT_OLD)
+			if (line != "") {
+				if (checkType(line)) {
 					return (400);
-				try {
-					return (parseHeaders(), 200);
-				} catch (std::exception & e) {
-					std::cerr << "Erreur dans le parsing du header :" << e.what() << std::endl;
-					return (200);
+				} else if (NOT_NEW && NOT_OLD) {
+					return (505);
 				}
-			}
-			key = line.substr(0, (line.find(":") == NPOS) ? line.size() : line.find(":"));
-			key = tolower(key);
-			(line.find(":") == NPOS) ? line.erase(0, (key.size())) : line.erase(0, (key.size() + 1));
-			val = line;
-			if (val.size() && val.find_first_not_of(" ,") != NPOS)
-				val = line.substr(line.find_first_not_of(" ,"), line.find_last_not_of(" ,") - line.find_first_not_of(" ,") + 1);
-			else
-				val = "";
-			if (key.find(" ") != NPOS) {
-				return (400);
-			} if (key == "host") {
-				if (val == "" || _headers.find(key) != _headers.end()) {
-					return (400);
-				}
-			} if (_headers.find(key) == _headers.end()) {
-				_headers.insert(std::pair<std::string, std::list<std::string> >(key, std::list<std::string>(1, val)));
-			} else {
-				_headers[key].push_back(val);
+				break;
 			}
 		}
 		while (chunk.size());
+	}
+	if (!chunk.size())
+		return (0);
+	std::string key;
+	std::string val;
 
-        return (0);
+	do {
+		line = chunk.substr(0, chunk.find("\r\n"));
+		chunk.erase(0, (line.length() + 2));
+		if (line == "") {
+			if (_type == POST) {
+				_body = chunk;
+			}
+			if (_headers.find("host") == _headers.end() && NOT_OLD)
+				return (400);
+			try {
+				return (parseHeaders(), 200);
+			} catch (std::exception & e) {
+				std::cerr << "Erreur dans le parsing du header :" << e.what() << std::endl;
+				return (200);
+			}
+		}
+		key = line.substr(0, (line.find(":") == NPOS) ? line.size() : line.find(":"));
+		key = tolower(key);
+		(line.find(":") == NPOS) ? line.erase(0, (key.size())) : line.erase(0, (key.size() + 1));
+		val = line;
+		if (val.size() && val.find_first_not_of(" ,") != NPOS)
+			val = line.substr(line.find_first_not_of(" ,"), line.find_last_not_of(" ,") - line.find_first_not_of(" ,") + 1);
+		else
+			val = "";
+		if (key.find(" ") != NPOS) {
+			return (400);
+		} if (key == "host") {
+			if (val == "" || _headers.find(key) != _headers.end()) {
+				return (400);
+			}
+		} if (_headers.find(key) == _headers.end()) {
+			_headers.insert(std::pair<std::string, std::list<std::string> >(key, std::list<std::string>(1, val)));
+		} else {
+			_headers[key].push_back(val);
+		}
+	}
+	while (chunk.size());
+
+    return (0);
 }
 
 std::string Request::getType(void) const {
