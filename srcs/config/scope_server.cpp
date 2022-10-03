@@ -11,7 +11,7 @@ void ServerScope::extract_listen(std::string directive){
     }
     else
     {
-        if (directive.find_first_not_of("\t\v\n\r\f 0123456789") == std::string::npos)
+        if (directive.find_first_not_of("\t\v\n\r\f 0123456789;") == std::string::npos)
         {
             _port = directive;
             _address = "*";
@@ -26,7 +26,7 @@ void ServerScope::extract_listen(std::string directive){
 
 void ServerScope::extract_server_name(std::string directive) {
     directive.erase(0, directive.find("server_name") + 11);
-    while(directive.find_first_not_of(" \t\v\n\r\f") > 0)
+    while(directive.find_first_of(" \t\v\n\r\f") == 0)
         directive.erase(0, 1);
     while (directive.size() != 0)
     {  
@@ -181,7 +181,7 @@ void ServerScope::extract_try_files(std::string try_files_dir) {
     }
 }
 
-void ServerScope::extract_location_blocks() {  
+void ServerScope::extract_location_blocks() {
     std::string copy = _chunk;
     while (copy.find(';', 0) != std::string::npos || copy.find('}') != std::string::npos)
     {
@@ -291,10 +291,6 @@ void ServerScope::apply_default() {
         _address = "*";
         _port = "80";           
     }
-    if (_root.size() == 0)
-        _root = "html";
-    if(_autoindex.size() == 0)
-        _autoindex = "off";
 }
 
 void ServerScope::print_result() {

@@ -35,12 +35,10 @@ class ServerScope {
         exec[8] = &ServerScope::extract_autoindex;
         exec[9] = &ServerScope::extract_try_files;
         extract_directives();
-        // apply_default();
+        apply_default();
         for (std::list<std::string>::iterator it = _location_blocks.begin(); it != _location_blocks.end(); ++it)
             _locations.push_back(LocationScope(*it));
-        // print_result();
     }
-
     void inheritance(){
         if (_client_body_buffer_size.size() == 0)
             _client_body_buffer_size = _in_client_body_buffer_size;
@@ -55,8 +53,12 @@ class ServerScope {
         if (_default_error_pages.size() == 0)
             _default_error_pages = _in_default_error_pages;
     }
+<<<<<<< HEAD
 
     ServerScope& operator=(ServerScope const &other) {
+=======
+    ServerScope& operator=(ServerScope &other) {
+>>>>>>> 5a9e88f150fc6e2bb7baad550e9d8220c2de599e
         if (this != &other)
         {
             _locations = other._locations;
@@ -91,7 +93,7 @@ class ServerScope {
     void                                extract_index(std::string directive);
     void                                extract_autoindex(std::string directive);
     void                                extract_try_files(std::string directive);
-    // void                                setLocations(std::list<LocationScope> arg) { _locations = arg; }
+    void                                setLocations(std::list<LocationScope> arg) { _locations = arg; }
     void                                setAddress(std::string arg) { _address = arg; }
     void                                setPort(std::string arg) { _port = arg; }
     void                                setServerName(std::list<std::string> arg) { _server_names = arg; }
@@ -115,7 +117,6 @@ class ServerScope {
     std::list<std::string>              getAllowMethod() { return _allow_method; }
     std::map<std::string, std::string>  getCgi() { return _cgi; }
     std::map<std::string, std::string>  getDefaultErrorPage() { return _default_error_pages; }
-
     void                                setClientBodyBufferMaxIn(std::string arg) { _in_client_body_buffer_size = arg; }
     void                                setIndexIn(std::list<std::string> arg) { _in_index = arg; }
     void                                setAutoIndexIn(std::string arg) { _in_autoindex = arg; }
@@ -137,6 +138,8 @@ class ServerScope {
     std::list<std::string>                              _allow_method;
     std::map<std::string, std::string>                  _cgi;
     std::map<std::string, std::string>                  _default_error_pages;
+
+
 
     std::string                                         _in_client_body_buffer_size;
     std::map<std::string, std::string>                  _in_default_error_pages;
