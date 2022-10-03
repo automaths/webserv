@@ -5,9 +5,12 @@ void ServerScope::extract_listen(std::string directive){
     directive.erase(0, directive.find("listen") + 6);
     if (directive.find_first_of(':') != std::string::npos)
     {
-        _address = directive.substr(0, directive.find_first_of(':'));
+        std::string tmp = directive.substr(0, directive.find_first_of(':') + 1);
+        _address = tmp;
         directive.erase(0, directive.find_first_of(':') + 1);
         _port = directive;
+        _listen.insert(std::make_pair(tmp, directive));
+
     }
     else
     {
@@ -15,15 +18,16 @@ void ServerScope::extract_listen(std::string directive){
         {
             _port = directive;
             _address = "*";
+            _listen.insert(std::make_pair("*", directive));
         }
         else
         {
             _port = "80";
             _address = directive;
+            _listen.insert(std::make_pair(directive, "80"));
         }
     }
 }
-
 void ServerScope::extract_server_name(std::string directive) {
     directive.erase(0, directive.find("server_name") + 11);
     while(directive.find_first_of(" \t\v\n\r\f") == 0)
@@ -44,17 +48,14 @@ void ServerScope::extract_server_name(std::string directive) {
             directive.erase(0, 1);
     }
 }
-
 void ServerScope::extract_client_body_buffer_size(std::string directive) {
     directive.erase(0, directive.find("client_body_buffer_size") + 23);
     _client_body_buffer_size = directive.substr(directive.find_first_not_of("\t\v\n\r\f "), directive.find_first_of("\t\v\n\r\f ", directive.find_first_not_of("\t\v\n\r\f ")));
 }
-
 void ServerScope::extract_root(std::string directive) {
     directive.erase(0, directive.find_first_of("root") + 4);
     _root = directive.substr(directive.find_first_not_of("\t\v\n\r\f "), directive.find_first_of("\t\v\n\r\f ", directive.find_first_not_of("\t\v\n\r\f ")));
 }
-
 void ServerScope::extract_allow_method(std::string directive) {
     directive.erase(0, directive.find("allow_method") + 12);
     while (directive.find_first_of(" \t\v\n\r\f") == 0)

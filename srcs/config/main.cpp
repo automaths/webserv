@@ -3,20 +3,19 @@
 
 int main()
 {
-	std::ifstream ifs;
+	std::ifstream           ifs;
+	std::stringstream		buffer;
+
     ifs.open("./configurations/configuration.txt");
-    // std::ofstream ofs;
-    // ofs.open("./configurations/parsed.txt");
-    std::string buffer; 
-    char c = ifs.get();
-    while (ifs.good())
-    {
-        buffer.append(1, c);
-        c = ifs.get();
-    }
+    if (ifs.fail())
+        return (std::cerr << "Open Error" << std::endl, 0);
+    ifs >> buffer.rdbuf();
+    if (!ifs.eof())
+        return (std::cerr << "File Size Error" << std::endl, 0);
+    std::string configuration_file = buffer.str();
     try 
     {
-        Configuration la_config(buffer);
+        Configuration la_config(configuration_file);
     }
     catch (std::exception &e) 
     {

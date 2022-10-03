@@ -89,15 +89,12 @@ void HttpScope::extract_default_error_pages(std::string error_page_dir) {
     for (std::list<std::string>::iterator it = number.begin(); it != number.end(); ++it)
         _default_error_pages.insert(std::make_pair(*it, path));
 }
-
 void HttpScope::extract_autoindex(std::string autoindex_dir) {
     autoindex_dir.erase(0, autoindex_dir.find("autoindex ") + 9);
     _autoindex = autoindex_dir.substr(autoindex_dir.find_first_not_of("\t\v\n\r\f ", 0), autoindex_dir.find_first_of("\t\v\n\r\f ", autoindex_dir.find_first_not_of("\t\v\n\r\f ", 0)));
     if (_autoindex.compare("on") != 0)
         _autoindex = "off";
 }
-
-
 void HttpScope::extract_server_blocks() {
     while (_block.size() > 0 && _block.find("{") > 0)
     {
@@ -114,7 +111,6 @@ void HttpScope::extract_server_blocks() {
         }
         _block.erase(0, 1);
     }
-    std::cout << "the chunk is: " << _block << std::endl;
     std::string copy = _block;
     while (copy.find(';', 0) != std::string::npos || copy.find('}') != std::string::npos)
     {
@@ -180,7 +176,6 @@ void HttpScope::extract_server_blocks() {
     for (std::list<std::string>::iterator it = _server_blocks.begin(); it != _server_blocks.end(); ++it)
         _block.erase(_block.find(*it), it->size());
 }
-
 void HttpScope::extract_lines() {
     while (_block.find(';', 0) != std::string::npos)
     {
@@ -188,7 +183,6 @@ void HttpScope::extract_lines() {
         _block.erase(0, _block.find(';', 0) + 1);
     }
 }
-
 void HttpScope::clean_http_header()
 {
     if (_block.find("http") == _block.find_first_not_of("\t\v\n\r\f "))
@@ -199,7 +193,6 @@ void HttpScope::clean_http_header()
     while (_block.find('#', 0) != std::string::npos)
         _block.erase(_block.find('#', 0), _block.find_first_of('\n', _block.find('#', 0)) - _block.find('#', 0));
 }
-
 void HttpScope::extract_directives() {
     while (_directives.size() != 0)
     {
@@ -207,7 +200,6 @@ void HttpScope::extract_directives() {
         _directives.pop_back();
     }
 }
-
 void HttpScope::extract_rules(std::string rule)
 {
     for (unsigned int i = 0; i < 10; ++i)
@@ -220,33 +212,28 @@ void HttpScope::extract_rules(std::string rule)
 
     }
 }
-
 void HttpScope::apply_default() {
     if (_root.size() == 0)
         _root = "html";
     if(_autoindex.size() == 0)
         _autoindex = "off";
 }
-
-void HttpScope::print_result() {
-
-    std::ofstream ofs;
-    ofs.open("./configurations/parsed.txt", std::ios_base::app);
-
-    ofs << " \n|||||||||||||||||||||||||||||||\n" << std::endl;
-    ofs << "SCOPE: HTTP\n" << std::endl;
-    for (std::list<std::string>::iterator it = _index.begin(); it != _index.end(); ++it)
-        ofs << "index: " << *it << std::endl;
-    for (std::map<std::string, std::string>::iterator it = _default_error_pages.begin(); it != _default_error_pages.end(); ++it)
-        ofs << "error page " << it->first << " associated path " << it->second << std::endl;
-    ofs << "body max: " << _client_body_buffer_size << std::endl;
-    ofs << "root: " << _root << std::endl;
-    ofs << "allowed method: ";
-    for (std::map<std::string, std::string>::iterator it = _cgi.begin(); it != _cgi.end(); ++it)
-        ofs << "cgi: " << it->first << " associated to path " << it->second << std::endl;
-    ofs << std::endl;
-    ofs << "autoindex: " << _autoindex << std::endl;
-    // for (std::list<std::string>::iterator it = _server_blocks.begin(); it != _server_blocks.end(); ++it)
-    //     ofs << "server block: " << *it << std::endl;
-}
-
+// void HttpScope::print_result() {
+//     std::ofstream ofs;
+//     ofs.open("./configurations/parsed.txt", std::ios_base::app);
+//     ofs << " \n|||||||||||||||||||||||||||||||\n" << std::endl;
+//     ofs << "SCOPE: HTTP\n" << std::endl;
+//     for (std::list<std::string>::iterator it = _index.begin(); it != _index.end(); ++it)
+//         ofs << "index: " << *it << std::endl;
+//     for (std::map<std::string, std::string>::iterator it = _default_error_pages.begin(); it != _default_error_pages.end(); ++it)
+//         ofs << "error page " << it->first << " associated path " << it->second << std::endl;
+//     ofs << "body max: " << _client_body_buffer_size << std::endl;
+//     ofs << "root: " << _root << std::endl;
+//     ofs << "allowed method: ";
+//     for (std::map<std::string, std::string>::iterator it = _cgi.begin(); it != _cgi.end(); ++it)
+//         ofs << "cgi: " << it->first << " associated to path " << it->second << std::endl;
+//     ofs << std::endl;
+//     ofs << "autoindex: " << _autoindex << std::endl;
+//     // for (std::list<std::string>::iterator it = _server_blocks.begin(); it != _server_blocks.end(); ++it)
+//     //     ofs << "server block: " << *it << std::endl;
+// }
