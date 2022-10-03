@@ -1,5 +1,5 @@
 inception:	
-		cd srcs && docker-compose up --remove-orphans -d
+		cd srcs && docker-compose up --build --remove-orphans -d
 
 all:		inception
 

@@ -6,7 +6,7 @@
 /*   By: tnaton <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:32:13 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/03 14:06:48 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/03 16:48:49 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@
 Request::Request(void): _type(""), _version("HTTP/1.0"), _file(""), _body(""), _buff(""), _headers() {
 }
 
-std::string tolower(std::string & str) {
+std::string tolower(std::string str) {
 	std::string ret;
 	for (size_t i = 0; i < str.size(); i++) {
 		ret.push_back(std::tolower(str[i]));
@@ -74,7 +74,6 @@ void Request::parseHeaders(void) {
 		tmp = tmp.substr(0, tmp.find(":"));
 	}
 	while (map != _headers.end()) {
-		std::cout << "Key :" << map->first << std::endl;
 		std::list<std::string>::iterator val = map->second.begin();
 		while (val != map->second.end()) {
 			if (val->find(",") != NPOS) {
@@ -83,6 +82,25 @@ void Request::parseHeaders(void) {
 				*val = val->erase(val->find(","));
 				*val = val->substr(val->find_first_not_of(" ,"), val->find_last_not_of(" ,") + 1);
 			}
+			val++;
+		}
+		map++;
+	}
+	if (_headers.find("range") != _headers.end()) {
+		std::string tmp = _headers["range"].front();
+		if (tolower(tmp) != "bytes" && tolower(tmp.substr(0, tmp.find("="))) == "bytes" && tmp.substr(tmp.find("=") + 1).size()) {
+			_headers["range"].pop_front();
+			_headers["range"].push_front(tmp.substr(tmp.find("=") + 1));
+		} else {
+			_headers.erase("range");
+		}
+	}
+
+	map = _headers.begin();
+	while (map != _headers.end()) {
+		std::cout << "Key :" << map->first << std::endl;
+		std::list<std::string>::iterator val = map->second.begin();
+		while (val != map->second.end()) {
 			std::cout << "Val :" << *val << std::endl;
 			val++;
 		}

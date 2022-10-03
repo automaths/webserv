@@ -39,6 +39,10 @@ class Server {
 	void	acceptIncomingConnection(struct epoll_event & event);
 	void	closeTimedoutConnections(void);
 	void	readRequest(struct epoll_event & event);
+	void	sendResponse(struct epoll_event & event);
+	bool	sendHeader(struct epoll_event & event);
+	void	sendBody(struct epoll_event & event);
+	void	closeClientSocket(struct epoll_event & event);
 
     class SocketCreationException : public std::exception {virtual const char* what() const throw(){return ("An error occured during socket creation");}};
     class BindException : public std::exception {virtual const char* what() const throw(){return ("An error occured during bind");}};

@@ -6,7 +6,7 @@
 /*   By: bdetune <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/29 12:29:34 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/03 14:08:41 by bdetune          ###   ########.fr       */
+/*   Updated: 2022/10/03 14:12:34 by bdetune          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,15 +19,8 @@ Response::Response(void): _header(), _headerSize(), _body(), _bodySize(), _heade
 
 Response::Response(Request & req, int error): _header(), _headerSize(), _body(), _bodySize(), _headerSent(false), _over(false), _close(false)
 {
-	if (error && error != 1)
+	if (error)
 		errorResponse(error);
-	else if (error)
-	{
-		this->_header = "";
-		this->_headerSize = 0;
-		this->_body = "";
-		this->_bodySize = 0;
-	}
 	else
 		basicResponse();
 	(void)req;
