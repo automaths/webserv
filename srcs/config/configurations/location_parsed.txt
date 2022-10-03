@@ -29,7 +29,7 @@
 
                     recursion level 3
 
-        main_path:  /bloup/ 
+        main_path:  /coucou/ 
         client_body_buffer_size: 
         autoindex: off
         root: html

@@ -31,9 +31,20 @@ class HttpScope {
         exec[5] = &HttpScope::extract_autoindex;
         extract_directives();
         //maybe after all the parsing is done, to be considered
-        apply_default();
+        // apply_default();
         for (std::list<std::string>::iterator it = _server_blocks.begin(); it != _server_blocks.end(); ++it)
+        {
             _servers.push_back(ServerScope(*it));
+            // _client_body_buffer_size = "600M";~
+            _servers.back().getClientBodyBufferMaxIn() = "600M";
+        }
+
+        for (std::list<ServerScope>::iterator it = _servers.begin(); it != _servers.end(); ++it)
+        {
+            it->inheritance();
+        }
+
+
         // print_result();
     }
 
@@ -58,13 +69,13 @@ class HttpScope {
     void                                setCgi(std::map<std::string, std::string> arg) { _cgi = arg; }
     void                                settDefaultErrorPage(std::map<std::string, std::string> arg) { _default_error_pages = arg; }
     std::list<std::string>              getIndex() { return _index; }
-    std::string                         getClientBodyBufferMax() { return _client_body_buffer_size; }
+    std::string&                         getClientBodyBufferMax() { return _client_body_buffer_size; }
     std::string                         getAutoIndex() { return _autoindex; }
     std::string                         getRoot() { return _root; }
     std::map<std::string, std::string>  getCgi() { return _cgi; }
     std::map<std::string, std::string>  getDefaultErrorPage() { return _default_error_pages; }
 
-    std::list<ServerScope>              getServers(){ return _servers; }
+    std::list<ServerScope>&              getServers(){ return _servers; }
 
     private:
 
