@@ -73,7 +73,8 @@ void Configuration::extract_http_blocks() {
         {
             ofs << "\n     ---------------| THE HTTP SCOPE |---------------        \n" << std::endl;
 
-            ofs << "client_body_buffer_size: " << it_one->getClientBodyBufferMax() << std::endl;
+            if (it_one->getClientBodyBufferMax().size() != 0)
+                ofs << "client_body_buffer_size: " << it_one->getClientBodyBufferMax() << std::endl;
             std::map<std::string, std::string> getDefaultErrorPage = it_one->getDefaultErrorPage(); //to avoid dangling pointer warning
             for (std::map<std::string, std::string>::iterator it_two = getDefaultErrorPage.begin(); it_two != getDefaultErrorPage.end(); ++it_two)
                 ofs << "default error page " << it_two->first << " associated to path " << it_two->second << std::endl;
@@ -101,7 +102,8 @@ void Configuration::extract_http_blocks() {
                 std::list<std::string> getAllowMethod = it_two->getAllowMethod();
                 for (std::list<std::string>::iterator it_three = getAllowMethod.begin(); it_three != getAllowMethod.end(); ++it_three)
                     ofs << "    allow_method: " << *it_three << std::endl;
-                ofs << "    client_body_buffer_size: " << it_two->getClientBodyBufferMax() << std::endl;
+                if (it_two->getClientBodyBufferMax().size() != 0)
+                    ofs << "    client_body_buffer_size: " << it_two->getClientBodyBufferMax() << std::endl;
                 std::map<std::string, std::string> getDefaultErrorPage = it_two->getDefaultErrorPage(); //to avoid dangling pointer warning
                 for (std::map<std::string, std::string>::iterator it_three = getDefaultErrorPage.begin(); it_three != getDefaultErrorPage.end(); ++it_three)
                     ofs << "    default error page " << it_three->first << " associated to path " << it_three->second << std::endl;

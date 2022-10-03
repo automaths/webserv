@@ -98,7 +98,23 @@ void HttpScope::extract_autoindex(std::string autoindex_dir) {
 }
 
 
-void HttpScope::extract_server_blocks() {  
+void HttpScope::extract_server_blocks() {
+    while (_block.size() > 0 && _block.find("{") > 0)
+    {
+        if (_block.find("http") == 0)
+        {
+            if (_block.find_first_not_of("\t\v\n\r\f ", 4) == _block.find("{", 4))
+                _block.erase(0, _block.find("{") + 1);
+            break;
+        }
+        if (_block.find("server") == 0)
+        {
+            if (_block.find_first_not_of("\t\v\n\r\f ", 6) == _block.find("{", 6))
+                break;
+        }
+        _block.erase(0, 1);
+    }
+    std::cout << "the chunk is: " << _block << std::endl;
     std::string copy = _block;
     while (copy.find(';', 0) != std::string::npos || copy.find('}') != std::string::npos)
     {
