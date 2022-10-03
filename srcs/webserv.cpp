@@ -21,7 +21,7 @@ int main(int ac, char **av)
 	Server					webserv;
 	std::ifstream			ifs;
 	std::stringstream		buffer;
-	std::list<ServerScope>	virtual_servers;
+	std::vector<ServerScope>	virtual_servers;
 
 	std::signal(SIGINT, interrupt);
 	std::signal(SIGQUIT, interrupt);
@@ -57,11 +57,16 @@ int main(int ac, char **av)
 	Configuration			current_config(buffer.str());
 //	current_config.apply_inheritance();
 	virtual_servers = current_config.getHttpScope().front().getServers();
-	for (std::list<ServerScope>::iterator st = virtual_servers.begin(); st != virtual_servers.end(); st++)
+	for (std::vector<ServerScope>::iterator st = virtual_servers.begin(); st != virtual_servers.end(); st++)
 	{
-		std::cout << "Ports:" << st->getPort() << std::endl;
-		std::list<std::string>	tmp = st->getServerName();
-		for (std::list<std::string>::iterator first = tmp.begin(); first != tmp.end(); first++)
+		std::map<std::string, std::string>	tmp0 = st->getListen();
+		for (std::map<std::string, std::string>::iterator first = tmp0.begin(); first != tmp0.end(); first++)
+		{
+			std::cout << "Port:" << (*first).second << std::endl;
+			std::cout << "IP:" << (*first).first << std::endl;
+		}
+		std::vector<std::string>	tmp = st->getServerName();
+		for (std::vector<std::string>::iterator first = tmp.begin(); first != tmp.end(); first++)
 		{
 			std::cout << "Server_Name:" << *first << std::endl;
 		}

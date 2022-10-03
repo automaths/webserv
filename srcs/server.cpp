@@ -6,7 +6,7 @@
 /*   By: bdetune <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/28 13:45:50 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/03 20:37:56 by bdetune          ###   ########.fr       */
+/*   Updated: 2022/10/03 20:55:38 by bdetune          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,16 +39,16 @@ struct sockaddr_in Server::getAddr(void)
 	return (this->_address);
 }
 
-void Server::initing(std::list<ServerScope> & virtual_servers)
+void Server::initing(std::vector<ServerScope> & virtual_servers)
 {
 	int	_server_fd;
 	int	enable = 1;
 
-	for (std::list<ServerScope>::iterator first = virtual_servers.begin(); first != virtual_servers.end(); first++)
+	for (std::vector<ServerScope>::iterator first = virtual_servers.begin(); first != virtual_servers.end(); first++)
 	{
 		this->_virtual_servers[atoi(first->getPort().data())].push_back(*first);
 	}
-	for (std::map<int, std::list<ServerScope> >::iterator first = this->_virtual_servers.begin(); first != this->_virtual_servers.end(); first++)
+	for (std::map<int, std::vector<ServerScope> >::iterator first = this->_virtual_servers.begin(); first != this->_virtual_servers.end(); first++)
 	{	
 		if ((_server_fd = socket(AF_INET, SOCK_STREAM, 0)) == -1) // creating the socket
 			throw SocketCreationException();
