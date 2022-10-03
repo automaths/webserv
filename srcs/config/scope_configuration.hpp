@@ -24,12 +24,12 @@ class Configuration {
     void extract_http_blocks();
     std::string chunking();
     void print_configurations();
-    void location_recurs(std::list<LocationScope> location_block, int level);
-    std::list<HttpScope>    getHttpScope() { return _http_blocks; }
+    void location_recurs(std::vector<LocationScope> location_block, int level);
+    std::vector<HttpScope>    getHttpScope() { return _http_blocks; }
 
     private:
 
-    std::list<HttpScope>       _http_blocks;
+    std::vector<HttpScope>      _http_blocks;
     std::string                 _file;
     class BracketsException : public std::exception {virtual const char* what() const throw(){return ("Close the brackets in the configuration file please");}};
 };

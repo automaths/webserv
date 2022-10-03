@@ -78,7 +78,7 @@ void ServerScope::extract_allow_method(std::string directive) {
 }
 
 void ServerScope::extract_cgi(std::string cgi_dir) {
-    std::list<std::string> content;
+    std::vector<std::string> content;
     cgi_dir.erase(0, cgi_dir.find_first_of("cgi") + 3);
     while (cgi_dir.find_first_of(" \t\v\n\r\f") == 0)
         cgi_dir.erase(0, 1);
@@ -97,7 +97,7 @@ void ServerScope::extract_cgi(std::string cgi_dir) {
         while(cgi_dir.find_first_of(" \t\v\n\r\f") == 0)
             cgi_dir.erase(0, 1);
     }
-    for (std::list<std::string>::iterator it = content.begin(); it != content.end(); ++it)
+    for (std::vector<std::string>::iterator it = content.begin(); it != content.end(); ++it)
     {
         if (++it != content.end())
             _cgi.insert(std::make_pair(*(--it), *(++it)));
@@ -131,7 +131,7 @@ void ServerScope::extract_default_error_pages(std::string error_page_dir) {
     error_page_dir.erase(0, error_page_dir.find("error_page") + 10);
     while (error_page_dir.find_first_of(" \t\v\n\r\f") == 0)
         error_page_dir.erase(0, 1);
-    std::list<std::string> number;
+    std::vector<std::string> number;
     std::string path;
     while (error_page_dir.size() != 0)
     {  
@@ -150,7 +150,7 @@ void ServerScope::extract_default_error_pages(std::string error_page_dir) {
     }
     path = number.back();
     number.pop_back();
-    for (std::list<std::string>::iterator it = number.begin(); it != number.end(); ++it)
+    for (std::vector<std::string>::iterator it = number.begin(); it != number.end(); ++it)
         _default_error_pages.insert(std::make_pair(*it, path));
 }
 
@@ -245,7 +245,7 @@ void ServerScope::extract_location_blocks() {
             }
         }
     }
-    for (std::list<std::string>::iterator it = _location_blocks.begin(); it != _location_blocks.end(); ++it)
+    for (std::vector<std::string>::iterator it = _location_blocks.begin(); it != _location_blocks.end(); ++it)
         _chunk.erase(_chunk.find(*it), it->size());
 }
 
@@ -302,28 +302,28 @@ void ServerScope::print_result() {
     ofs << "SCOPE: SERVER\n" << std::endl;
     ofs << "the address is: " << _address << std::endl;
     ofs << "the port is: " << _port << std::endl;
-    for (std::list<std::string>::iterator it = _server_names.begin(); it != _server_names.end(); ++it)
+    for (std::vector<std::string>::iterator it = _server_names.begin(); it != _server_names.end(); ++it)
         ofs << "server_name: " << *it << std::endl;
-    for (std::list<std::string>::iterator it = _index.begin(); it != _index.end(); ++it)
+    for (std::vector<std::string>::iterator it = _index.begin(); it != _index.end(); ++it)
         ofs << "index: " << *it << std::endl;
     for (std::map<std::string, std::string>::iterator it = _default_error_pages.begin(); it != _default_error_pages.end(); ++it)
         ofs << "error page " << it->first << " associated path " << it->second << std::endl;
     ofs << "body max: " << _client_body_buffer_size << std::endl;
     ofs << "root: " << _root << std::endl;
     ofs << "allowed method: ";
-    for (std::list<std::string>::iterator it = _allow_method.begin(); it != _allow_method.end(); ++it)
+    for (std::vector<std::string>::iterator it = _allow_method.begin(); it != _allow_method.end(); ++it)
         ofs << *it << ", ";
     ofs << std::endl;
     for (std::map<std::string, std::string>::iterator it = _cgi.begin(); it != _cgi.end(); ++it)
         ofs << "cgi: " << it->first << " associated to path " << it->second << std::endl;
     ofs << "autoindex: " << _autoindex << std::endl;
-    for (std::list<std::string>::iterator it = _try_files.begin(); it != _try_files.end(); ++it)
+    for (std::vector<std::string>::iterator it = _try_files.begin(); it != _try_files.end(); ++it)
     {
         if (++it != _try_files.end())
             ofs << "try_files: " << *(--it) << std::endl;
         else
             ofs << "try_files (fallback): " << *(--it) << std::endl;
     }
-    // for (std::list<std::string>::iterator it = _location_blocks.begin(); it != _location_blocks.end(); ++it)
+    // for (std::vector<std::string>::iterator it = _location_blocks.begin(); it != _location_blocks.end(); ++it)
     //     ofs << "location block: " << *it << std::endl;
 }
