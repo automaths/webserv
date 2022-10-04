@@ -6,41 +6,41 @@
 #    By: tnaton <marvin@42.fr>                      +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/09/27 13:15:29 by tnaton            #+#    #+#              #
-#    Updated: 2022/10/03 19:01:53 by tnaton           ###   ########.fr        #
+#    Updated: 2022/10/04 12:45:50 by tnaton           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
+
+vpath %.cpp srcs
+vpath %.cpp srcs/config
+vpath %.hpp srcs
+vpath %.hpp srcs/config
 
 NAME = webserv
 
 OBJDIR := objs
 
-SRCS = webserv.cpp Request.cpp Response.cpp Client.cpp server.cpp config/scope_configuration.cpp config/scope_http.cpp config/scope_server.cpp config/scope_location.cpp
+SRCS = webserv.cpp Request.cpp Response.cpp Client.cpp server.cpp scope_configuration.cpp scope_http.cpp scope_server.cpp scope_location.cpp
 
-INC = server.hpp Request.hpp Client.hpp Response.hpp config/scope_configuration.hpp config/scope_http.hpp config/scope_server.hpp config/scope_location.hpp
-
-source = $(addprefix srcs/,$(SRCS))
-
-include = $(addprefix srcs/,$(INC))
+INC = server.hpp Request.hpp Client.hpp Response.hpp scope_configuration.hpp scope_http.hpp scope_server.hpp scope_location.hpp
 
 CPPFLAGS = -Wall -Wextra -Werror -g -std=c++98 #-fsanitize=address
 
 CXX = c++
 
-objects := $(patsubst srcs/%.cpp,$(OBJDIR)/%.o,$(source))
+objects := $(patsubst %.cpp,$(OBJDIR)/%.o,$(SRCS))
 
-$(NAME) : $(objects) $(include)
+$(NAME) : $(objects) $(INC)
 	$(CXX) $(CPPFLAGS) $(objects) -o $@
 
-$(objects): $(include)
+$(objects): $(INC)
 
 $(objects) : | $(OBJDIR)
 
-$(OBJDIR)/%.o: srcs/%.cpp
+$(OBJDIR)/%.o: %.cpp
 	$(CXX) $(CPPFLAGS) -o $@ -c $<
 
 $(OBJDIR) :
 	mkdir $(OBJDIR)
-	mkdir $(OBJDIR)/config
 
 .PHONY: all
 all : $(NAME)
