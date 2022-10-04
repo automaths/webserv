@@ -6,7 +6,7 @@
 /*   By: bdetune <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/29 12:26:22 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/04 12:14:08 by bdetune          ###   ########.fr       */
+/*   Updated: 2022/10/04 21:13:33 by bdetune          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,7 @@ class Response
 		Response(Response const & src);
 		~Response(void);
 
-		Response &	operator=(Response const & rhs);
+		Response &		operator=(Response const & rhs);
 
 		void			errorResponse(int error);
 		void			basicResponse(void);
@@ -53,6 +53,12 @@ class Response
 		bool			_headerSent;
 		bool			_over;
 		bool			_close;
+		ServerScope*	_targetServer;
+
+		bool			getServer(std::string const & host, std::vector<ServerScope> & matches);
+		void			makeResponse(Request & req);
+		bool			findLocation(LocationScope *loc, std::vector<LocationScope> locations, std::string uri);
+
 };
 
 #endif

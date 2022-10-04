@@ -6,7 +6,7 @@
 /*   By: bdetune <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/28 13:45:50 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/04 12:30:37 by bdetune          ###   ########.fr       */
+/*   Updated: 2022/10/04 15:15:41 by bdetune          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -97,6 +97,7 @@ void	Server::acceptIncomingConnection(struct epoll_event & event)
 		std::cerr << "Could not accept incoming connection" << std::endl;
 		return ;
 	}
+	tmp.setIpAddress(_address.sin_addr.s_addr);
 	if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_ADD, ev.data.fd, &ev) == -1)
 	{
 		std::cerr << "Error while adding fd to epoll" << std::endl;
@@ -113,12 +114,14 @@ void	Server::acceptIncomingConnection(struct epoll_event & event)
 		epoll_ctl(this->_epoll_fd, EPOLL_CTL_DEL, ev.data.fd, &ev);
 		close(ev.data.fd);
 	}
+	/*
 	unsigned long address = ntohl(_address.sin_addr.s_addr);
 	std::cout << "Address: ";
 	std::cout << (address >> 24) << ".";
 	std::cout << ((address >> 16) & 255) << ".";
 	std::cout << ((address >> 8) & 255) << ".";
 	std::cout << (address & 255) << std::endl;
+	*/
 }
 
 void	Server::readRequest(struct epoll_event & event)
@@ -148,7 +151,7 @@ void	Server::readRequest(struct epoll_event & event)
 		}
 		if (result == 200)
 		{
-			this->_client_sockets[event.data.fd].getResponse() = Response(this->_client_sockets[event.data.fd].getRequest(), (*(this->_virtual_servers.begin())).second);
+			this->_client_sockets[event.data.fd].getResponse() = Response(this->_client_sockets[event.data.fd].getRequest(), this->_virtual_servers[this->_client_sockets[event.data.fd].getPortNumber()]);
 			event.events = EPOLLOUT;
 			if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_MOD, event.data.fd, &event) == -1)
 			{
@@ -164,7 +167,7 @@ void	Server::readRequest(struct epoll_event & event)
 				this->closeClientSocket(event);
 				return ;
 			}
-			this->_client_sockets[event.data.fd].getResponse() = Response(this->_client_sockets[event.data.fd].getRequest(), (*(this->_virtual_servers.begin())).second, result);
+			this->_client_sockets[event.data.fd].getResponse() = Response(this->_client_sockets[event.data.fd].getRequest(), this->_virtual_servers[this->_client_sockets[event.data.fd].getPortNumber()], result);
 			event.events = EPOLLOUT;
 			if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_MOD, event.data.fd, &event) == -1)
 			{
@@ -211,7 +214,7 @@ void	Server::sendBody(struct epoll_event & event)
 			event.events = EPOLLIN;
 			if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_MOD, event.data.fd, &event))
 			{
-				std::cerr << "Error switching form write to read mode" << std::endl;
+				std::cerr << "Error switching from write to read mode" << std::endl;
 				this->closeClientSocket(event);
 			}
 		}
@@ -260,8 +263,8 @@ void Server::execute(void)
 				this->readRequest(event[i]);
 			else if (event[i].events == EPOLLOUT)
 				this->sendResponse(event[i]);
-			this->closeTimedoutConnections();
         }
+		this->closeTimedoutConnections();
 		std::cout << "The number of clients is: " << this->_client_sockets.size() << std::endl;
     }
 }
