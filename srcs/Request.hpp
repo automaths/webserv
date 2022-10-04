@@ -16,13 +16,13 @@ class Request{
 		Request();
 		~Request(){};
 
-		int parseHeaders(void);
-		int parseChunk(std::string &);
-		int checkType(std::string &);
-		std::string getType(void) const;
-		std::string getVersion(void) const;
-		std::string getFile(void) const;
-		std::string getBody(void) const;
+		int			parseHeaders(void);
+		int			parseChunk(std::string &);
+		int			checkType(std::string &);
+		std::string	getType(void) const;
+		std::string	getVersion(void) const;
+		std::string	getFile(void) const;
+		std::string	getBody(void) const;
 		std::map<std::string, std::list<std::string> > getHeaders(void) const;
 	private:
 

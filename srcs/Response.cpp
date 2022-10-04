@@ -6,7 +6,7 @@
 /*   By: bdetune <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/29 12:29:34 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/03 19:56:43 by bdetune          ###   ########.fr       */
+/*   Updated: 2022/10/04 21:33:41 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,14 +17,41 @@ Response::Response(void): _header(), _headerSize(), _body(), _bodySize(), _heade
 	return ;
 }
 
+std::vector<std::string> parseEnv(Request & req) {
+	std::vector<std::string>	env;
+	std::map<std::string, std::list<std::string> > map = req.getHeaders();
+	std::map<std::string, std::list<std::string> >::iterator tmp = map.begin();
+	std::string					val;
+
+	env.push_back("REQUEST_METHOD=" + req.getType());
+	env.push_back("SERVER_PROTOCOL=" + req.getVersion());
+	while (tmp != map.end()) {
+		val = "";
+		std::list<std::string>::iterator i = (*tmp).second.begin(); 
+		while (i != (*tmp).second.end()) {
+			val += *i;
+			i++;
+			if (i != (*tmp).second.end())
+				val += ",";
+		}
+		env.push_back("HTTP_" + (*tmp).first + "=" + val);
+		tmp++;
+	}
+	return (env);	
+}
+
 Response::Response(Request & req, int error): _header(), _headerSize(), _body(), _bodySize(), _headerSent(false), _over(false), _close(false)
 {
 	if (error)
 		errorResponse(error);
 	else
 		basicResponse();
-	(void)req;
+	_env = parseEnv(req);
 	return ;
+}
+
+std::vector<std::string> Response::getEnv(void) const {
+	return (_env);
 }
 
 Response::Response(Response const & src): _header(src._header), _headerSize(src._headerSize), _body(src._body), _bodySize(src._bodySize), _headerSent(src._headerSent), _over(src._over), _close(src._close)
@@ -126,7 +153,7 @@ std::string	Response::setBaseHeader(void)
 	std::string					pattern("%a, %d %b %Y %H:%M:%S");
 	const std::time_put<char>	&tmput = std::use_facet <std::time_put<char> > (loc);
 	std::stringstream			baseHeader;
-	
+
 	baseHeader << "Server: webserv/1.0\r\n";
 	baseHeader << "Date: ";
 	tmput.put(baseHeader, baseHeader, ' ', gmt, pattern.data(), pattern.data()+pattern.length());
