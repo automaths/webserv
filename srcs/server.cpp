@@ -6,7 +6,7 @@
 /*   By: bdetune <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/28 13:45:50 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/03 20:55:38 by bdetune          ###   ########.fr       */
+/*   Updated: 2022/10/04 12:30:37 by bdetune          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -113,6 +113,12 @@ void	Server::acceptIncomingConnection(struct epoll_event & event)
 		epoll_ctl(this->_epoll_fd, EPOLL_CTL_DEL, ev.data.fd, &ev);
 		close(ev.data.fd);
 	}
+	unsigned long address = ntohl(_address.sin_addr.s_addr);
+	std::cout << "Address: ";
+	std::cout << (address >> 24) << ".";
+	std::cout << ((address >> 16) & 255) << ".";
+	std::cout << ((address >> 8) & 255) << ".";
+	std::cout << (address & 255) << std::endl;
 }
 
 void	Server::readRequest(struct epoll_event & event)
@@ -142,7 +148,7 @@ void	Server::readRequest(struct epoll_event & event)
 		}
 		if (result == 200)
 		{
-			this->_client_sockets[event.data.fd].getResponse() = Response(this->_client_sockets[event.data.fd].getRequest());
+			this->_client_sockets[event.data.fd].getResponse() = Response(this->_client_sockets[event.data.fd].getRequest(), (*(this->_virtual_servers.begin())).second);
 			event.events = EPOLLOUT;
 			if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_MOD, event.data.fd, &event) == -1)
 			{
@@ -158,7 +164,7 @@ void	Server::readRequest(struct epoll_event & event)
 				this->closeClientSocket(event);
 				return ;
 			}
-			this->_client_sockets[event.data.fd].getResponse() = Response(this->_client_sockets[event.data.fd].getRequest(), result);
+			this->_client_sockets[event.data.fd].getResponse() = Response(this->_client_sockets[event.data.fd].getRequest(), (*(this->_virtual_servers.begin())).second, result);
 			event.events = EPOLLOUT;
 			if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_MOD, event.data.fd, &event) == -1)
 			{

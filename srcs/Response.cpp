@@ -6,7 +6,7 @@
 /*   By: bdetune <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/29 12:29:34 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/03 19:56:43 by bdetune          ###   ########.fr       */
+/*   Updated: 2022/10/04 12:11:11 by bdetune          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,13 +17,14 @@ Response::Response(void): _header(), _headerSize(), _body(), _bodySize(), _heade
 	return ;
 }
 
-Response::Response(Request & req, int error): _header(), _headerSize(), _body(), _bodySize(), _headerSent(false), _over(false), _close(false)
+Response::Response(Request & req, std::vector<ServerScope> & matches, int error): _header(), _headerSize(), _body(), _bodySize(), _headerSent(false), _over(false), _close(false)
 {
 	if (error)
 		errorResponse(error);
 	else
 		basicResponse();
 	(void)req;
+	(void)matches;
 	return ;
 }
 

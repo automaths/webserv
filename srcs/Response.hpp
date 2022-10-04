@@ -6,7 +6,7 @@
 /*   By: bdetune <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/29 12:26:22 by bdetune           #+#    #+#             */
-/*   Updated: 2022/09/29 17:44:34 by bdetune          ###   ########.fr       */
+/*   Updated: 2022/10/04 12:14:08 by bdetune          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,14 +16,16 @@
 # include <sstream>
 # include <ctime>
 # include <locale>
+# include <vector>
 # include "default/defaultResponse.hpp"
+# include "config/scope_server.hpp"
 # include "Request.hpp"
 
 class Response
 {
 	public:
 		Response(void);
-		Response(Request & req, int error = 0);
+		Response(Request & req, std::vector<ServerScope> & matches, int error = 0);
 		Response(Response const & src);
 		~Response(void);
 
