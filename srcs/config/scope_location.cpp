@@ -7,6 +7,7 @@ void LocationScope::extract_client_body_buffer_size(std::string directive) {
 }
 
 void LocationScope::extract_root(std::string directive) {
+    _has_root = 1;
     directive.erase(0, directive.find_first_of("root") + 4);
     _root = directive.substr(directive.find_first_not_of("\t\v\n\r\f "), directive.find_first_of("\t\v\n\r\f ", directive.find_first_not_of("\t\v\n\r\f ")));
 }
@@ -116,27 +117,6 @@ void LocationScope::extract_autoindex(std::string autoindex_dir) {
         _autoindex = "off";
 }
 
-void LocationScope::extract_try_files(std::string try_files_dir) {
-    try_files_dir.erase(0, try_files_dir.find("try_files") + 9);
-    while (try_files_dir.find_first_of(" \t\v\n\r\f") == 0)
-        try_files_dir.erase(0, 1);
-    while (try_files_dir.size() != 0)
-    {  
-        if (try_files_dir.find_first_of(" \t\v\n\r\f") != std::string::npos)
-        {
-            _try_files.push_back(try_files_dir.substr(0, try_files_dir.find_first_of(" \t\v\n\r\f")));
-            try_files_dir.erase(0, try_files_dir.find_first_of(" \t\v\n\r\f"));
-        }
-        else
-        {
-            _try_files.push_back(try_files_dir.substr(0, try_files_dir.size()));
-            try_files_dir.erase(0, try_files_dir.size());
-        }
-        while(try_files_dir.find_first_of(" \t\v\n\r\f") == 0)
-            try_files_dir.erase(0, 1);
-    }
-}
-
 void LocationScope::extract_location_blocks() {  
     std::string copy = _chunk;
     while (copy.find(';', 0) != std::string::npos || copy.find('}') != std::string::npos)
@@ -241,8 +221,6 @@ void LocationScope::extract_directives() {
 }
 
 void LocationScope::apply_default() {
-    if (_root.size() == 0)
-        _root = "html";
     if(_autoindex.size() == 0)
         _autoindex = "off";
 }
@@ -266,13 +244,6 @@ void LocationScope::print_result() {
     for (std::map<std::string, std::string>::iterator it = _cgi.begin(); it != _cgi.end(); ++it)
         ofs << "cgi: " << it->first << " associated to path " << it->second << std::endl;
     ofs << "autoindex: " << _autoindex << std::endl;
-    for (std::vector<std::string>::iterator it = _try_files.begin(); it != _try_files.end(); ++it)
-    {
-        if (++it != _try_files.end())
-            ofs << "try_files: " << *(--it) << std::endl;
-        else
-            ofs << "try_files (fallback): " << *(--it) << std::endl;
-    }
     for (std::vector<std::string>::iterator it = _location_blocks.begin(); it != _location_blocks.end(); ++it)
         ofs << "location block: " << *it << std::endl;
     ofs << std::endl;

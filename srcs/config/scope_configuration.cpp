@@ -57,67 +57,44 @@ void Configuration::extract_http_blocks() {
     for (std::vector<std::string>::iterator it = _chunks.begin(); it != _chunks.end(); ++it)
         _http_blocks.push_back(HttpScope(*it));
 }
-void Configuration::print_configurations() {
+void Configuration::print_resultings() {
     std::ofstream ofs;
     ofs.open("./configurations/parsed.txt");
-    std::ofstream ofss;
-    ofss.open("./configurations/location_parsed.txt");
-    ofs << "------------| PRINTING THE CONFIGURATION FILE |------------" << std::endl;
-    for (std::vector<HttpScope>::iterator it_one = _http_blocks.begin(); it_one != _http_blocks.end(); ++it_one)
+    std::ofstream ifs;
+    ifs.open("./configurations/location_parsed.txt");
+    for (std::vector<ServerScope>::iterator it_two = _server_blocks.begin(); it_two != _server_blocks.end(); ++it_two)
     {
-        ofs << "\n     ---------------| THE HTTP SCOPE |---------------        \n" << std::endl;
+        ofs << "\n            -------| THE SERVER SCOPE |-------            \n" << std::endl;
 
-        if (it_one->getClientBodyBufferMax().size() != 0)
-            ofs << "client_body_buffer_size: " << it_one->getClientBodyBufferMax() << std::endl;
-        std::map<std::string, std::string> getDefaultErrorPage = it_one->getDefaultErrorPage(); //to avoid dangling pointer warning
-        for (std::map<std::string, std::string>::iterator it_two = getDefaultErrorPage.begin(); it_two != getDefaultErrorPage.end(); ++it_two)
-            ofs << "default error page " << it_two->first << " associated to path " << it_two->second << std::endl;
-        std::vector<std::string> getIndex = it_one->getIndex();
-        for (std::vector<std::string>::iterator it_two = getIndex.begin(); it_two != getIndex.end(); ++it_two)
-            ofs << "index: " << *it_two << std::endl;
-        ofs << "autoindex: " << it_one->getAutoIndex() << std::endl;
-        ofs << "root: " << it_one->getRoot() << std::endl;
-        std::map<std::string, std::string> getCgi = it_one->getCgi();
-        for (std::map<std::string, std::string>::iterator it_two = getCgi.begin(); it_two != getCgi.end(); ++it_two)
-            ofs << "cgi: extension " << it_two->first << " associated to path " << it_two->second << std::endl;
-        std::vector<ServerScope> getServers = it_one->getServers();
-        for (std::vector<ServerScope>::iterator it_two = getServers.begin(); it_two != getServers.end(); ++it_two)
-        {
-            ofs << "\n            -------| THE SERVER SCOPE |-------            \n" << std::endl;
-
-            ofs << "    address: " << it_two->getAddress() << std::endl;
-            ofs << "    port: " << it_two->getPort() << std::endl;
-            std::map<std::string, std::string> getListen = it_two->getListen();
-            for (std::map<std::string, std::string>::iterator it = getListen.begin(); it != getListen.end(); ++it)
-                ofs << "    listen: " << "the address is " << it->first << " and the port is " << it->second << std::endl;
-            std::vector<std::string> getServerName = it_two->getServerName();
-            for (std::vector<std::string>::iterator it_three = getServerName.begin(); it_three != getServerName.end(); ++it_three)
-                ofs << "    server_name: " << *it_three << std::endl;
-            std::vector<std::string> getTryFiles = it_two->getTryFiles();
-            for (std::vector<std::string>::iterator it_three = getTryFiles.begin(); it_three != getTryFiles.end(); ++it_three)
-                ofs << "    try_files: " << *it_three << std::endl;
-            std::vector<std::string> getAllowMethod = it_two->getAllowMethod();
-            for (std::vector<std::string>::iterator it_three = getAllowMethod.begin(); it_three != getAllowMethod.end(); ++it_three)
-                ofs << "    allow_method: " << *it_three << std::endl;
-            if (it_two->getClientBodyBufferMax().size() != 0)
-                ofs << "    client_body_buffer_size: " << it_two->getClientBodyBufferMax() << std::endl;
-            std::map<std::string, std::string> getDefaultErrorPage = it_two->getDefaultErrorPage(); //to avoid dangling pointer warning
-            for (std::map<std::string, std::string>::iterator it_three = getDefaultErrorPage.begin(); it_three != getDefaultErrorPage.end(); ++it_three)
-                ofs << "    default error page " << it_three->first << " associated to path " << it_three->second << std::endl;
-            std::vector<std::string> getIndex = it_two->getIndex();
-            for (std::vector<std::string>::iterator it_three = getIndex.begin(); it_three != getIndex.end(); ++it_three)
-                ofs << "    index: " << *it_three << std::endl;
-            ofs << "    autoindex: " << it_two->getAutoIndex() << std::endl;
-            ofs << "    root: " << it_two->getRoot() << std::endl;
-            std::map<std::string, std::string> getCgi = it_two->getCgi();
-            for (std::map<std::string, std::string>::iterator it_three = getCgi.begin(); it_three != getCgi.end(); ++it_three)
-                ofs << "    cgi: extension " << it_three->first << " associated to path " << it_three->second << std::endl;
-            if (it_two->getLocations().size() > 0)
-                location_recurs(it_two->getLocations(), 1);
-        }
+        ofs << "    address: " << it_two->getAddress() << std::endl;
+        ofs << "    port: " << it_two->getPort() << std::endl;
+        std::map<std::string, std::string> getListen = it_two->getListen();
+        for (std::map<std::string, std::string>::iterator it = getListen.begin(); it != getListen.end(); ++it)
+            ofs << "    listen: " << "the address is " << it->first << " and the port is " << it->second << std::endl;
+        std::vector<std::string> getServerName = it_two->getServerName();
+        for (std::vector<std::string>::iterator it_three = getServerName.begin(); it_three != getServerName.end(); ++it_three)
+            ofs << "    server_name: " << *it_three << std::endl;
+        std::vector<std::string> getAllowMethod = it_two->getAllowMethod();
+        for (std::vector<std::string>::iterator it_three = getAllowMethod.begin(); it_three != getAllowMethod.end(); ++it_three)
+            ofs << "    allow_method: " << *it_three << std::endl;
+        if (it_two->getClientBodyBufferMax().size() != 0)
+            ofs << "    client_body_buffer_size: " << it_two->getClientBodyBufferMax() << std::endl;
+        std::map<std::string, std::string> getDefaultErrorPage = it_two->getDefaultErrorPage(); //to avoid dangling pointer warning
+        for (std::map<std::string, std::string>::iterator it_three = getDefaultErrorPage.begin(); it_three != getDefaultErrorPage.end(); ++it_three)
+            ofs << "    default error page " << it_three->first << " associated to path " << it_three->second << std::endl;
+        std::vector<std::string> getIndex = it_two->getIndex();
+        for (std::vector<std::string>::iterator it_three = getIndex.begin(); it_three != getIndex.end(); ++it_three)
+            ofs << "    index: " << *it_three << std::endl;
+        ofs << "    autoindex: " << it_two->getAutoIndex() << std::endl;
+        ofs << "    root: " << it_two->getRoot() << std::endl;
+        std::map<std::string, std::string> getCgi = it_two->getCgi();
+        for (std::map<std::string, std::string>::iterator it_three = getCgi.begin(); it_three != getCgi.end(); ++it_three)
+            ofs << "    cgi: extension " << it_three->first << " associated to path " << it_three->second << std::endl;
+        if (it_two->getLocations().size() > 0)
+            location_recursivity(it_two->getLocations(), 1);
     }
 }
-void Configuration::location_recurs(std::vector<LocationScope> location_block, int level){
+void Configuration::location_recursivity(std::vector<LocationScope> location_block, int level){
     std::ofstream ofs;
     ofs.open("./configurations/location_parsed.txt", std::ios_base::app);
     for (std::vector<LocationScope>::iterator it_three = location_block.begin(); it_three != location_block.end(); ++it_three)
@@ -127,9 +104,6 @@ void Configuration::location_recurs(std::vector<LocationScope> location_block, i
         else
             ofs << "\n                    recursion level " << level << "\n" << std::endl;
         ofs << "        main_path: " << it_three->getMainPath() << std::endl;
-        std::vector<std::string> getTryFiles = it_three->getTryFiles();
-        for (std::vector<std::string>::iterator it_five = getTryFiles.begin(); it_five != getTryFiles.end(); ++it_five)
-            ofs << "        try_files: " << *it_five << std::endl;
         std::vector<std::string> getAllowMethod = it_three->getAllowMethod();
         for (std::vector<std::string>::iterator it_five = getAllowMethod.begin(); it_five != getAllowMethod.end(); ++it_five)
             ofs << "        allow_method: " << *it_five << std::endl;
@@ -142,10 +116,22 @@ void Configuration::location_recurs(std::vector<LocationScope> location_block, i
             ofs << "        index: " << *it_five << std::endl;
         ofs << "        autoindex: " << it_three->getAutoIndex() << std::endl;
         ofs << "        root: " << it_three->getRoot() << std::endl;
+        ofs << "        root_in: " << it_three->getRootIn() << std::endl;
         std::map<std::string, std::string> getCgi = it_three->getCgi();
         for (std::map<std::string, std::string>::iterator it_five = getCgi.begin(); it_five != getCgi.end(); ++it_five)
             ofs << "        cgi: extension " << it_five->first << " associated to path " << it_five->second << std::endl;
         if (it_three->getLocations().size() > 0)
-            location_recurs(it_three->getLocations(), level + 1);
+            location_recursivity(it_three->getLocations(), level + 1);
+    }
+}
+void Configuration::transfer_servers(){
+
+    for (std::vector<HttpScope>::iterator it_one = _http_blocks.begin(); it_one != _http_blocks.end(); ++it_one)
+    {
+        std::vector<ServerScope> getServers = it_one->getServers();
+        for (std::vector<ServerScope>::iterator it_two = getServers.begin(); it_two != getServers.end(); ++it_two)
+        {
+            _server_blocks.push_back(*it_two);
+        }
     }
 }

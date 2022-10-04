@@ -24,6 +24,11 @@ class Request{
 		std::string getFile(void) const;
 		std::string getBody(void) const;
 		std::map<std::string, std::list<std::string> > getHeaders(void) const;
+
+
+		void parseAccept();
+
+
 	private:
 
 		std::string _type;

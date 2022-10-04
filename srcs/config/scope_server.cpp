@@ -161,27 +161,6 @@ void ServerScope::extract_autoindex(std::string autoindex_dir) {
         _autoindex = "off";
 }
 
-void ServerScope::extract_try_files(std::string try_files_dir) {
-    try_files_dir.erase(0, try_files_dir.find("try_files") + 9);
-    while (try_files_dir.find_first_of(" \t\v\n\r\f") == 0)
-        try_files_dir.erase(0, 1);
-    while (try_files_dir.size() != 0)
-    {  
-        if (try_files_dir.find_first_of(" \t\v\n\r\f") != std::string::npos)
-        {
-            _try_files.push_back(try_files_dir.substr(0, try_files_dir.find_first_of(" \t\v\n\r\f")));
-            try_files_dir.erase(0, try_files_dir.find_first_of(" \t\v\n\r\f"));
-        }
-        else
-        {
-            _try_files.push_back(try_files_dir.substr(0, try_files_dir.size()));
-            try_files_dir.erase(0, try_files_dir.size());
-        }
-        while(try_files_dir.find_first_of(" \t\v\n\r\f") == 0)
-            try_files_dir.erase(0, 1);
-    }
-}
-
 void ServerScope::extract_location_blocks() {
     std::string copy = _chunk;
     while (copy.find(';', 0) != std::string::npos || copy.find('}') != std::string::npos)
@@ -259,7 +238,7 @@ void ServerScope::extract_lines() {
 
 void ServerScope::extract_rules(std::string rule)
 {
-    for (unsigned int i = 0; i < 10; ++i)
+    for (unsigned int i = 0; i < 9; ++i)
     {
         if (rule.find(_directive_types[i]) == rule.find_first_not_of("\t\v\n\r\f "))
         {
@@ -292,38 +271,4 @@ void ServerScope::apply_default() {
         _address = "*";
         _port = "80";           
     }
-}
-
-void ServerScope::print_result() {
-    std::ofstream ofs;
-    ofs.open("./configurations/servers.txt", std::ios_base::app);
-
-    ofs << " \n------------------------------\n" << std::endl;
-    ofs << "SCOPE: SERVER\n" << std::endl;
-    ofs << "the address is: " << _address << std::endl;
-    ofs << "the port is: " << _port << std::endl;
-    for (std::vector<std::string>::iterator it = _server_names.begin(); it != _server_names.end(); ++it)
-        ofs << "server_name: " << *it << std::endl;
-    for (std::vector<std::string>::iterator it = _index.begin(); it != _index.end(); ++it)
-        ofs << "index: " << *it << std::endl;
-    for (std::map<std::string, std::string>::iterator it = _default_error_pages.begin(); it != _default_error_pages.end(); ++it)
-        ofs << "error page " << it->first << " associated path " << it->second << std::endl;
-    ofs << "body max: " << _client_body_buffer_size << std::endl;
-    ofs << "root: " << _root << std::endl;
-    ofs << "allowed method: ";
-    for (std::vector<std::string>::iterator it = _allow_method.begin(); it != _allow_method.end(); ++it)
-        ofs << *it << ", ";
-    ofs << std::endl;
-    for (std::map<std::string, std::string>::iterator it = _cgi.begin(); it != _cgi.end(); ++it)
-        ofs << "cgi: " << it->first << " associated to path " << it->second << std::endl;
-    ofs << "autoindex: " << _autoindex << std::endl;
-    for (std::vector<std::string>::iterator it = _try_files.begin(); it != _try_files.end(); ++it)
-    {
-        if (++it != _try_files.end())
-            ofs << "try_files: " << *(--it) << std::endl;
-        else
-            ofs << "try_files (fallback): " << *(--it) << std::endl;
-    }
-    // for (std::vector<std::string>::iterator it = _location_blocks.begin(); it != _location_blocks.end(); ++it)
-    //     ofs << "location block: " << *it << std::endl;
 }

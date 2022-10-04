@@ -22,9 +22,6 @@ cgi: .js associated to path /usr/lib/cgi-bin/javascript
 cgi: .php associated to path /usr/lib/cgi-bin/php
 cgi: .py associated to path /usr/lib/cgi-bin/python
 autoindex: on
-try_files: /example/index.html
-try_files: /other/
-try_files (fallback): /default/index.html
  
 ------------------------------
 
@@ -37,7 +34,7 @@ error page 402 associated path /one.html
 error page 403 associated path /one.html
 error page 404 associated path /one.html
 body max: 200M
-root: html
+root: 
 allowed method: 
 cgi: .php associated to path /usr/lib/cgi-bin/php
 cgi: .py associated to path /usr/lib/cgi-bin/python
@@ -51,7 +48,7 @@ the address is:  127.0.0.1:
 the port is: 8000
 error page 404 associated path /inheritance.html
 body max: 200M
-root: html
+root: 
 allowed method: 
 autoindex: off
  
@@ -63,7 +60,7 @@ the address is:  127.0.0.1
 the port is: 80
 index: in_index.html
 body max: 
-root: html
+root: 
 allowed method: 
 autoindex: off
  
@@ -74,7 +71,7 @@ SCOPE: SERVER
 the address is: *
 the port is:  8000
 body max: 
-root: html
+root: 
 allowed method: 
 cgi: .php associated to path /inheritance
 autoindex: off
@@ -86,6 +83,6 @@ SCOPE: SERVER
 the address is:  *:
 the port is: 8000
 body max: 
-root: html
+root: 
 allowed method: 
 autoindex: off
