@@ -89,9 +89,7 @@ void Configuration::print_configurations() {
             ofs << "    port: " << it_two->getPort() << std::endl;
             std::map<std::string, std::string> getListen = it_two->getListen();
             for (std::map<std::string, std::string>::iterator it = getListen.begin(); it != getListen.end(); ++it)
-            {
-                ofs << "listen: " << "the address is " << it->first << " and the port is " << it->second << std::endl;
-            }
+                ofs << "    listen: " << "the address is " << it->first << " and the port is " << it->second << std::endl;
             std::vector<std::string> getServerName = it_two->getServerName();
             for (std::vector<std::string>::iterator it_three = getServerName.begin(); it_three != getServerName.end(); ++it_three)
                 ofs << "    server_name: " << *it_three << std::endl;

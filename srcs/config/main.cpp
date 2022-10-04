@@ -16,11 +16,18 @@ int main()
     try 
     {
         Configuration la_config(configuration_file);
+        std::ofstream ofs;
+        ofs.open("./configurations/servers.txt");
+        std::vector<ServerScope> getServer = la_config.getServers();
+        for (std::vector<ServerScope>::iterator it = getServer.begin(); it != getServer.end(); ++it)
+            it->print_result();
     }
     catch (std::exception &e) 
     {
         std::cout << "An exception has been caught: " << e.what() << std::endl;
     }
+
+
     return 0;
 }
 

@@ -296,7 +296,7 @@ void ServerScope::apply_default() {
 
 void ServerScope::print_result() {
     std::ofstream ofs;
-    ofs.open("./configurations/parsed.txt", std::ios_base::app);
+    ofs.open("./configurations/servers.txt", std::ios_base::app);
 
     ofs << " \n------------------------------\n" << std::endl;
     ofs << "SCOPE: SERVER\n" << std::endl;

@@ -64,7 +64,7 @@ server {
 
 }
 
-http {
+server {
 
     cgi .php /usr/lib/cgi-bin/php .py /usr/lib/cgi-bin/python;
     error_page 404 403 402 /one.html;
@@ -72,6 +72,8 @@ http {
     index index.html;
     autoindex on;
     client_body_buffer_size 200M;
+
+}
 
 
     server {
@@ -94,4 +96,3 @@ http {
         listen *:8000;
 
     }
-}
