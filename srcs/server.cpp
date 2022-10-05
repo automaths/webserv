@@ -6,7 +6,7 @@
 /*   By: bdetune <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/28 13:45:50 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/04 15:15:41 by bdetune          ###   ########.fr       */
+/*   Updated: 2022/10/05 21:20:31 by bdetune          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -114,6 +114,8 @@ void	Server::acceptIncomingConnection(struct epoll_event & event)
 		epoll_ctl(this->_epoll_fd, EPOLL_CTL_DEL, ev.data.fd, &ev);
 		close(ev.data.fd);
 	}
+	tmp.setSocketFD(ev.data.fd);
+	tmp.setEvent(ev);
 	/*
 	unsigned long address = ntohl(_address.sin_addr.s_addr);
 	std::cout << "Address: ";
@@ -151,12 +153,42 @@ void	Server::readRequest(struct epoll_event & event)
 		}
 		if (result == 200)
 		{
+			struct epoll_event ev;
+
 			this->_client_sockets[event.data.fd].getResponse() = Response(this->_client_sockets[event.data.fd].getRequest(), this->_virtual_servers[this->_client_sockets[event.data.fd].getPortNumber()]);
-			event.events = EPOLLOUT;
-			if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_MOD, event.data.fd, &event) == -1)
+			if (this->_client_sockets[event.data.fd].getResponse().getTargetFD())
 			{
-				this->closeClientSocket(event);
-				std::cerr << "Error Trying to switch socket from reading to writing" << std::endl;
+				std::cerr << "Client FD: " << event.data.fd << std::endl;
+				if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_DEL, event.data.fd, &event) == -1)
+				{
+					this->closeClientSocket(event);
+					return ;
+				}
+				std::cerr << "Number of clients: " << this->_client_sockets.size() << std::endl;
+				this->_reserve_fds.insert(event.data.fd);
+				this->_response_fds.insert(std::pair<int, Client *>(this->_client_sockets[event.data.fd].getResponse().getTargetFD(), &(this->_client_sockets[event.data.fd])));
+				std::memset(&ev, '\0', sizeof(struct epoll_event));
+				ev.events = EPOLLIN;
+				ev.data.fd = this->_client_sockets[event.data.fd].getResponse().getTargetFD();
+				std::cerr << "FD: " << ev.data.fd << std::endl;
+				if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_ADD, ev.data.fd, &ev) == -1)
+				{
+					perror("");
+					close(ev.data.fd);
+					this->closeClientSocket(event);
+					return ;
+				}
+				std::cerr << "Number of clients: " << this->_client_sockets.size() << std::endl;
+				std::cerr << "Number of files to read from: " << this->_response_fds.size() << std::endl;
+			}
+			else
+			{
+				event.events = EPOLLOUT;
+				if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_MOD, event.data.fd, &event) == -1)
+				{
+					this->closeClientSocket(event);
+					std::cerr << "Error Trying to switch socket from reading to writing" << std::endl;
+				}
 			}
 		}
 		else if (result)
@@ -240,6 +272,26 @@ void	Server::sendResponse(struct epoll_event & event)
 		this->sendBody(event);
 }
 
+void	Server::bufferFile(struct epoll_event & event)
+{
+	std::cerr << "IN" << std::endl;
+	if (this->_response_fds[event.data.fd]->bufferResponse())
+	{
+		epoll_ctl(this->_epoll_fd, EPOLL_CTL_DEL, event.data.fd, &event);
+		if (this->_reserve_fds.find(this->_response_fds[event.data.fd]->getSocketFD()) != this->_reserve_fds.end())
+		{
+			struct epoll_event ev = this->_response_fds[event.data.fd]->getEvent();
+			ev.events = EPOLLOUT;
+			epoll_ctl(this->_epoll_fd, EPOLL_CTL_ADD, ev.data.fd, &ev);
+			this->_reserve_fds.erase(this->_response_fds[event.data.fd]->getSocketFD());
+		}
+		if (this->_response_fds[event.data.fd]->getResponse().getIsConsumed())
+			this->_response_fds.erase(event.data.fd);
+		else
+			this->_reserve_fds.insert(event.data.fd);
+	}
+}
+
 void Server::execute(void)
 {
 	struct epoll_event	ev, event[10];
@@ -260,11 +312,16 @@ void Server::execute(void)
 			if (this->_listen_sockets.find(event[i].data.fd) != this->_listen_sockets.end())
 				this->acceptIncomingConnection(event[i]);
 			else if (event[i].events == EPOLLIN)
-				this->readRequest(event[i]);
+			{
+				if (this->_response_fds.find(event[i].data.fd) != this->_response_fds.end())
+					this->bufferFile(event[i]);
+				else
+					this->readRequest(event[i]);
+			}
 			else if (event[i].events == EPOLLOUT)
 				this->sendResponse(event[i]);
         }
-		this->closeTimedoutConnections();
+//		this->closeTimedoutConnections();
 		std::cout << "The number of clients is: " << this->_client_sockets.size() << std::endl;
     }
 }

@@ -6,18 +6,18 @@
 /*   By: bdetune <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/29 12:29:34 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/04 21:40:39 by bdetune          ###   ########.fr       */
+/*   Updated: 2022/10/05 20:52:02 by bdetune          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Response.hpp"
 
-Response::Response(void): _header(), _headerSize(), _body(), _bodySize(), _headerSent(false), _over(false), _close(false), _targetServer(NULL)
+Response::Response(void): _header(), _headerSize(), _body(), _bodySize(), _targetFD(), _headerSent(false), _over(false), _FDConsumed(false), _close(false), _targetServer(NULL)
 {
 	return ;
 }
 
-Response::Response(Request & req, std::vector<ServerScope> & matches, int error): _header(), _headerSize(), _body(), _bodySize(), _headerSent(false), _over(false), _close(false), _targetServer(NULL)
+Response::Response(Request & req, std::vector<ServerScope> & matches, int error): _header(), _headerSize(0), _body(), _bodySize(0), _targetFD(0), _headerSent(false), _over(false), _FDConsumed(false), _close(false), _targetServer(NULL)
 {
 	std::map<std::string, std::list<std::string> >				headerMap = req.getHeaders();
 	std::map<std::string, std::list<std::string> >::iterator	host;
@@ -95,13 +95,67 @@ bool	Response::findLocation(LocationScope *loc, std::vector<LocationScope> locat
 	return (false);
 }
 
+int	Response::getTargetFD(void)
+{
+	return (this->_targetFD);
+}
+
+bool	Response::bufferResponse(void)
+{
+	ssize_t				ret;
+	std::stringstream	size;
+	std::size_t			buff = static_cast<std::size_t>(this->_body.capacity() - this->_body.size());
+
+	if (!buff || (this->_chunked && buff <= 10))
+		return (true);
+	if (this->_chunked)
+		ret = read(this->_targetFD, &(this->_body[this->_body.size()]), (buff - 10));
+	else
+		ret = read(this->_targetFD, &(this->_body[this->_body.size()]), buff);
+	if (ret <= 0)
+	{
+		if (this->_chunked)
+		{
+			if (!this->_body.size())
+			{
+				this->_FDConsumed = true;
+				close(this->_targetFD);
+			}
+			size << std::hex << this->_body.size();
+			size <<	"\r\n";
+			this->_body = size.str() + this->_body + std::string("\r\n");
+		}
+		else
+		{
+			this->_FDConsumed = true;
+			close(this->_targetFD);
+		}
+		this->_bodySize = this->_body.size();
+		return (true);
+	}
+	else if (this->_chunked)
+	{
+		if ((this->_body.capacity() - this->_body.size()) <= 10)
+			return (true);
+	}
+	return (false);
+}
+
+bool	Response::getIsConsumed(void)
+{
+	return (this->_FDConsumed);
+}
+
 void	Response::makeResponse(Request & req)
 {
 	LocationScope		loc;
 	bool				hasLoc = false;
 	bool				valid = true;
 	std::stringstream	header;
+	std::string			fullPath;
+	struct stat			buf;
 
+	this->_chunked = false;
 	std::cerr << this->_targetServer->getRoot() << std::endl;
 	std::vector<std::string>	methods = this->_targetServer->getAllowMethod();
 	for (std::vector<std::string>::iterator st = methods.begin(); st != methods.end(); st++)
@@ -142,6 +196,73 @@ void	Response::makeResponse(Request & req)
 				return;
 			}
 		}
+		fullPath = loc.getRoot();
+		if (fullPath.find("\t\n\r\v\f ") == 0)
+			fullPath.erase(0, fullPath.find_first_not_of("\t\n\r\v\f "));
+		if (fullPath.find_last_of("\t\n\r\v\f ") == (fullPath.size() - 1))
+			fullPath.erase((fullPath.find_last_not_of("\t\n\r\v\f ") + 1));
+		fullPath += req.getFile();
+		std::cerr << "Fully qualified path: ***" << fullPath << "***" << std::endl;
+		if (access(fullPath.data(), F_OK) == -1)
+		{
+			this->errorResponse(404);
+			return ;
+		}
+		if (stat(fullPath.data(), &buf) == -1)
+		{
+			this->errorResponse(404);
+			return ;
+		}
+		std::cerr << "Exists" << std::endl;
+		if (S_ISDIR(buf.st_mode))
+		{
+			std::string	tmpIndex;
+			std::cerr << "is directory" << std::endl;
+			std::vector<std::string>	indexes = loc.getIndex();
+			std::cerr << "Number of potential indexes: " << indexes.size() << std::endl;
+			for (std::vector<std::string>::iterator st = indexes.begin(); st != indexes.end(); st++)
+			{
+				tmpIndex = *st;
+				std::cerr << "Index path ***" << tmpIndex << "***" << std::endl;
+				if (access((fullPath + *st).data(), F_OK | R_OK) != -1)
+				{
+					this->_targetFD = open((fullPath + *st).data(), O_RDONLY, O_NONBLOCK);
+					if (this->_targetFD > 0)
+					{
+						if (fstat(this->_targetFD, &buf) == -1 || S_ISDIR(buf.st_mode))
+						{
+							close(this->_targetFD);
+							this->_targetFD = 0;
+						}
+						else
+						{
+							if (buf.st_size > 1048576)
+							{
+								this->_chunked = true;
+								this->_bodySize = 1048586;
+							}
+							else
+								this->_bodySize = buf.st_size;
+							std::cerr << "Targeted file: " << (fullPath + *st).data() << std::endl;
+							break ;
+						}
+					}
+					else
+						this->_targetFD = 0;
+				}
+			}
+		}
+		else
+		{
+			this->_targetFD = open(fullPath.data(), O_RDONLY, O_NONBLOCK);
+			if (this->_targetFD <= 0)
+			{
+					close(this->_targetFD);
+					this->_targetFD = 0;
+					this->errorResponse(404);
+					return ;
+			}
+		}
 	}
 	else
 	{
@@ -170,11 +291,89 @@ void	Response::makeResponse(Request & req)
 				return;
 			}
 		}
+		fullPath = this->_targetServer->getRoot();
+		if (fullPath.find("\t\n\r\v\f ") == 0)
+			fullPath.erase(0, fullPath.find_first_not_of("\t\n\r\v\f "));
+		if (fullPath.find_last_of("\t\n\r\v\f ") == (fullPath.size() - 1))
+			fullPath.erase((fullPath.find_last_not_of("\t\n\r\v\f ") + 1));
+		fullPath += req.getFile();
+		if (access(fullPath.data(), F_OK) == -1 || stat(fullPath.data(), &buf) == -1)
+		{
+			this->errorResponse(404);
+			return ;
+		}
+		if (S_ISDIR(buf.st_mode))
+		{
+			std::string	tmpIndex;
+			std::cerr << "is directory no location" << std::endl;
+			std::vector<std::string>	indexes = this->_targetServer->getIndex();
+			std::cerr << "Number of potential indexes: " << indexes.size() << std::endl;
+			for (std::vector<std::string>::iterator st = indexes.begin(); st != indexes.end(); st++)
+			{
+				tmpIndex = *st;
+				std::cerr << "Index path ***" << tmpIndex << "***" << std::endl;
+				std::cerr << (fullPath + *st).data() << std::endl;
+				if (access((fullPath + *st).data(), F_OK | R_OK) != -1)
+				{
+					this->_targetFD = open((fullPath + *st).data(), O_RDONLY, O_NONBLOCK);
+					if (this->_targetFD > 0)
+					{
+						if (fstat(this->_targetFD, &buf) == -1 || S_ISDIR(buf.st_mode))
+						{
+							close(this->_targetFD);
+							this->_targetFD = 0;
+						}
+						else
+						{
+							if (buf.st_size > 1048576)
+							{
+								this->_chunked = true;
+								this->_bodySize = 1048586;
+							}
+							else
+								this->_bodySize = buf.st_size;
+							break ;
+						}
+					}
+					else
+						this->_targetFD = 0;
+				}
+			}
+		}
+		else
+		{
+			this->_targetFD = open(fullPath.data(), O_RDONLY, O_NONBLOCK);
+			if (this->_targetFD <= 0)
+			{
+					close(this->_targetFD);
+					this->_targetFD = 0;
+					this->errorResponse(404);
+					return ;
+			}
+		}
 	}
-	this->basicResponse();
+	std::cerr << "off_t: " << sizeof(off_t) << std::endl;
+	if (this->_targetFD)
+	{
+		std::cerr << "Found file: " << fullPath << std::endl;
+		header << "HTTP/1.1 200 "<< DEFAULT200STATUS << "\r\n";
+		header << setBaseHeader();
+		header << "Content-type: text/html\r\n";
+		this->_chunked ? (header << "Transfer-Encoding: chunked\r\n") : (header << "Content-Length: " << this->_bodySize << "\r\n");
+		header << "Connection: keep-alive\r\n";
+		header << "\r\n";
+		this->_header = header.str();
+		this->_headerSize = this->_header.size();
+		this->_body.reserve(this->_bodySize);
+	}
+	else
+	{
+		this->errorResponse(404);
+		return ;
+	}
 }
 
-Response::Response(Response const & src): _header(src._header), _headerSize(src._headerSize), _body(src._body), _bodySize(src._bodySize), _headerSent(src._headerSent), _over(src._over), _close(src._close), _targetServer(src._targetServer)
+Response::Response(Response const & src): _header(src._header), _headerSize(src._headerSize), _body(src._body), _bodySize(src._bodySize), _targetFD(src._targetFD), _headerSent(src._headerSent), _over(src._over), _close(src._close), _targetServer(src._targetServer)
 {
 	return ;
 }
@@ -192,8 +391,10 @@ Response &	Response::operator=(Response const & rhs)
 	this->_headerSize = rhs._headerSize;
 	this->_body = rhs._body;
 	this->_bodySize = rhs._bodySize;
+	this->_targetFD = rhs._targetFD;
 	this->_headerSent = rhs._headerSent;
 	this->_over = rhs._over;
+	this->_FDConsumed = rhs._FDConsumed;
 	this->_close = rhs._close;
 	this->_targetServer = rhs._targetServer;
 	return (*this);
