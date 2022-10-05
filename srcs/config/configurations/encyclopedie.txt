@@ -54,8 +54,6 @@ server {
 
     autoindex on;
 
-    try_files /example/index.html /other/ /default/index.html;
-
     #fsdkljgsdf
 
     location /images/ {
@@ -131,8 +129,6 @@ server {
     allow_method GET POST;
 
     autoindex on;
-
-    try_files /example/index.html /other/ /default/index.html;
 
     #fsdkljgsdf
 

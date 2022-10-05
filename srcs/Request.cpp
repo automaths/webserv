@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tnaton <marvin@42.fr>                      +#+  +:+       +#+        */
+/*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:32:13 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/05 17:19:13 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/05 17:41:00 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -118,6 +118,8 @@ int Request::parseHeaders(void) {
 			_headers.erase("range");
 		}
 	}
+	//header validity
+
 
 	map = _headers.begin();
 	while (map != _headers.end()) {
@@ -129,6 +131,12 @@ int Request::parseHeaders(void) {
 		}
 		map++;
 	}
+
+
+
+
+
+
 	return (200);
 }
 

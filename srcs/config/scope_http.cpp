@@ -202,7 +202,7 @@ void HttpScope::extract_directives() {
 }
 void HttpScope::extract_rules(std::string rule)
 {
-    for (unsigned int i = 0; i < 10; ++i)
+    for (unsigned int i = 0; i < 7; ++i)
     {
         if (rule.find(_directive_types[i]) == rule.find_first_not_of("\t\v\n\r\f "))
         {
@@ -213,8 +213,8 @@ void HttpScope::extract_rules(std::string rule)
     }
 }
 void HttpScope::apply_default() {
-    if (_root.size() == 0)
-        _root = "html";
+    // if (_root.size() == 0)
+    //     _root = "html";
     if(_autoindex.size() == 0)
         _autoindex = "off";
 }

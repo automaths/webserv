@@ -23,7 +23,6 @@ class ServerScope {
         _directive_types[6] = "cgi";
         _directive_types[7] = "index";
         _directive_types[8] = "autoindex";
-        _directive_types[9] = "try_files";
         exec[0] = &ServerScope::extract_listen;
         exec[1] = &ServerScope::extract_server_name;
         exec[2] = &ServerScope::extract_default_error_pages;
@@ -33,27 +32,12 @@ class ServerScope {
         exec[6] = &ServerScope::extract_cgi;
         exec[7] = &ServerScope::extract_index;
         exec[8] = &ServerScope::extract_autoindex;
-        exec[9] = &ServerScope::extract_try_files;
         extract_directives();
-        apply_default();
         for (std::vector<std::string>::iterator it = _location_blocks.begin(); it != _location_blocks.end(); ++it)
+        {
             _locations.push_back(LocationScope(*it));
+        }
     }
-    void inheritance(){
-        if (_client_body_buffer_size.size() == 0)
-            _client_body_buffer_size = _in_client_body_buffer_size;
-        if (_index.size() == 0)
-            _index = _in_index;
-        if (_autoindex.size() == 0)
-            _autoindex = _in_autoindex;
-        if (_root.size() == 0)
-            _root = _in_root;
-        if (_cgi.size() == 0)
-            _cgi = _in_cgi;
-        if (_default_error_pages.size() == 0)
-            _default_error_pages = _in_default_error_pages;
-    }
-
     ServerScope& operator=(ServerScope const &other) {
         if (this != &other)
         {
@@ -62,7 +46,6 @@ class ServerScope {
             _listen = other._listen;
             _port = other._port;
             _server_names = other._server_names;
-            _try_files = other._try_files;
             _index = other._index;
             _client_body_buffer_size = other._client_body_buffer_size;
             _autoindex = other._autoindex;
@@ -70,6 +53,8 @@ class ServerScope {
             _allow_method = other._allow_method;
             _cgi = other._cgi;
             _default_error_pages = other._default_error_pages;
+            _in_root = other._in_root;
+
         }
         return *this;
     }
@@ -89,13 +74,11 @@ class ServerScope {
     void                                        extract_cgi(std::string directive);
     void                                        extract_index(std::string directive);
     void                                        extract_autoindex(std::string directive);
-    void                                        extract_try_files(std::string directive);
     void                                        setLocations(std::vector<LocationScope> arg) { _locations = arg; }
     void                                        setAddress(std::string arg) { _address = arg; }
     void                                        setPort(std::string arg) { _port = arg; }
     void                                        setListen(std::map<std::string, std::string> arg) { _listen = arg; }
     void                                        setServerName(std::vector<std::string> arg) { _server_names = arg; }
-    void                                        setTryFiles(std::vector<std::string> arg) { _try_files = arg; }
     void                                        setIndex(std::vector<std::string> arg) { _index = arg; }
     void                                        setClientBodyBufferMax(std::string arg) {_client_body_buffer_size = arg; }
     void                                        setAutoIndex(std::string arg) { _autoindex = arg; }
@@ -103,19 +86,18 @@ class ServerScope {
     void                                        setAllowMethod(std::vector<std::string> arg) { _allow_method = arg; }
     void                                        setCgi(std::map<std::string, std::string> arg) { _cgi = arg; }
     void                                        setDefaultErrorPage(std::map<std::string, std::string> arg) { _default_error_pages = arg; }
-    std::vector<LocationScope>                  getLocations() { return _locations; }
-    std::string                                 getAddress() { return _address; }
-    std::string                                 getPort() { return _port; }
-    std::vector<std::string>                    getServerName() { return _server_names; }
-    std::vector<std::string>                    getTryFiles() { return _try_files; }
-    std::vector<std::string>                    getIndex() { return _index; }
+    std::vector<LocationScope>&                  getLocations() { return _locations; }
+    std::string&                                 getAddress() { return _address; }
+    std::string&                                 getPort() { return _port; }
+    std::vector<std::string>&                    getServerName() { return _server_names; }
+    std::vector<std::string>&                    getIndex() { return _index; }
     std::string&                                getClientBodyBufferMax() { return _client_body_buffer_size; }
-    std::string                                 getAutoIndex() { return _autoindex; }
-    std::string                                 getRoot() { return _root; }
-    std::vector<std::string>                    getAllowMethod() { return _allow_method; }
-    std::map<std::string, std::string>          getCgi() { return _cgi; }
-    std::map<std::string, std::string>          getDefaultErrorPage() { return _default_error_pages; }
-    std::map<std::string, std::string>          getListen() { return _listen; }
+    std::string&                                 getAutoIndex() { return _autoindex; }
+    std::string&                                 getRoot() { return _root; }
+    std::vector<std::string>&                    getAllowMethod() { return _allow_method; }
+    std::map<std::string, std::string>&          getCgi() { return _cgi; }
+    std::map<std::string, std::string>&          getDefaultErrorPage() { return _default_error_pages; }
+    std::map<std::string, std::string>&          getListen() { return _listen; }
 
     void                                        setClientBodyBufferMaxIn(std::string arg) { _in_client_body_buffer_size = arg; }
     void                                        setIndexIn(std::vector<std::string> arg) { _in_index = arg; }
@@ -127,17 +109,11 @@ class ServerScope {
     private:
 
     std::vector<LocationScope>                          _locations;
-
-
     std::string                                         _address;
     std::string                                         _port;
-
     std::map<std::string, std::string>                  _listen;
 
-
-
     std::vector<std::string>                            _server_names;
-    std::vector<std::string>                            _try_files;
     std::vector<std::string>                            _index;
     std::string                                         _client_body_buffer_size;
     std::string                                         _autoindex;
@@ -153,11 +129,12 @@ class ServerScope {
     std::string                                         _in_autoindex;
     std::map<std::string, std::string>                  _in_cgi;
 
+
     std::string                                         _chunk;
     std::vector<std::string>                            _location_blocks;
     std::vector<std::string>                            _directives;
     std::vector<std::string>                            _configs;
-    std::string                                         _directive_types[10];
-    void (ServerScope::*exec[10])(std::string str);
+    std::string                                         _directive_types[9];
+    void (ServerScope::*exec[9])(std::string str);
 };
 

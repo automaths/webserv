@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Request.hpp                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: tnaton <marvin@42.fr>                      +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2022/10/05 17:41:22 by tnaton            #+#    #+#             */
+/*   Updated: 2022/10/05 17:41:24 by tnaton           ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #pragma once
 #define GET "GET"
 #define POST "POST"
@@ -26,6 +38,11 @@ class Request{
 		std::string	getFile(void) const;
 		std::string	getBody(void) const;
 		std::map<std::string, std::list<std::string> > getHeaders(void) const;
+
+
+		void parseAccept();
+
+
 	private:
 
 		std::string		_type;

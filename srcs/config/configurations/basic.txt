@@ -26,8 +26,6 @@ server {
 
     autoindex on;
 
-    try_files /example/index.html /other/ /default/index.html;
-
     #fsdkljgsdf
 
 
