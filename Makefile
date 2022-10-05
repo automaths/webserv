@@ -6,7 +6,7 @@
 #    By: tnaton <marvin@42.fr>                      +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/09/27 13:15:29 by tnaton            #+#    #+#              #
-#    Updated: 2022/10/04 12:45:50 by tnaton           ###   ########.fr        #
+#    Updated: 2022/10/05 17:28:01 by tnaton           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -23,21 +23,21 @@ SRCS = webserv.cpp Request.cpp Response.cpp Client.cpp server.cpp scope_configur
 
 INC = server.hpp Request.hpp Client.hpp Response.hpp scope_configuration.hpp scope_http.hpp scope_server.hpp scope_location.hpp
 
-CPPFLAGS = -Wall -Wextra -Werror -g -std=c++98 #-fsanitize=address
+CXXFLAGS = -Wall -Wextra -Werror -g -std=c++98 #-fsanitize=address
 
 CXX = c++
 
 objects := $(patsubst %.cpp,$(OBJDIR)/%.o,$(SRCS))
 
 $(NAME) : $(objects) $(INC)
-	$(CXX) $(CPPFLAGS) $(objects) -o $@
+	$(CXX) $(CXXFLAGS) $(objects) -o $@
 
 $(objects): $(INC)
 
 $(objects) : | $(OBJDIR)
 
 $(OBJDIR)/%.o: %.cpp
-	$(CXX) $(CPPFLAGS) -o $@ -c $<
+	$(CXX) $(CXXFLAGS) -o $@ -c $<
 
 $(OBJDIR) :
 	mkdir $(OBJDIR)

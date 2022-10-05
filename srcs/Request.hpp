@@ -8,6 +8,8 @@
 #include <utility>
 #include <iostream>
 #include <cstdlib>
+#include <sstream>
+#include <unistd.h>
 
 class Request{
 
@@ -26,10 +28,12 @@ class Request{
 		std::map<std::string, std::list<std::string> > getHeaders(void) const;
 	private:
 
-		std::string _type;
-		std::string _version;
-		std::string _file;
-		std::string _body;
-		std::string _buff;
+		std::string		_type;
+		std::string		_version;
+		std::string		_file;
+		std::string		_body;
+		std::string		_buff;
 		std::map<std::string, std::list<std::string> > _headers;
+		bool			_isbody;
+		unsigned int	_bodysize;
 };
