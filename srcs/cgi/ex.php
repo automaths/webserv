@@ -1,2 +1,3 @@
 #! /usr/bin/php-cgi
-coucou ca va ouai et toi
+ouai ouai ouai 
+oh djadja ya pas moyen djadja 
