@@ -8,15 +8,7 @@ http{
 		server_name default;
 
 		location /Downloads {
-			root ./html/default;
-
-			location /Download/coucou {
-
-				root /Download/coucou;
-
-			}
-			index index.html index.htm;
-			allow_method	POST;
+			root ./www/default/bouhbouh;
 			try_files $uri $uri/ =404;
 		}
 		error_page  404     /404.html;

@@ -156,6 +156,10 @@ bool	Response::foundDirectoryIndex(std::vector<std::string> indexes, std::string
 	struct stat	buf;
 	std::string	tmpIndex;
 
+	if (path.size() == 0)
+		path = "/";
+	else if (path[path.size() - 1] != '/')
+		path += "/";
 	for (std::vector<std::string>::iterator st = indexes.begin(); st != indexes.end(); st++)
 	{
 		tmpIndex = path + *st;
@@ -184,9 +188,13 @@ bool	Response::foundDirectoryIndex(std::vector<std::string> indexes, std::string
 
 void	Response::createFileResponse(void)
 {
+	std::string			extension = "";
 	std::stringstream	header;
 	std::stringstream	size;
 
+	if (this->_targetFilePath.find_last_of(".") != std::string::npos)
+		extension = this->_targetFilePath.substr(this->_targetFilePath.find_last_of("."));
+	extension = MimeTypes().convert(extension);
 	this->_responseType = 2;
 	this->_body.reserve((this->_bodySize + 1));
 	if (this->_chunked)
@@ -224,7 +232,7 @@ void	Response::createFileResponse(void)
 	}
 	header << "HTTP/1.1 200 "<< DEFAULT200STATUS << "\r\n";
 	header << setBaseHeader();
-	header << "Content-type: text/html\r\n";
+	header << "Content-type: " << extension << "\r\n";
 	this->_chunked ? (header << "Transfer-Encoding: chunked\r\n") : (header << "Content-Length: " << this->_bodySize << "\r\n");
 	header << "Connection: keep-alive\r\n";
 	header << "\r\n";
@@ -257,8 +265,15 @@ void	Response::makeResponse(Request & req)
 		fullPath.erase(0, fullPath.find_first_not_of("\t\n\r\v\f "));
 	if (fullPath.find_last_of("\t\n\r\v\f ") == (fullPath.size() - 1))
 		fullPath.erase((fullPath.find_last_not_of("\t\n\r\v\f ") + 1));
-	fullPath += req.getFile();
-	// std::cerr << "Fully qualified path: ***" << fullPath << "***" << std::endl;
+	if (hasLoc)
+	{
+		std::string	partial_root = req.getFile();
+		partial_root.erase(0, loc.getMainPath().size());
+		fullPath += partial_root;
+	}
+	else
+		fullPath += req.getFile();
+	std::cerr << "Fully qualified path: ***" << fullPath << "***" << std::endl;
 	if (!pathIsValid(fullPath, &buf))
 	{
 		this->errorResponse(404);

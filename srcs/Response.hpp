@@ -27,6 +27,7 @@
 # include "default/defaultResponse.hpp"
 # include "config/scope_server.hpp"
 # include "Request.hpp"
+# include "MimeTypes.hpp"
 # include <vector>
 
 class Response
