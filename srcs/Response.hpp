@@ -62,6 +62,7 @@ class Response
 		std::string		_body;
 		std::size_t		_bodySize;
 		std::ifstream	_targetFile;
+		std::string		_targetFilePath;
 		bool			_headerSent;
 		bool			_chunked;
 		bool			_over;
@@ -73,6 +74,10 @@ class Response
 		bool			getServer(std::string const & host, std::vector<ServerScope> & matches);
 
 		bool			findLocation(LocationScope *loc, std::vector<LocationScope> locations, std::string uri);
+		bool			allowedMethod(std::vector<std::string> methods, std::string currentMethod);
+		bool			pathIsValid(std::string path, struct stat * buf);
+		bool			foundDirectoryIndex(std::vector<std::string> indexes, std::string path);
+		void			createFileResponse(void);
 };
 
 #endif

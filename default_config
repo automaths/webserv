@@ -7,10 +7,10 @@ http{
 
 		server_name default;
 
-		location / {
+		location /Downloads {
 			root ./www/default;
 			index index.html index.htm;
-			allow_method	GET;
+			allow_method	POST;
 			try_files $uri $uri/ =404;
 		}
 		error_page  404     /404.html;
