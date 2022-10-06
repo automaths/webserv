@@ -3,7 +3,9 @@
 
 int main()
 {
-    ListDirectory Coucou("/mnt/nfs/homes/nsartral/Github/webserv/srcs/list_directory");
+    ListDirectory coucou("/mnt/nfs/homes/nsartral/Github/webserv/srcs/list_directory", "data/list_directory");
+    coucou.listing();
+
     return 0;
 }
 
