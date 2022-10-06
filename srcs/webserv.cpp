@@ -55,7 +55,6 @@ int main(int ac, char **av)
 		buffer << "http {" << std::endl << "server {" << std::endl << "listen 8080;" << std::endl << "}" << std::endl << "}" << std::endl;
 	std::cout << buffer.str();
 	Configuration			current_config(buffer.str());
-//	current_config.apply_inheritance();
 	virtual_servers = current_config.getHttpScope().front().getServers();
 	for (std::vector<ServerScope>::iterator st = virtual_servers.begin(); st != virtual_servers.end(); st++)
 	{

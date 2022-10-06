@@ -6,7 +6,7 @@
 /*   By: bdetune <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 16:15:51 by bdetune           #+#    #+#             */
-/*   Updated: 2022/09/29 17:01:23 by bdetune          ###   ########.fr       */
+/*   Updated: 2022/10/06 13:14:17 by bdetune          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,26 +27,35 @@ class Client
 
 		Client &	operator=(Client const & rhs);
 
-		int &			getPortNumber(void);
-		void			setPortNumber(int portNumber);
-		Request &		getRequest(void);
-		void			resetRequest(void);
-		Response &		getResponse(void);
-		void			resetResponse(void);
-		int				addToRequest(std::string packet);
-		int &			getKeepAlive(void);
-		void			setKeepAlive(int keepAlive);
-		unsigned int	getNbRequest(void);
-		void			addNbRequest(void);
-		std::time_t		getLastConnection(void);
+		struct epoll_event &	getEvent(void);
+		void					setEvent(struct epoll_event event);
+		int &					getSocketFD(void);
+		void					setSocketFD(int fd);
+		int &					getPortNumber(void);
+		void					setPortNumber(int portNumber);
+		unsigned long &			getIpAddress(void);
+		void					setIpAddress(unsigned long address);
+		Request &				getRequest(void);
+		void					resetRequest(void);
+		Response &				getResponse(void);
+		void					resetResponse(void);
+		int						addToRequest(std::string packet);
+		int &					getKeepAlive(void);
+		void					setKeepAlive(int keepAlive);
+		unsigned int			getNbRequest(void);
+		void					addNbRequest(void);
+		std::time_t				getLastConnection(void);
 
 	private:
-		int				_portNumber;
-		Request			_request;
-		Response		_response;
-		int				_keepAlive;
-		unsigned int	_nbRequest;
-		std::time_t		_lastConnection;
+		struct epoll_event	_event;
+		int					_socketFD;
+		int					_portNumber;
+		unsigned long		_ipAddress;
+		Request				_request;
+		Response			_response;
+		int					_keepAlive;
+		unsigned int		_nbRequest;
+		std::time_t			_lastConnection;
 };
 
 #endif

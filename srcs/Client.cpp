@@ -6,7 +6,7 @@
 /*   By: bdetune <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:13:06 by bdetune           #+#    #+#             */
-/*   Updated: 2022/09/29 17:28:55 by bdetune          ###   ########.fr       */
+/*   Updated: 2022/10/06 13:14:04 by bdetune          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,7 @@ Client::Client(void)
 	return ;
 }
 
-Client::Client(int const & portNumber):_portNumber(portNumber), _request(), _response(), _keepAlive(60), _nbRequest(0), _lastConnection(std::time(NULL))
+Client::Client(int const & portNumber): _event(), _socketFD(0), _portNumber(portNumber), _ipAddress(), _request(), _response(), _keepAlive(60), _nbRequest(0), _lastConnection(std::time(NULL))
 {
 	return ;
 }
@@ -27,7 +27,7 @@ Client::~Client(void)
 	return ;
 }
 
-Client::Client(Client const & src):_portNumber(src._portNumber), _request(src._request), _response(src._response), _keepAlive(src._keepAlive), _nbRequest(src._nbRequest), _lastConnection(src._lastConnection)
+Client::Client(Client const & src): _event(src._event), _socketFD(src._socketFD), _portNumber(src._portNumber), _ipAddress(src._ipAddress), _request(src._request), _response(src._response), _keepAlive(src._keepAlive), _nbRequest(src._nbRequest), _lastConnection(src._lastConnection)
 {
 	return ;
 }
@@ -36,13 +36,36 @@ Client & Client::operator=(Client const & rhs)
 {
 	if (this == &rhs)
 		return (*this);
+	this->_event = rhs._event;
+	this->_socketFD = rhs._socketFD;
 	this->_portNumber = rhs._portNumber;
+	this->_ipAddress = rhs._ipAddress;
 	this->_request = rhs._request;
 	this->_response = rhs._response;
 	this->_keepAlive = rhs._keepAlive;
 	this->_nbRequest = rhs._nbRequest;
 	this->_lastConnection = rhs._lastConnection;
 	return (*this);
+}
+
+struct epoll_event &	Client::getEvent(void)
+{
+	return (this->_event);
+}
+
+void	Client::setEvent(struct epoll_event event)
+{
+	this->_event = event;
+}
+
+int &	Client::getSocketFD(void)
+{
+	return (this->_socketFD);
+}
+
+void	Client::setSocketFD(int fd)
+{
+	this->_socketFD = fd;
 }
 
 int &	Client::getPortNumber(void)
@@ -53,6 +76,16 @@ int &	Client::getPortNumber(void)
 void	Client::setPortNumber(int portNumber)
 {
 	this->_portNumber = portNumber;
+}
+
+unsigned long &	Client::getIpAddress(void)
+{
+	return (this->_ipAddress);
+}
+
+void	Client::setIpAddress(unsigned long address)
+{
+	this->_ipAddress = address;
 }
 
 Request &	Client::getRequest(void)

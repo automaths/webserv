@@ -6,7 +6,7 @@
 /*   By: bdetune <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/29 13:30:25 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/01 19:30:21 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/04 20:51:45 by bdetune          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,6 +32,12 @@
 # define DEFAULT404BODY "<html>\n<head><title>404 Not Found</title></head>\n<body bgcolor=\"white\">\n<center><h1>404 Not Found</h1></center>\n<hr>\n<center><div><img src=\"https://http.cat/404\"  alt=\"A beautiful 404 response\"></div></center>\n<hr>\n<center>webserv/1.0</center>\n</body>\n</html>\n"
 
 # define DEFAULT404STATUS "Not Found"
+
+//405
+# define DEFAULT405BODY "<html>\n<head><title>405 Method Not Allowed</title></head>\n<body bgcolor=\"white\">\n<center><h1>405 Method Not Allowed</h1></center>\n<hr>\n<center><div><img src=\"https://http.cat/405\"  alt=\"A beautiful 405 response\"></div></center>\n<hr>\n<center>webserv/1.0</center>\n</body>\n</html>\n"
+
+# define DEFAULT405STATUS "Method Not Allowed"
+
 
 //416
 # define DEFAULT416BODY "<html>\n<head><title>416 Request Range Not Satisfiable</title></head>\n<body bgcolor=\"white\">\n<center><h1>416 Request Range Not Satisfiable</h1></center>\n<hr>\n<center><div><img src=\"https://http.cat/416\"  alt=\"A beautiful 416 response\"></div></center>\n<hr>\n<center>webserv/1.0</center>\n</body>\n</html>\n"
