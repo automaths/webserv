@@ -34,7 +34,7 @@ class Cgi {
     void converting_env();
     void forking();
     void print_inputs();
-    std::pair<int, int> getResult() { return (std::make_pair(_fd[0], _num)); }
+    int getResult() { return (_fd[0]); }
 
     private:
 

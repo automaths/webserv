@@ -39,7 +39,6 @@ class Configuration {
                     it_one->getAutoIndex() = it->getAutoIndex();
                 if (it_one->getRoot().size() == 0)
                     it_one->getRoot() = it_one->getRootIn() + it_one->getMainPath().substr(it_one->getMainPath().find_last_of('/'), it_one->getMainPath().size() - it_one->getMainPath().find_last_of('/'));
-                //there can be duplicates in the allow method
                 std::vector<std::string> getAllowMethod = it->getAllowMethod(); 
                 for (std::vector<std::string>::iterator it = getAllowMethod.begin(); it != getAllowMethod.end(); ++it)
                     it_one->getAllowMethod().push_back(*it);

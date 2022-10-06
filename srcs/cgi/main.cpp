@@ -5,7 +5,7 @@
 int main()
 {
     std::vector<std::string> env;
-    std::string name = "/ex.php";    
+    std::string name = "/pz.php";    
     char buffer[500];
     std::string pwd(getcwd(buffer, 500));
     pwd.append(name);
@@ -24,26 +24,14 @@ int main()
         return (printf("open error\n"), 0);
 
     Cgi test(fd, env);
-
-    std::pair<int, int> result;
-    result = test.getResult();
-
-    // if (result.second == 0)
-    //     std::cout << "success" << std::endl;
-    // if (result.second == 1  || result.second == 256)
-    //     std::cout << "error occured" << std::endl;
-    // if (result.second == 126)
-    //     std::cout << "cannot execute" << std::endl;
-    // if (result.second == 127)
-    //     std::cout << "not found" << std::endl;
+    int result = test.getResult();
 
     char buff[1048576];
-    int size = read(result.first, &buff, 1048576);
-    //the content-length for the header is the size
+    int size = read(result, &buff, 1048576);
     if (size == -1)
         return (printf("read error\n"), 0);
     write(1, &buff, size);
-    close(result.first);
+    close(result);
 
     return 0;
 }
