@@ -1,6 +1,7 @@
 #pragma once
 
-#include "library.hpp"
+# include <map>
+# include <string>
 
 
 class MimeTypes {
