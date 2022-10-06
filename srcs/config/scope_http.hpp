@@ -28,6 +28,7 @@ class HttpScope {
         exec[4] = &HttpScope::extract_index;
         exec[5] = &HttpScope::extract_autoindex;
         extract_directives();
+        apply_default();
         for (std::vector<std::string>::iterator it = _server_blocks.begin(); it != _server_blocks.end(); ++it)
         {
             _servers.push_back(ServerScope(*it));

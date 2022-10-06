@@ -66,30 +66,30 @@ void Configuration::print_resultings() {
     {
         ofs << "\n            -------| THE SERVER SCOPE |-------            \n" << std::endl;
 
-        ofs << "    address: " << it_two->getAddress() << std::endl;
-        ofs << "    port: " << it_two->getPort() << std::endl;
+        ofs << "    address: |" << it_two->getAddress() << "|" << std::endl;
+        ofs << "    port: |" << it_two->getPort() << "|" << std::endl;
         std::map<std::string, std::string> getListen = it_two->getListen();
         for (std::map<std::string, std::string>::iterator it = getListen.begin(); it != getListen.end(); ++it)
-            ofs << "    listen: " << "the address is " << it->first << " and the port is " << it->second << std::endl;
+            ofs << "    listen: " << "the address is |" << it->first << "|" << " and the port is |" << it->second << "|" << std::endl;
         std::vector<std::string> getServerName = it_two->getServerName();
         for (std::vector<std::string>::iterator it_three = getServerName.begin(); it_three != getServerName.end(); ++it_three)
-            ofs << "    server_name: " << *it_three << std::endl;
+            ofs << "    server_name: |" << *it_three << "|" << std::endl;
         std::vector<std::string> getAllowMethod = it_two->getAllowMethod();
         for (std::vector<std::string>::iterator it_three = getAllowMethod.begin(); it_three != getAllowMethod.end(); ++it_three)
-            ofs << "    allow_method: " << *it_three << std::endl;
+            ofs << "    allow_method: |" << *it_three << "|" << std::endl;
         if (it_two->getClientBodyBufferMax().size() != 0)
-            ofs << "    client_body_buffer_size: " << it_two->getClientBodyBufferMax() << std::endl;
+            ofs << "    client_body_buffer_size: |" << it_two->getClientBodyBufferMax() << "|" << std::endl;
         std::map<std::string, std::string> getDefaultErrorPage = it_two->getDefaultErrorPage(); //to avoid dangling pointer warning
         for (std::map<std::string, std::string>::iterator it_three = getDefaultErrorPage.begin(); it_three != getDefaultErrorPage.end(); ++it_three)
-            ofs << "    default error page " << it_three->first << " associated to path " << it_three->second << std::endl;
+            ofs << "    default error page |" << it_three->first << "|" << " associated to path |" << it_three->second << "|" << std::endl;
         std::vector<std::string> getIndex = it_two->getIndex();
         for (std::vector<std::string>::iterator it_three = getIndex.begin(); it_three != getIndex.end(); ++it_three)
-            ofs << "    index: " << *it_three << std::endl;
-        ofs << "    autoindex: " << it_two->getAutoIndex() << std::endl;
+            ofs << "    index: |" << *it_three << "|" << std::endl;
+        ofs << "    autoindex: |" << it_two->getAutoIndex() << "|" << std::endl;
         ofs << "    root: " << it_two->getRoot() << std::endl;
         std::map<std::string, std::string> getCgi = it_two->getCgi();
         for (std::map<std::string, std::string>::iterator it_three = getCgi.begin(); it_three != getCgi.end(); ++it_three)
-            ofs << "    cgi: extension " << it_three->first << " associated to path " << it_three->second << std::endl;
+            ofs << "    cgi: extension |" << it_three->first << "|" << " associated to path |" << it_three->second << "|" << std::endl;
         if (it_two->getLocations().size() > 0)
             location_recursivity(it_two->getLocations(), 1);
     }
@@ -103,23 +103,23 @@ void Configuration::location_recursivity(std::vector<LocationScope> location_blo
             ofs << "\n               ---| THE LOCATION SCOPE |---            \n" << std::endl;
         else
             ofs << "\n                    recursion level " << level << "\n" << std::endl;
-        ofs << "        main_path: " << it_three->getMainPath() << std::endl;
+        ofs << "        main_path: |" << it_three->getMainPath() << "|" << std::endl;
         std::vector<std::string> getAllowMethod = it_three->getAllowMethod();
         for (std::vector<std::string>::iterator it_five = getAllowMethod.begin(); it_five != getAllowMethod.end(); ++it_five)
-            ofs << "        allow_method: " << *it_five << std::endl;
-        ofs << "        client_body_buffer_size: " << it_three->getClientBodyBufferMax() << std::endl;
+            ofs << "        allow_method: |" << *it_five << "|" << std::endl;
+        ofs << "        client_body_buffer_size: |" << it_three->getClientBodyBufferMax() << "|" << std::endl;
         std::map<std::string, std::string> getDefaultErrorPage = it_three->getDefaultErrorPage(); //to avoid dangling pointer warning
         for (std::map<std::string, std::string>::iterator it_five = getDefaultErrorPage.begin(); it_five != getDefaultErrorPage.end(); ++it_five)
-            ofs << "        default error page " << it_five->first << " associated to path " << it_five->second << std::endl;
+            ofs << "        default error page |" << it_five->first << "|" << " associated to path |" << it_five->second << "|" << std::endl;
         std::vector<std::string> getIndex = it_three->getIndex();
         for (std::vector<std::string>::iterator it_five = getIndex.begin(); it_five != getIndex.end(); ++it_five)
-            ofs << "        index: " << *it_five << std::endl;
-        ofs << "        autoindex: " << it_three->getAutoIndex() << std::endl;
-        ofs << "        root: " << it_three->getRoot() << std::endl;
-        ofs << "        root_in: " << it_three->getRootIn() << std::endl;
+            ofs << "        index: |" << *it_five << "|" << std::endl;
+        ofs << "        autoindex: |" << it_three->getAutoIndex() << "|" << std::endl;
+        ofs << "        root: |" << it_three->getRoot() << "|" << std::endl;
+        ofs << "        root_in: |" << it_three->getRootIn() << "|" << std::endl;
         std::map<std::string, std::string> getCgi = it_three->getCgi();
         for (std::map<std::string, std::string>::iterator it_five = getCgi.begin(); it_five != getCgi.end(); ++it_five)
-            ofs << "        cgi: extension " << it_five->first << " associated to path " << it_five->second << std::endl;
+            ofs << "        cgi: extension |" << it_five->first << "|" << " associated to path |" << it_five->second << "|" << std::endl;
         if (it_three->getLocations().size() > 0)
             location_recursivity(it_three->getLocations(), level + 1);
     }

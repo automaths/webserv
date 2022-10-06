@@ -213,8 +213,8 @@ void HttpScope::extract_rules(std::string rule)
     }
 }
 void HttpScope::apply_default() {
-    // if (_root.size() == 0)
-    //     _root = "html";
+    if (_root.size() == 0)
+        _root = "html";
     if(_autoindex.size() == 0)
         _autoindex = "off";
 }

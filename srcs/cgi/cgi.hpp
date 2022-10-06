@@ -3,6 +3,8 @@
 #include "../config/library.hpp"
 #include <stdlib.h>
 
+
+//apply default server
 class Cgi {
 
     public:

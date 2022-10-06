@@ -33,6 +33,7 @@ class ServerScope {
         exec[7] = &ServerScope::extract_index;
         exec[8] = &ServerScope::extract_autoindex;
         extract_directives();
+        apply_default();
         for (std::vector<std::string>::iterator it = _location_blocks.begin(); it != _location_blocks.end(); ++it)
         {
             _locations.push_back(LocationScope(*it));

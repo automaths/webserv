@@ -5,9 +5,10 @@ void ServerScope::extract_listen(std::string directive){
     directive.erase(0, directive.find("listen") + 6);
     if (directive.find_first_of(':') != std::string::npos)
     {
-        std::string tmp = directive.substr(0, directive.find_first_of(':') + 1);
+        std::string tmp = directive.substr(directive.find_first_not_of("\t\v\n\r\f "), directive.find_first_of(':') + 1);
         _address = tmp;
         directive.erase(0, directive.find_first_of(':') + 1);
+        directive.erase(0, directive.find_first_not_of("\t\v\n\r\f "));
         _port = directive;
         _listen.insert(std::make_pair(tmp, directive));
 
@@ -16,6 +17,7 @@ void ServerScope::extract_listen(std::string directive){
     {
         if (directive.find_first_not_of("\t\v\n\r\f 0123456789;") == std::string::npos)
         {
+            directive.erase(0, directive.find_first_not_of("\t\v\n\r\f "));
             _port = directive;
             _address = "*";
             _listen.insert(std::make_pair("*", directive));
@@ -23,6 +25,7 @@ void ServerScope::extract_listen(std::string directive){
         else
         {
             _port = "80";
+            directive.erase(0, directive.find_first_not_of("\t\v\n\r\f "));
             _address = directive;
             _listen.insert(std::make_pair(directive, "80"));
         }

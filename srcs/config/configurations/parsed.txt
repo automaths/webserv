@@ -1,140 +1,76 @@
 
             -------| THE SERVER SCOPE |-------            
 
-    address:   127.0.0.1
-    port: 80
-    listen: the address is   127.0.0.1 and the port is 80
-    listen: the address is   135.0.0.1: and the port is 7878
-    listen: the address is * and the port is   89
-    server_name: cavalazoone.com
-    server_name: ouaiouaiouai.com
-    server_name: coucou.fr
-    allow_method: GET
-    allow_method: POST
-    client_body_buffer_size: 200M
-    default error page 401 associated to path /two.html
-    default error page 402 associated to path /one.html
-    default error page 403 associated to path /one.html
-    default error page 404 associated to path /one.html
-    index: index.html
-    index: index.htm
-    index: index.php
-    autoindex: on
+    address: |127.0.0.1|
+    port: |80|
+    listen: the address is |*| and the port is |89|
+    listen: the address is |127.0.0.1| and the port is |80|
+    listen: the address is |135.0.0.1:78| and the port is |7878|
+    server_name: |cavalazoone.com|
+    server_name: |ouaiouaiouai.com|
+    server_name: |coucou.fr|
+    allow_method: |GET|
+    allow_method: |POST|
+    client_body_buffer_size: |200M|
+    default error page |401| associated to path |/two.html|
+    default error page |402| associated to path |/one.html|
+    default error page |403| associated to path |/one.html|
+    default error page |404| associated to path |/one.html|
+    index: |index.html|
+    index: |index.htm|
+    index: |index.php|
+    autoindex: |on|
     root: /my_root
-    cgi: extension .js associated to path /usr/lib/cgi-bin/javascript
-    cgi: extension .php associated to path /usr/lib/cgi-bin/php
-    cgi: extension .py associated to path /usr/lib/cgi-bin/python
+    cgi: extension |.js| associated to path |/usr/lib/cgi-bin/javascript|
+    cgi: extension |.php| associated to path |/usr/lib/cgi-bin/php|
+    cgi: extension |.py| associated to path |/usr/lib/cgi-bin/python|
 
             -------| THE SERVER SCOPE |-------            
 
-    address: 
-    port: 
-    client_body_buffer_size: 200M
-    default error page 402 associated to path /one.html
-    default error page 403 associated to path /one.html
-    default error page 404 associated to path /one.html
-    index: index.html
-    autoindex: on
+    address: |*|
+    port: |80|
+    client_body_buffer_size: |200M|
+    default error page |402| associated to path |/one.html|
+    default error page |403| associated to path |/one.html|
+    default error page |404| associated to path |/one.html|
+    index: |index.html|
+    autoindex: |on|
     root: 
-    cgi: extension .php associated to path /usr/lib/cgi-bin/php
-    cgi: extension .py associated to path /usr/lib/cgi-bin/python
+    cgi: extension |.php| associated to path |/usr/lib/cgi-bin/php|
+    cgi: extension |.py| associated to path |/usr/lib/cgi-bin/python|
 
             -------| THE SERVER SCOPE |-------            
 
-    address:  127.0.0.1:
-    port: 8000
-    listen: the address is  127.0.0.1: and the port is 8000
-    client_body_buffer_size: 200M
-    default error page 404 associated to path /inheritance.html
-    autoindex: 
-    root: 
-
-            -------| THE SERVER SCOPE |-------            
-
-    address:  127.0.0.1
-    port: 80
-    listen: the address is  127.0.0.1 and the port is 80
-    index: in_index.html
-    autoindex: 
+    address: |127.0.0.1:8|
+    port: |8000|
+    listen: the address is |127.0.0.1:8| and the port is |8000|
+    client_body_buffer_size: |200M|
+    default error page |404| associated to path |/inheritance.html|
+    autoindex: ||
     root: 
 
             -------| THE SERVER SCOPE |-------            
 
-    address: *
-    port:  8000
-    listen: the address is * and the port is  8000
-    autoindex: 
+    address: |127.0.0.1|
+    port: |80|
+    listen: the address is |127.0.0.1| and the port is |80|
+    index: |in_index.html|
+    autoindex: ||
     root: 
-    cgi: extension .php associated to path /inheritance
 
             -------| THE SERVER SCOPE |-------            
 
-    address:  *:
-    port: 8000
-    listen: the address is  *: and the port is 8000
-    autoindex: 
+    address: |*|
+    port: |8000|
+    listen: the address is |*| and the port is |8000|
+    autoindex: ||
     root: 
- root_in: /my_root
-        cgi: extension .js associated to path /usr/lib/cgi-bin/javascript
-        cgi: extension .php associated to path /usr/lib/cgi-bin/php
-        cgi: extension .py associated to path /usr/lib/cgi-bin/python
+    cgi: extension |.php| associated to path |/inheritance|
 
-                    recursion level 2
+            -------| THE SERVER SCOPE |-------            
 
-        main_path:  videos/coucou 
-        allow_method: GET
-        allow_method: GET
-        allow_method: POST
-        client_body_buffer_size: 200M
-        default error page 401 associated to path /two.html
-        default error page 402 associated to path /one.html
-        default error page 403 associated to path /one.html
-        default error page 404 associated to path /one.html
-        default error page 700 associated to path /testoune
-        index: index.bloup
-        autoindex: on
-        root: /test
-        root_in: /my_videos
-        cgi: extension .js associated to path /usr/lib/cgi-bin/javascript
-        cgi: extension .php associated to path /usr/lib/cgi-bin/php
-        cgi: extension .py associated to path /usr/lib/cgi-bin/python
-
-                    recursion level 3
-
-        main_path:  videos/coucou/tmp 
-        allow_method: GET
-        allow_method: GET
-        allow_method: POST
-        client_body_buffer_size: 200M
-        default error page 401 associated to path /two.html
-        default error page 402 associated to path /one.html
-        default error page 403 associated to path /one.html
-        default error page 404 associated to path /one.html
-        default error page 700 associated to path /testoune
-        index: index.bloup
-        autoindex: on
-        root: /test/tmp 
-        root_in: /test
-        cgi: extension .js associated to path /usr/lib/cgi-bin/javascript
-        cgi: extension .php associated to path /usr/lib/cgi-bin/php
-        cgi: extension .py associated to path /usr/lib/cgi-bin/python
-
-                    recursion level 4
-
-        main_path:  videos/coucou/tmp/go 
-        allow_method: GET
-        allow_method: GET
-        allow_method: POST
-        client_body_buffer_size: 600M
-        default error page 401 associated to path /two.html
-        default error page 402 associated to path /one.html
-        default error page 403 associated to path /one.html
-        default error page 404 associated to path /one.html
-        default error page 700 associated to path /testoune
-        index: index.bloup
-        autoindex: on
-        root: ouech
-        root_in: /test/tmp 
-        cgi: extension .js associated to path /usr/lib/cgi-bin/javascript
-        cgi: extension .php associated to path /usr/lib/cgi-bin/php
-        cgi: extension .py associated to path /usr/lib/cgi-bin/python
+    address: |*:8|
+    port: |8000|
+    listen: the address is |*:8| and the port is |8000|
+    autoindex: ||
+    root: 

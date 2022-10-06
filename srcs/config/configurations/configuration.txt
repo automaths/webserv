@@ -43,7 +43,7 @@ server {
         error_page 404 /test_inherit;
 
                         root: /test;
-        location videos/coucou {
+        location /videos/coucou {
             allow_method GET;
             error_page 700 /testoune;
                     root /test;

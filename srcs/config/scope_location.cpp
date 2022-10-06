@@ -206,8 +206,8 @@ void LocationScope::extract_rules(std::string rule)
 
 void LocationScope::extract_main_path()
 {
-    _chunk.erase(0, _chunk.find("location") + 8);
-    _main_path = _chunk.substr(0, _chunk.find('{'));
+    _chunk.erase(0, _chunk.find_first_not_of("\t\v\n\r\f ", _chunk.find("location") + 8));
+    _main_path = _chunk.substr(0, _chunk.find_last_not_of("\t\v\n\r\f {", _chunk.find('{')) + 1);
     _chunk.erase(0, _chunk.find('{') + 1);
     _chunk.erase(_chunk.find_last_of('}'), 1);
 }
