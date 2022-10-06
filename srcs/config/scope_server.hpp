@@ -59,53 +59,52 @@ class ServerScope {
         }
         return *this;
     }
-    void                                        clean_comments_header();
-    void                                        apply_default();
-    void                                        print_result();
-    void                                        extract_location_blocks();
-    void                                        extract_lines();
-    void                                        extract_directives();
-    void                                        extract_rules(std::string rule);
-    void                                        extract_listen(std::string directive);
-    void                                        extract_server_name(std::string directive);
-    void                                        extract_default_error_pages(std::string directive);
-    void                                        extract_client_body_buffer_size(std::string directive);
-    void                                        extract_root(std::string directive);
-    void                                        extract_allow_method(std::string directive);
-    void                                        extract_cgi(std::string directive);
-    void                                        extract_index(std::string directive);
-    void                                        extract_autoindex(std::string directive);
-    void                                        setLocations(std::vector<LocationScope> arg) { _locations = arg; }
-    void                                        setAddress(std::string arg) { _address = arg; }
-    void                                        setPort(std::string arg) { _port = arg; }
-    void                                        setListen(std::map<std::string, std::string> arg) { _listen = arg; }
-    void                                        setServerName(std::vector<std::string> arg) { _server_names = arg; }
-    void                                        setIndex(std::vector<std::string> arg) { _index = arg; }
-    void                                        setClientBodyBufferMax(std::string arg) {_client_body_buffer_size = arg; }
-    void                                        setAutoIndex(std::string arg) { _autoindex = arg; }
-    void                                        setRoot(std::string arg) { _root = arg; }
-    void                                        setAllowMethod(std::vector<std::string> arg) { _allow_method = arg; }
-    void                                        setCgi(std::map<std::string, std::string> arg) { _cgi = arg; }
-    void                                        setDefaultErrorPage(std::map<std::string, std::string> arg) { _default_error_pages = arg; }
-    std::vector<LocationScope>&                  getLocations() { return _locations; }
-    std::string&                                 getAddress() { return _address; }
-    std::string&                                 getPort() { return _port; }
-    std::vector<std::string>&                    getServerName() { return _server_names; }
-    std::vector<std::string>&                    getIndex() { return _index; }
-    std::string&                                getClientBodyBufferMax() { return _client_body_buffer_size; }
-    std::string&                                 getAutoIndex() { return _autoindex; }
-    std::string&                                 getRoot() { return _root; }
-    std::vector<std::string>&                    getAllowMethod() { return _allow_method; }
-    std::map<std::string, std::string>&          getCgi() { return _cgi; }
-    std::map<std::string, std::string>&          getDefaultErrorPage() { return _default_error_pages; }
-    std::map<std::string, std::string>&          getListen() { return _listen; }
-
-    void                                        setClientBodyBufferMaxIn(std::string arg) { _in_client_body_buffer_size = arg; }
-    void                                        setIndexIn(std::vector<std::string> arg) { _in_index = arg; }
-    void                                        setAutoIndexIn(std::string arg) { _in_autoindex = arg; }
-    void                                        setRootIn(std::string arg) { _in_root = arg; }
-    void                                        setCgiIn(std::map<std::string, std::string> arg) { _in_cgi = arg; }
-    void                                        setDefaultErrorPageIn(std::map<std::string, std::string> arg) { _in_default_error_pages = arg; }
+    void                                                clean_comments_header();
+    void                                                apply_default();
+    void                                                print_result();
+    void                                                extract_location_blocks();
+    void                                                extract_lines();
+    void                                                extract_directives();
+    void                                                extract_rules(std::string rule);
+    void                                                extract_listen(std::string directive);
+    void                                                extract_server_name(std::string directive);
+    void                                                extract_default_error_pages(std::string directive);
+    void                                                extract_client_body_buffer_size(std::string directive);
+    void                                                extract_root(std::string directive);
+    void                                                extract_allow_method(std::string directive);
+    void                                                extract_cgi(std::string directive);
+    void                                                extract_index(std::string directive);
+    void                                                extract_autoindex(std::string directive);
+    void                                                setLocations(std::vector<LocationScope> arg) { _locations = arg; }
+    void                                                setAddress(std::string arg) { _address = arg; }
+    void                                                setPort(std::string arg) { _port = arg; }
+    void                                                setListen(std::map<std::string, std::string> arg) { _listen = arg; }
+    void                                                setServerName(std::vector<std::string> arg) { _server_names = arg; }
+    void                                                setIndex(std::vector<std::string> arg) { _index = arg; }
+    void                                                setClientBodyBufferMax(std::string arg) {_client_body_buffer_size = arg; }
+    void                                                setAutoIndex(std::string arg) { _autoindex = arg; }
+    void                                                setRoot(std::string arg) { _root = arg; }
+    void                                                setAllowMethod(std::vector<std::string> arg) { _allow_method = arg; }
+    void                                                setCgi(std::map<std::string, std::string> arg) { _cgi = arg; }
+    void                                                setDefaultErrorPage(std::map<std::string, std::string> arg) { _default_error_pages = arg; }
+    std::vector<LocationScope>&                         getLocations() { return _locations; }
+    std::string&                                        getAddress() { return _address; }
+    std::string&                                        getPort() { return _port; }
+    std::vector<std::string>&                           getServerName() { return _server_names; }
+    std::vector<std::string>&                           getIndex() { return _index; }
+    std::string&                                        getClientBodyBufferMax() { return _client_body_buffer_size; }
+    std::string&                                        getAutoIndex() { return _autoindex; }
+    std::string&                                        getRoot() { return _root; }
+    std::vector<std::string>&                           getAllowMethod() { return _allow_method; }
+    std::map<std::string, std::string>&                 getCgi() { return _cgi; }
+    std::map<std::string, std::string>&                 getDefaultErrorPage() { return _default_error_pages; }
+    std::map<std::string, std::string>&                 getListen() { return _listen; }
+    void                                                setClientBodyBufferMaxIn(std::string arg) { _in_client_body_buffer_size = arg; }
+    void                                                setIndexIn(std::vector<std::string> arg) { _in_index = arg; }
+    void                                                setAutoIndexIn(std::string arg) { _in_autoindex = arg; }
+    void                                                setRootIn(std::string arg) { _in_root = arg; }
+    void                                                setCgiIn(std::map<std::string, std::string> arg) { _in_cgi = arg; }
+    void                                                setDefaultErrorPageIn(std::map<std::string, std::string> arg) { _in_default_error_pages = arg; }
 
     private:
 
@@ -129,7 +128,6 @@ class ServerScope {
     std::vector<std::string>                            _in_index;
     std::string                                         _in_autoindex;
     std::map<std::string, std::string>                  _in_cgi;
-
 
     std::string                                         _chunk;
     std::vector<std::string>                            _location_blocks;

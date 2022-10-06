@@ -24,15 +24,11 @@ void Cgi::finding_path(){
 void Cgi::converting_argz(){
     _argz = (char **)malloc(sizeof(char *) * 3);
     _argz[0] = strdup("coucou");
-    char buffer[1048576];
-    int size = read(_request, &buffer, 1048576);
-    if (size == -1)
-        return ;
-    _argz[1] = (char*)malloc(sizeof(char) * (size + 1));
-    _argz[1][size] = '\0';
-    int n = -1;
-    while (++n < size)
-        _argz[1][n] = buffer[n];
+    for (std::vector<std::string>::iterator it = _env.begin(); it != _env.end(); ++it)
+    {
+        if (it->find("SCRIPT_FILENAME=") == 0)
+            _argz[1] = strdup(it->substr(it->find_first_of('=') + 1, it->size() - it->find_first_of('=')).c_str());
+    }
     _argz[2] = NULL;
 }
 

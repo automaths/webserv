@@ -30,9 +30,7 @@ class HttpScope {
         extract_directives();
         apply_default();
         for (std::vector<std::string>::iterator it = _server_blocks.begin(); it != _server_blocks.end(); ++it)
-        {
             _servers.push_back(ServerScope(*it));
-        }
     }
     HttpScope& operator=(HttpScope const &other){
         if (this != &other)
@@ -47,32 +45,32 @@ class HttpScope {
         }
         return *this;
     }
-    void                                        clean_http_header();
-    void                                        apply_default();
-    void                                        print_result();
-    void                                        extract_server_blocks();
-    void                                        extract_lines();
-    void                                        extract_directives();
-    void                                        extract_rules(std::string rule);
-    void                                        extract_default_error_pages(std::string directive);
-    void                                        extract_client_body_buffer_size(std::string directive);
-    void                                        extract_root(std::string directive);
-    void                                        extract_cgi(std::string directive);
-    void                                        extract_index(std::string directive);
-    void                                        extract_autoindex(std::string directive);
-    void                                        setIndex(std::vector<std::string> arg) { _index = arg; }
-    void                                        setClientBodyBufferMax(std::string arg) { _client_body_buffer_size = arg; }
-    void                                        setAutoIndex(std::string arg) { _autoindex = arg; }
-    void                                        setRoot(std::string arg) { _root = arg; }
-    void                                        setCgi(std::map<std::string, std::string> arg) { _cgi = arg; }
-    void                                        settDefaultErrorPage(std::map<std::string, std::string> arg) { _default_error_pages = arg; }
-    std::vector<std::string>&                   getIndex() { return _index; }
-    std::string&                                getClientBodyBufferMax() { return _client_body_buffer_size; }
-    std::string&                                getAutoIndex() { return _autoindex; }
-    std::string&                                getRoot() { return _root; }
-    std::map<std::string, std::string>&         getCgi() { return _cgi; }
-    std::map<std::string, std::string>&         getDefaultErrorPage() { return _default_error_pages; }
-    std::vector<ServerScope>&                   getServers(){ return _servers; }
+    void                                                clean_http_header();
+    void                                                apply_default();
+    void                                                print_result();
+    void                                                extract_server_blocks();
+    void                                                extract_lines();
+    void                                                extract_directives();
+    void                                                extract_rules(std::string rule);
+    void                                                extract_default_error_pages(std::string directive);
+    void                                                extract_client_body_buffer_size(std::string directive);
+    void                                                extract_root(std::string directive);
+    void                                                extract_cgi(std::string directive);
+    void                                                extract_index(std::string directive);
+    void                                                extract_autoindex(std::string directive);
+    void                                                setIndex(std::vector<std::string> arg) { _index = arg; }
+    void                                                setClientBodyBufferMax(std::string arg) { _client_body_buffer_size = arg; }
+    void                                                setAutoIndex(std::string arg) { _autoindex = arg; }
+    void                                                setRoot(std::string arg) { _root = arg; }
+    void                                                setCgi(std::map<std::string, std::string> arg) { _cgi = arg; }
+    void                                                settDefaultErrorPage(std::map<std::string, std::string> arg) { _default_error_pages = arg; }
+    std::vector<std::string>&                           getIndex() { return _index; }
+    std::string&                                        getClientBodyBufferMax() { return _client_body_buffer_size; }
+    std::string&                                        getAutoIndex() { return _autoindex; }
+    std::string&                                        getRoot() { return _root; }
+    std::map<std::string, std::string>&                 getCgi() { return _cgi; }
+    std::map<std::string, std::string>&                 getDefaultErrorPage() { return _default_error_pages; }
+    std::vector<ServerScope>&                           getServers(){ return _servers; }
 
     private:
 
