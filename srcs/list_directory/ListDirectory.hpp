@@ -23,13 +23,7 @@ class ListDirectory {
                 if (strcmp(dir->d_name, "..") && strcmp(dir->d_name, "."))
                 {
                     bullet.clear();
-                    bullet = "<li><a href=\'";
-                    bullet += uri;
-                    bullet += '/';
-                    bullet += dir->d_name;
-                    bullet += "\'>";
-                    bullet += dir->d_name;
-                    bullet += "</a></li>\n";
+                    bullet = "<li><a href=\'" + uri + '/' + dir->d_name + "\'>" + dir->d_name + "</a></li>\n";
                     _listing.push_back(bullet);
                 }
             }

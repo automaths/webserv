@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/29 12:29:34 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/06 20:16:07 by nsartral         ###   ########.fr       */
+/*   Updated: 2022/10/06 21:18:50 by nsartral         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -300,8 +300,7 @@ void	Response::makeResponse(Request & req)
 				</ul>
 			</body>
 			</html>			
-		}
-*/
+		} */
 	}
 	else if (S_ISREG(buf.st_mode))
 	{
