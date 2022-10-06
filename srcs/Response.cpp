@@ -6,7 +6,7 @@
 /*   By: bdetune <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/29 12:29:34 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/06 14:33:14 by bdetune          ###   ########.fr       */
+/*   Updated: 2022/10/06 15:08:53 by bdetune          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -96,7 +96,7 @@ bool	Response::findLocation(LocationScope *loc, std::vector<LocationScope> locat
 			}
 			while ((index = path.find("/")) != std::string::npos)
 			{
-				path.erase(index, 1);	_env = parseEnv(req);
+				path.erase(index, 1);
 				depth += 1;
 			}
 		}
@@ -135,7 +135,7 @@ void	Response::makeResponse(Request & req)
 
 	if (this->_responseType == 1)
 		return ;
-   _env = parseEnv(req);
+	_env = parseEnv(req);
 	this->_chunked = false;
 	std::cerr << this->_targetServer->getRoot() << std::endl;
 	std::vector<std::string>	methods = this->_targetServer->getAllowMethod();
