@@ -5,10 +5,7 @@ CC		=	c++
 FLAGS	=	-Wall -Wextra -Werror -g -MMD -MP -std=c++98
 
 SRC		=	main.cpp \
-			scope_configuration.cpp \
-			scope_http.cpp \
-			scope_server.cpp \
-			scope_location.cpp \
+			ListDirectory.cpp \
 
 OBJ		:=	$(addprefix ./obj/,$(SRC:%.cpp=%.o))
 
