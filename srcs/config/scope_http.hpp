@@ -32,15 +32,7 @@ class HttpScope {
         for (std::vector<std::string>::iterator it = _server_blocks.begin(); it != _server_blocks.end(); ++it)
         {
             _servers.push_back(ServerScope(*it));
-            _servers.back().setClientBodyBufferMaxIn(_client_body_buffer_size);
-            _servers.back().setIndexIn(_index);
-            _servers.back().setAutoIndexIn(_autoindex);
-            _servers.back().setRootIn(_root);
-            _servers.back().setCgiIn(_cgi);
-            _servers.back().setDefaultErrorPageIn(_default_error_pages);
         }
-        for (std::vector<ServerScope>::iterator it = _servers.begin(); it != _servers.end(); ++it)
-            it->inheritance();
     }
     HttpScope& operator=(HttpScope const &other){
         if (this != &other)

@@ -27,6 +27,7 @@
 # include "default/defaultResponse.hpp"
 # include "config/scope_server.hpp"
 # include "Request.hpp"
+# include <vector>
 
 class Response
 {
@@ -51,10 +52,11 @@ class Response
 		bool			bodyBytesSent(std::size_t bytes);
 		bool			getClose(void);
 		bool			getIsConsumed(void);
-
+    std::vector<std::string>	getEnv(void) const;
 		void			makeResponse(Request & req);
 
 	private:
+		std::vector<std::string>	_env;
 		std::string		_header;
 		std::size_t		_headerSize;
 		std::string		_body;
@@ -71,7 +73,6 @@ class Response
 		bool			getServer(std::string const & host, std::vector<ServerScope> & matches);
 
 		bool			findLocation(LocationScope *loc, std::vector<LocationScope> locations, std::string uri);
-
 };
 
 #endif

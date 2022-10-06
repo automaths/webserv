@@ -25,9 +25,6 @@ Configuration rules:
 
     - server_name + name (+ name + ...)
         exemple: "server_name coucou hola halo;"
-    
-    - try_files + path (+ path + ...)
-        exemple: "try_files index.html index.htm;"
 
     - allow_method + method (+ method + ...)
         exemple: "allow_method GET POST;"
@@ -46,7 +43,6 @@ Server scope rules:
 
     - listen
     - server_name
-    - try_files
     - index
     - client_body_buffer_size
     - autoindex
@@ -60,7 +56,6 @@ Location scope rules:
     - client_body_buffer_size
     - error_page
     - root
-    - try_files
     - index
     - autoindex
     - allow_method

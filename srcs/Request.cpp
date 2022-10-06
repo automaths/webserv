@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tnaton <marvin@42.fr>                      +#+  +:+       +#+        */
+/*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:32:13 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/03 20:48:04 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/06 13:03:41 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 #define NOT_OLD _version!="HTTP/1.0"
 #define NOT_NEW _version!="HTTP/1.1"
 
-Request::Request(void): _type(""), _version("HTTP/1.0"), _file(""), _body(""), _buff(""), _headers() {
+Request::Request(void): _type(""), _version("HTTP/1.0"), _file(""), _body(""), _buff(""), _headers(), _isbody(0), _bodysize(0) {
 }
 
 std::string tolower(std::string str) {
@@ -118,7 +118,6 @@ int Request::parseHeaders(void) {
 			_headers.erase("range");
 		}
 	}
-
 	map = _headers.begin();
 	while (map != _headers.end()) {
 		std::cout << "Key :" << map->first << std::endl;
@@ -132,70 +131,132 @@ int Request::parseHeaders(void) {
 	return (200);
 }
 
+std::string newchar(std::string str)
+{
+	int					num;
+	std::stringstream	ret;
+
+	num = atoi(str.c_str());
+	num++;
+	ret << num;
+	return (ret.str());
+}
+
+std::string	checkopen(std::string str)
+{
+	int			ret;
+	std::string	tmp;
+
+	ret = 0;
+	while (!ret)
+	{
+		tmp = "/tmp/." + str;
+		ret = access(tmp.c_str(), F_OK);
+		if (!ret)
+			str = newchar(str);
+	}
+	return (tmp);
+}
+
 int Request::parseChunk(std::string & chunk) {
 	std::string line;
 
 	std::cerr << "Chunk in parsing : " << chunk << std::endl;
-	if (chunk.find("\x03") != NPOS)
-		return (1);
-	if (!_type.size()) {
+
+	if (_isbody) {
+		if (_isbody == 2) {
+			if (_body == "") {
+				_body = checkopen("0");
+			}
+			std::ofstream	file(_body.data(), std::ios::binary);
+			
+			file.write(chunk.data(), chunk.size());
+		} else {
+			if (_bodysize >= 1048576 || _body.size() + chunk.size() >= 1048576) {
+				if (_body == "") {
+					_body = checkopen("0");
+				}
+				std::ofstream	file(_body.data(), std::ios::binary);
+
+				file.write(chunk.data(), chunk.size());
+			} else {
+				_body += chunk;
+			}
+		}
+		_bodysize -= chunk.size();
+		if (!_bodysize)
+			return (200);
+	} else {
+		if (chunk.find("\x03") != NPOS)
+			return (1);
+		if (!_type.size()) {
+			do {
+				line = chunk.substr(0, chunk.find("\r\n"));
+				chunk.erase(0, (line.length() + 2));
+				if (line != "") {
+					if (checkType(line)) {
+						return (400);
+					} else if (NOT_NEW && NOT_OLD) {
+						return (505);
+					}
+					break;
+				}
+			}
+			while (chunk.size());
+		}
+		if (!chunk.size())
+			return (0);
+		std::string key;
+		std::string val;
+
 		do {
 			line = chunk.substr(0, chunk.find("\r\n"));
 			chunk.erase(0, (line.length() + 2));
-			if (line != "") {
-				if (checkType(line)) {
-					return (400);
-				} else if (NOT_NEW && NOT_OLD) {
-					return (505);
+			if (line == "") {
+				if (_type == POST || _type == "PUT") {
+					_body = chunk;
+					if (_type == POST)
+						_isbody = 1;
+					else
+						_isbody = 2;
+					if (_headers.find("content-length") != _headers.end()) {
+						_bodysize = ft_atoi(_headers["content-length"].front());
+						if (_body.size() == _bodysize)
+							return (202);
+					}
+					return (201);
 				}
-				break;
+				if (_headers.find("host") == _headers.end() && NOT_OLD)
+					return (400);
+				try {
+					return (parseHeaders());
+				} catch (std::exception & e) {
+					std::cerr << "Erreur dans le parsing du header :" << e.what() << std::endl;
+					return (200);
+				}
+			}
+			key = line.substr(0, (line.find(":") == NPOS) ? line.size() : line.find(":"));
+			key = tolower(key);
+			(line.find(":") == NPOS) ? line.erase(0, (key.size())) : line.erase(0, (key.size() + 1));
+			val = line;
+			if (val.size() && val.find_first_not_of(" ,") != NPOS)
+				val = line.substr(line.find_first_not_of(" ,"), line.find_last_not_of(" ,") - line.find_first_not_of(" ,") + 1);
+			else
+				val = "";
+			if (key.find(" ") != NPOS) {
+				return (400);
+			} if (key == "host") {
+				if (val == "" || _headers.find(key) != _headers.end()) {
+					return (400);
+				}
+			} if (_headers.find(key) == _headers.end()) {
+				_headers.insert(std::pair<std::string, std::list<std::string> >(key, std::list<std::string>(1, val)));
+			} else {
+				_headers[key].push_back(val);
 			}
 		}
 		while (chunk.size());
 	}
-	if (!chunk.size())
-		return (0);
-	std::string key;
-	std::string val;
-
-	do {
-		line = chunk.substr(0, chunk.find("\r\n"));
-		chunk.erase(0, (line.length() + 2));
-		if (line == "") {
-			if (_type == POST) {
-				_body = chunk;
-			}
-			if (_headers.find("host") == _headers.end() && NOT_OLD)
-				return (400);
-			try {
-				return (parseHeaders());
-			} catch (std::exception & e) {
-				std::cerr << "Erreur dans le parsing du header :" << e.what() << std::endl;
-				return (200);
-			}
-		}
-		key = line.substr(0, (line.find(":") == NPOS) ? line.size() : line.find(":"));
-		key = tolower(key);
-		(line.find(":") == NPOS) ? line.erase(0, (key.size())) : line.erase(0, (key.size() + 1));
-		val = line;
-		if (val.size() && val.find_first_not_of(" ,") != NPOS)
-			val = line.substr(line.find_first_not_of(" ,"), line.find_last_not_of(" ,") - line.find_first_not_of(" ,") + 1);
-		else
-			val = "";
-		if (key.find(" ") != NPOS) {
-			return (400);
-		} if (key == "host") {
-			if (val == "" || _headers.find(key) != _headers.end()) {
-				return (400);
-			}
-		} if (_headers.find(key) == _headers.end()) {
-			_headers.insert(std::pair<std::string, std::list<std::string> >(key, std::list<std::string>(1, val)));
-		} else {
-			_headers[key].push_back(val);
-		}
-	}
-	while (chunk.size());
-
     return (0);
 }
 

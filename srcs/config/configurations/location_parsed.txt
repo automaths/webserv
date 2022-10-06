@@ -1,56 +1,101 @@
 
                ---| THE LOCATION SCOPE |---            
 
-        main_path:  /images/ 
-        allow_method: PUT
-        allow_method: GET
-        allow_method: POST
-        allow_method: HEAD
-        client_body_buffer_size: 
-        index: index.html
-        index: index.htm
-        autoindex: off
-        root: /my_images
+        main_path: |/images/|
+        allow_method: |PUT|
+        allow_method: |GET|
+        allow_method: |POST|
+        allow_method: |HEAD|
+        allow_method: |GET|
+        allow_method: |POST|
+        client_body_buffer_size: |200M|
+        default error page |401| associated to path |/two.html|
+        default error page |402| associated to path |/one.html|
+        default error page |403| associated to path |/one.html|
+        default error page |404| associated to path |/one.html|
+        index: |index.html|
+        index: |index.htm|
+        autoindex: |on|
+        root: |/my_images|
+        root_in: |/my_root|
+        cgi: extension |.js| associated to path |/usr/lib/cgi-bin/javascript|
+        cgi: extension |.php| associated to path |/usr/lib/cgi-bin/php|
+        cgi: extension |.py| associated to path |/usr/lib/cgi-bin/python|
 
                ---| THE LOCATION SCOPE |---            
 
-        main_path:  /videos/ 
-        client_body_buffer_size: 
-        autoindex: off
-        root: /my_videos
+        main_path: |/videos|
+        allow_method: |GET|
+        allow_method: |POST|
+        client_body_buffer_size: |200M|
+        default error page |401| associated to path |/two.html|
+        default error page |402| associated to path |/one.html|
+        default error page |403| associated to path |/one.html|
+        default error page |404| associated to path |/one.html|
+        index: |index.bloup|
+        autoindex: |on|
+        root: |/my_videos|
+        root_in: |/my_root|
+        cgi: extension |.js| associated to path |/usr/lib/cgi-bin/javascript|
+        cgi: extension |.php| associated to path |/usr/lib/cgi-bin/php|
+        cgi: extension |.py| associated to path |/usr/lib/cgi-bin/python|
 
                     recursion level 2
 
-        main_path:  /coucou/ 
-        allow_method: GET
-        client_body_buffer_size: 
-        autoindex: off
-        root: html
+        main_path: |/videos/coucou|
+        allow_method: |GET|
+        allow_method: |GET|
+        allow_method: |POST|
+        client_body_buffer_size: |200M|
+        default error page |401| associated to path |/two.html|
+        default error page |402| associated to path |/one.html|
+        default error page |403| associated to path |/one.html|
+        default error page |404| associated to path |/one.html|
+        default error page |700| associated to path |/testoune|
+        index: |index.bloup|
+        autoindex: |on|
+        root: |/test|
+        root_in: |/my_videos|
+        cgi: extension |.js| associated to path |/usr/lib/cgi-bin/javascript|
+        cgi: extension |.php| associated to path |/usr/lib/cgi-bin/php|
+        cgi: extension |.py| associated to path |/usr/lib/cgi-bin/python|
 
                     recursion level 3
 
-        main_path:  /coucou/ 
-        client_body_buffer_size: 
-        autoindex: off
-        root: html
+        main_path: |videos/coucou/tmp|
+        allow_method: |GET|
+        allow_method: |GET|
+        allow_method: |POST|
+        client_body_buffer_size: |200M|
+        default error page |401| associated to path |/two.html|
+        default error page |402| associated to path |/one.html|
+        default error page |403| associated to path |/one.html|
+        default error page |404| associated to path |/one.html|
+        default error page |700| associated to path |/testoune|
+        index: |index.bloup|
+        autoindex: |on|
+        root: |/test/tmp|
+        root_in: |/test|
+        cgi: extension |.js| associated to path |/usr/lib/cgi-bin/javascript|
+        cgi: extension |.php| associated to path |/usr/lib/cgi-bin/php|
+        cgi: extension |.py| associated to path |/usr/lib/cgi-bin/python|
 
                     recursion level 4
 
-        main_path:  /rehey/ 
-        client_body_buffer_size: 
-        autoindex: off
-        root: html
-
-                    recursion level 3
-
-        main_path:  /bloupo/ 
-        client_body_buffer_size: 
-        autoindex: off
-        root: html
-
-                    recursion level 4
-
-        main_path:  /hey/ 
-        client_body_buffer_size: 
-        autoindex: off
-        root: html
+        main_path: |videos/coucou/tmp/go|
+        allow_method: |GET|
+        allow_method: |GET|
+        allow_method: |POST|
+        client_body_buffer_size: |600M|
+        default error page |401| associated to path |/two.html|
+        default error page |402| associated to path |/one.html|
+        default error page |403| associated to path |/one.html|
+        default error page |404| associated to path |/one.html|
+        default error page |700| associated to path |/testoune|
+        index: |index.bloup|
+        autoindex: |on|
+        root: |ouech|
+        root_in: |/test/tmp|
+        cgi: extension |.js| associated to path |/usr/lib/cgi-bin/javascript|
+        cgi: extension |.php| associated to path |/usr/lib/cgi-bin/php|
+        cgi: extension |.py| associated to path |/usr/lib/cgi-bin/python|

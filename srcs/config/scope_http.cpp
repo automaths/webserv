@@ -202,7 +202,7 @@ void HttpScope::extract_directives() {
 }
 void HttpScope::extract_rules(std::string rule)
 {
-    for (unsigned int i = 0; i < 10; ++i)
+    for (unsigned int i = 0; i < 7; ++i)
     {
         if (rule.find(_directive_types[i]) == rule.find_first_not_of("\t\v\n\r\f "))
         {

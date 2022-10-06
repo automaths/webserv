@@ -3,44 +3,48 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: tnaton <marvin@42.fr>                      +#+  +:+       +#+         #
+#    By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/09/27 13:15:29 by tnaton            #+#    #+#              #
-#    Updated: 2022/10/03 19:01:53 by tnaton           ###   ########.fr        #
+<<<<<<< HEAD
+#    Updated: 2022/10/06 14:16:56 by nsartral         ###   ########.fr        #
+=======
+#    Updated: 2022/10/06 13:01:00 by tnaton           ###   ########.fr        #
+>>>>>>> c31c4a1c5790fc58509ce83649b32f835515b4f6
 #                                                                              #
 # **************************************************************************** #
+
+vpath %.cpp srcs
+vpath %.cpp srcs/config
+vpath %.hpp srcs
+vpath %.hpp srcs/config
 
 NAME = webserv
 
 OBJDIR := objs
 
-SRCS = webserv.cpp Request.cpp Response.cpp Client.cpp server.cpp config/scope_configuration.cpp config/scope_http.cpp config/scope_server.cpp config/scope_location.cpp
+SRCS = webserv.cpp Request.cpp Response.cpp Client.cpp server.cpp scope_configuration.cpp scope_http.cpp scope_server.cpp scope_location.cpp
 
-INC = server.hpp Request.hpp Client.hpp Response.hpp config/scope_configuration.hpp config/scope_http.hpp config/scope_server.hpp config/scope_location.hpp
+INC = server.hpp Request.hpp Client.hpp Response.hpp scope_configuration.hpp scope_http.hpp scope_server.hpp scope_location.hpp
 
-source = $(addprefix srcs/,$(SRCS))
-
-include = $(addprefix srcs/,$(INC))
-
-CPPFLAGS = -Wall -Wextra -Werror -g -std=c++98 #-fsanitize=address
+CXXFLAGS = -Wall -Wextra -Werror -g -std=c++98 #-fsanitize=address
 
 CXX = c++
 
-objects := $(patsubst srcs/%.cpp,$(OBJDIR)/%.o,$(source))
+objects := $(patsubst %.cpp,$(OBJDIR)/%.o,$(SRCS))
 
-$(NAME) : $(objects) $(include)
-	$(CXX) $(CPPFLAGS) $(objects) -o $@
+$(NAME) : $(objects) $(INC)
+	$(CXX) $(CXXFLAGS) $(objects) -o $@
 
-$(objects): $(include)
+$(objects): $(INC)
 
 $(objects) : | $(OBJDIR)
 
-$(OBJDIR)/%.o: srcs/%.cpp
-	$(CXX) $(CPPFLAGS) -o $@ -c $<
+$(OBJDIR)/%.o: %.cpp
+	$(CXX) $(CXXFLAGS) -o $@ -c $<
 
 $(OBJDIR) :
 	mkdir $(OBJDIR)
-	mkdir $(OBJDIR)/config
 
 .PHONY: all
 all : $(NAME)

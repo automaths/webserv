@@ -17,6 +17,29 @@ Response::Response(void): _header(), _headerSize(), _body(), _bodySize(), _targe
 	return ;
 }
 
+std::vector<std::string> parseEnv(Request & req) {
+	std::vector<std::string>	env;
+	std::map<std::string, std::list<std::string> > map = req.getHeaders();
+	std::map<std::string, std::list<std::string> >::iterator tmp = map.begin();
+	std::string					val;
+
+	env.push_back("REQUEST_METHOD=" + req.getType());
+	env.push_back("SERVER_PROTOCOL=" + req.getVersion());
+	while (tmp != map.end()) {
+		val = "";
+		std::list<std::string>::iterator i = (*tmp).second.begin(); 
+		while (i != (*tmp).second.end()) {
+			val += *i;
+			i++;
+			if (i != (*tmp).second.end())
+				val += ",";
+		}
+		env.push_back("HTTP_" + (*tmp).first + "=" + val);
+		tmp++;
+	}
+	return (env);	
+}
+
 Response::Response(Request & req, std::vector<ServerScope> & matches, int error): _header(), _headerSize(0), _body(), _bodySize(0), _targetFile(), _headerSent(false), _over(false), _fileConsumed(false), _close(false), _targetServer(NULL), _responseType(0)
 {
 	std::map<std::string, std::list<std::string> >				headerMap = req.getHeaders();
@@ -73,7 +96,7 @@ bool	Response::findLocation(LocationScope *loc, std::vector<LocationScope> locat
 			}
 			while ((index = path.find("/")) != std::string::npos)
 			{
-				path.erase(index, 1);
+				path.erase(index, 1);	_env = parseEnv(req);
 				depth += 1;
 			}
 		}
@@ -112,6 +135,7 @@ void	Response::makeResponse(Request & req)
 
 	if (this->_responseType == 1)
 		return ;
+   _env = parseEnv(req);
 	this->_chunked = false;
 	std::cerr << this->_targetServer->getRoot() << std::endl;
 	std::vector<std::string>	methods = this->_targetServer->getAllowMethod();
@@ -365,6 +389,10 @@ Response::Response(Response const & src): _header(src._header), _headerSize(src.
 	return ;
 }
 
+std::vector<std::string> Response::getEnv(void) const {
+	return (_env);
+}
+
 Response::~Response(void)
 {
 	return ;
@@ -469,7 +497,7 @@ std::string	Response::setBaseHeader(void)
 	std::string					pattern("%a, %d %b %Y %H:%M:%S");
 	const std::time_put<char>	&tmput = std::use_facet <std::time_put<char> > (loc);
 	std::stringstream			baseHeader;
-	
+
 	baseHeader << "Server: webserv/1.0\r\n";
 	baseHeader << "Date: ";
 	tmput.put(baseHeader, baseHeader, ' ', gmt, pattern.data(), pattern.data()+pattern.length());
