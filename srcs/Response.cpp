@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: bdetune <marvin@42.fr>                     +#+  +:+       +#+        */
+/*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/29 12:29:34 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/06 15:08:53 by bdetune          ###   ########.fr       */
+/*   Updated: 2022/10/06 20:16:07 by nsartral         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -282,6 +282,24 @@ void	Response::makeResponse(Request & req)
 /*		else
 		{
 			List files in directory
+			$uri = req.getFile();
+	
+			<!DOCTYPE html>
+			<html lang="en">
+			<head>
+			<meta charset="UTF-8">
+			<meta http-equiv="X-UA-Compatible" content="IE=edge">
+			<meta name="viewport" content="width=device-width, initial-scale=1.0">
+			<title>Index $uri</title>
+			</head>
+			<body>
+				<h1>$uri</h1>
+				<ul>
+					<li><a href="/$uri/file1">file1</a></li>
+					<li><a href="/$uri/file2">file2</a></li>
+				</ul>
+			</body>
+			</html>			
 		}
 */
 	}
