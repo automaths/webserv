@@ -6,7 +6,7 @@
 /*   By: tnaton <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/10/05 17:41:22 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/05 17:41:24 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/06 12:45:21 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@
 #include <list>
 #include <utility>
 #include <iostream>
+#include <fstream>
 #include <cstdlib>
 #include <sstream>
 #include <unistd.h>
@@ -51,6 +52,6 @@ class Request{
 		std::string		_body;
 		std::string		_buff;
 		std::map<std::string, std::list<std::string> > _headers;
-		bool			_isbody;
+		int				_isbody;
 		unsigned int	_bodysize;
 };
