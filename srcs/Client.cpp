@@ -6,7 +6,7 @@
 /*   By: bdetune <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:13:06 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/05 20:43:47 by bdetune          ###   ########.fr       */
+/*   Updated: 2022/10/06 13:14:04 by bdetune          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -115,11 +115,6 @@ int	Client::addToRequest(std::string packet)
 {
 	this->_lastConnection = std::time(NULL);
 	return (this->_request.parseChunk(packet));
-}
-
-bool Client::bufferResponse(void)
-{
-	return(this->_response.bufferResponse());
 }
 
 int &	Client::getKeepAlive(void)

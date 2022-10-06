@@ -6,7 +6,7 @@
 /*   By: bdetune <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/28 13:45:50 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/05 21:20:31 by bdetune          ###   ########.fr       */
+/*   Updated: 2022/10/06 14:35:01 by bdetune          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -153,10 +153,12 @@ void	Server::readRequest(struct epoll_event & event)
 		}
 		if (result == 200)
 		{
-			struct epoll_event ev;
-
 			this->_client_sockets[event.data.fd].getResponse() = Response(this->_client_sockets[event.data.fd].getRequest(), this->_virtual_servers[this->_client_sockets[event.data.fd].getPortNumber()]);
+			this->_client_sockets[event.data.fd].getResponse().makeResponse(this->_client_sockets[event.data.fd].getRequest());
+/*			
+			struct epoll_event ev;
 			if (this->_client_sockets[event.data.fd].getResponse().getTargetFD())
+
 			{
 				std::cerr << "Client FD: " << event.data.fd << std::endl;
 				if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_DEL, event.data.fd, &event) == -1)
@@ -182,14 +184,14 @@ void	Server::readRequest(struct epoll_event & event)
 				std::cerr << "Number of files to read from: " << this->_response_fds.size() << std::endl;
 			}
 			else
-			{
+			{*/
 				event.events = EPOLLOUT;
 				if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_MOD, event.data.fd, &event) == -1)
 				{
 					this->closeClientSocket(event);
 					std::cerr << "Error Trying to switch socket from reading to writing" << std::endl;
 				}
-			}
+//			}
 		}
 		else if (result)
 		{
@@ -200,6 +202,7 @@ void	Server::readRequest(struct epoll_event & event)
 				return ;
 			}
 			this->_client_sockets[event.data.fd].getResponse() = Response(this->_client_sockets[event.data.fd].getRequest(), this->_virtual_servers[this->_client_sockets[event.data.fd].getPortNumber()], result);
+			this->_client_sockets[event.data.fd].getResponse().makeResponse(this->_client_sockets[event.data.fd].getRequest());
 			event.events = EPOLLOUT;
 			if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_MOD, event.data.fd, &event) == -1)
 			{
@@ -272,26 +275,6 @@ void	Server::sendResponse(struct epoll_event & event)
 		this->sendBody(event);
 }
 
-void	Server::bufferFile(struct epoll_event & event)
-{
-	std::cerr << "IN" << std::endl;
-	if (this->_response_fds[event.data.fd]->bufferResponse())
-	{
-		epoll_ctl(this->_epoll_fd, EPOLL_CTL_DEL, event.data.fd, &event);
-		if (this->_reserve_fds.find(this->_response_fds[event.data.fd]->getSocketFD()) != this->_reserve_fds.end())
-		{
-			struct epoll_event ev = this->_response_fds[event.data.fd]->getEvent();
-			ev.events = EPOLLOUT;
-			epoll_ctl(this->_epoll_fd, EPOLL_CTL_ADD, ev.data.fd, &ev);
-			this->_reserve_fds.erase(this->_response_fds[event.data.fd]->getSocketFD());
-		}
-		if (this->_response_fds[event.data.fd]->getResponse().getIsConsumed())
-			this->_response_fds.erase(event.data.fd);
-		else
-			this->_reserve_fds.insert(event.data.fd);
-	}
-}
-
 void Server::execute(void)
 {
 	struct epoll_event	ev, event[10];
@@ -312,16 +295,11 @@ void Server::execute(void)
 			if (this->_listen_sockets.find(event[i].data.fd) != this->_listen_sockets.end())
 				this->acceptIncomingConnection(event[i]);
 			else if (event[i].events == EPOLLIN)
-			{
-				if (this->_response_fds.find(event[i].data.fd) != this->_response_fds.end())
-					this->bufferFile(event[i]);
-				else
 					this->readRequest(event[i]);
-			}
 			else if (event[i].events == EPOLLOUT)
 				this->sendResponse(event[i]);
         }
-//		this->closeTimedoutConnections();
+		this->closeTimedoutConnections();
 		std::cout << "The number of clients is: " << this->_client_sockets.size() << std::endl;
     }
 }

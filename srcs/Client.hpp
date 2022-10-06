@@ -6,7 +6,7 @@
 /*   By: bdetune <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 16:15:51 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/05 19:41:06 by bdetune          ###   ########.fr       */
+/*   Updated: 2022/10/06 13:14:17 by bdetune          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,7 +40,6 @@ class Client
 		Response &				getResponse(void);
 		void					resetResponse(void);
 		int						addToRequest(std::string packet);
-		bool					bufferResponse(void);
 		int &					getKeepAlive(void);
 		void					setKeepAlive(int keepAlive);
 		unsigned int			getNbRequest(void);

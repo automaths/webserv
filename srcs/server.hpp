@@ -37,8 +37,8 @@ class Server {
 	std::map<int, std::vector<ServerScope> >	_virtual_servers;	//List of servers per ports
 	std::map<int, int>							_listen_sockets;	//Listening sockets: <fd, port>
 	std::map<int, Client>						_client_sockets;	//Accepted connections sockets: <fd, Client>
-	std::set<int>								_reserve_fds;		//Switch between fd to read response from and socket fd to send back data
-	std::map<int, Client *>						_response_fds;	
+//	std::set<int>								_reserve_fds;		//Switch between fd to read response from and socket fd to send back data
+//	std::map<int, Client *>						_response_fds;	
     struct sockaddr_in							_address;			// Address to bind to a socket
 
 	bool	epollSockets(void);

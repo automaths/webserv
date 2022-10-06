@@ -6,7 +6,7 @@
 /*   By: bdetune <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/29 12:26:22 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/05 20:00:59 by bdetune          ###   ########.fr       */
+/*   Updated: 2022/10/06 14:13:13 by bdetune          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 # define RESPONSE_HPP
 # include <string>
 # include <sstream>
+# include <fstream>
 # include <iostream>
 # include <bitset>
 # include <ctime>
@@ -44,8 +45,6 @@ class Response
 		std::size_t		getHeaderSize(void);
 		std::string &	getBody(void);
 		std::size_t		getBodySize(void);
-		int				getTargetFD(void);
-		bool			bufferResponse(void);
 		bool			headerIsSent(void);
 		bool			isOver(void);
 		bool			headerBytesSent(std::size_t bytes);
@@ -53,22 +52,24 @@ class Response
 		bool			getClose(void);
 		bool			getIsConsumed(void);
 
+		void			makeResponse(Request & req);
 
 	private:
 		std::string		_header;
 		std::size_t		_headerSize;
 		std::string		_body;
 		std::size_t		_bodySize;
-		int				_targetFD;
+		std::ifstream	_targetFile;
 		bool			_headerSent;
 		bool			_chunked;
 		bool			_over;
-		bool			_FDConsumed;
+		bool			_fileConsumed;
 		bool			_close;
 		ServerScope*	_targetServer;
+		char			_responseType;
 
 		bool			getServer(std::string const & host, std::vector<ServerScope> & matches);
-		void			makeResponse(Request & req);
+
 		bool			findLocation(LocationScope *loc, std::vector<LocationScope> locations, std::string uri);
 
 };
