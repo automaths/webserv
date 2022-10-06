@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:32:13 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/06 12:58:33 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/06 13:03:41 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -171,10 +171,17 @@ int Request::parseChunk(std::string & chunk) {
 			std::ofstream	file(_body.data(), std::ios::binary);
 			
 			file.write(chunk.data(), chunk.size());
-		} if (_bodysize >= 1048576 || _body.size() + chunk.size() >= 1048576) {
-			_body = checkopen("0");
 		} else {
-			_body += chunk;
+			if (_bodysize >= 1048576 || _body.size() + chunk.size() >= 1048576) {
+				if (_body == "") {
+					_body = checkopen("0");
+				}
+				std::ofstream	file(_body.data(), std::ios::binary);
+
+				file.write(chunk.data(), chunk.size());
+			} else {
+				_body += chunk;
+			}
 		}
 		_bodysize -= chunk.size();
 		if (!_bodysize)
