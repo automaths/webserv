@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:32:13 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/05 20:39:29 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/06 13:03:41 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 #define NOT_OLD _version!="HTTP/1.0"
 #define NOT_NEW _version!="HTTP/1.1"
 
-Request::Request(void): _type(""), _version("HTTP/1.0"), _file(""), _body(""), _buff(""), _headers(), _isbody(false), _bodysize(0) {
+Request::Request(void): _type(""), _version("HTTP/1.0"), _file(""), _body(""), _buff(""), _headers(), _isbody(0), _bodysize(0) {
 }
 
 std::string tolower(std::string str) {
@@ -158,38 +158,30 @@ std::string	checkopen(std::string str)
 	return (tmp);
 }
 
-std::string multipart(std::string & chunk) {
-	std::string	boundary = "--" + _headers["content-type"].front().substr(_headers["content-type"].front().find_last_of("="), NPOS);
-	std::string	line;
-	bool		isfile = false;
-	int			fd;
-	std::string	buff;
-
-	if (isfile)
-		fd = open(buff);
-	while (line != boundary + "--") {
-		if (line != boundary) {
-			if (isfile) {
-				write(fd, line.data(), line.size()); 
-			} else {
-				buff += line;
-			}
-		} else {
-		}
-	}
-	return (buff);
-}
-
 int Request::parseChunk(std::string & chunk) {
 	std::string line;
 
 	std::cerr << "Chunk in parsing : " << chunk << std::endl;
 
 	if (_isbody) {
-		if (_bodysize >= 1048576 || _body.size() + chunk.size() >= 1048576) {
-			_body = checkopen("0");
+		if (_isbody == 2) {
+			if (_body == "") {
+				_body = checkopen("0");
+			}
+			std::ofstream	file(_body.data(), std::ios::binary);
+			
+			file.write(chunk.data(), chunk.size());
 		} else {
-			_body += chunk;
+			if (_bodysize >= 1048576 || _body.size() + chunk.size() >= 1048576) {
+				if (_body == "") {
+					_body = checkopen("0");
+				}
+				std::ofstream	file(_body.data(), std::ios::binary);
+
+				file.write(chunk.data(), chunk.size());
+			} else {
+				_body += chunk;
+			}
 		}
 		_bodysize -= chunk.size();
 		if (!_bodysize)
@@ -223,7 +215,10 @@ int Request::parseChunk(std::string & chunk) {
 			if (line == "") {
 				if (_type == POST || _type == "PUT") {
 					_body = chunk;
-					_isbody = true;
+					if (_type == POST)
+						_isbody = 1;
+					else
+						_isbody = 2;
 					if (_headers.find("content-length") != _headers.end()) {
 						_bodysize = ft_atoi(_headers["content-length"].front());
 						if (_body.size() == _bodysize)
