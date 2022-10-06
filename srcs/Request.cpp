@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:32:13 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/05 17:41:00 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/05 20:39:29 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -118,9 +118,6 @@ int Request::parseHeaders(void) {
 			_headers.erase("range");
 		}
 	}
-	//header validity
-
-
 	map = _headers.begin();
 	while (map != _headers.end()) {
 		std::cout << "Key :" << map->first << std::endl;
@@ -131,12 +128,6 @@ int Request::parseHeaders(void) {
 		}
 		map++;
 	}
-
-
-
-
-
-
 	return (200);
 }
 
@@ -167,13 +158,35 @@ std::string	checkopen(std::string str)
 	return (tmp);
 }
 
+std::string multipart(std::string & chunk) {
+	std::string	boundary = "--" + _headers["content-type"].front().substr(_headers["content-type"].front().find_last_of("="), NPOS);
+	std::string	line;
+	bool		isfile = false;
+	int			fd;
+	std::string	buff;
+
+	if (isfile)
+		fd = open(buff);
+	while (line != boundary + "--") {
+		if (line != boundary) {
+			if (isfile) {
+				write(fd, line.data(), line.size()); 
+			} else {
+				buff += line;
+			}
+		} else {
+		}
+	}
+	return (buff);
+}
+
 int Request::parseChunk(std::string & chunk) {
 	std::string line;
 
 	std::cerr << "Chunk in parsing : " << chunk << std::endl;
 
 	if (_isbody) {
-		if (_bodysize >= 1048576) {
+		if (_bodysize >= 1048576 || _body.size() + chunk.size() >= 1048576) {
 			_body = checkopen("0");
 		} else {
 			_body += chunk;
