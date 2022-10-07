@@ -8,6 +8,7 @@ http{
 		server_name default;
 
 		location /Downloads {
+			allow_method POST GET;
 			root ./www/default/bouhbouh;
 			try_files $uri $uri/ =404;
 		}
