@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/29 12:26:22 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/07 13:46:09 by nsartral         ###   ########.fr       */
+/*   Updated: 2022/10/07 20:22:24 by bdetune          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,7 +42,6 @@ class Response
 		Response &		operator=(Response const & rhs);
 
 		void			errorResponse(int error);
-		void			basicResponse(void);
 		std::string		setBaseHeader(void);
 		std::string &	getHeader(void);
 		std::size_t		getHeaderSize(void);
@@ -79,7 +78,10 @@ class Response
 		bool			allowedMethod(std::vector<std::string> methods, std::string currentMethod);
 		bool			pathIsValid(std::string path, struct stat * buf);
 		bool			foundDirectoryIndex(std::vector<std::string> indexes, std::string path);
-		void			createFileResponse(void);
+		std::string		createFileResponse(void);
+		void			create200Header(std::string extension);
+		void			createFileErrorHeader(int errorCode, std::string mime);
+		bool			openFile(std::string path);
 };
 
 #endif

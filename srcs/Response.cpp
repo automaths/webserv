@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/29 12:29:34 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/07 14:39:34 by nsartral         ###   ########.fr       */
+/*   Updated: 2022/10/07 21:41:34 by bdetune          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -151,9 +151,31 @@ bool	Response::pathIsValid(std::string path, struct stat * buf)
 	return (true);
 }
 
-bool	Response::foundDirectoryIndex(std::vector<std::string> indexes, std::string path)
+bool	Response::openFile(std::string path)
 {
 	struct stat	buf;
+
+	if (access(path.data(), F_OK | R_OK) == -1)
+		return (false);
+	if (stat(path.data(), &buf) == -1 || S_ISDIR(buf.st_mode) || !S_ISREG(buf.st_mode))
+		return (false) ;
+	this->_targetFile.open(path.data(), std::ifstream::binary);
+	if (this->_targetFile.fail())
+		return (false) ;
+	if (buf.st_size > 1048576)
+	{
+		this->_chunked = true;
+		this->_bodySize = 1048586;
+	}
+	else
+		this->_bodySize = buf.st_size;
+	this->_targetFilePath = path;
+	std::cerr << "Targeted file: " << path << std::endl;
+	return (true);
+}
+
+bool	Response::foundDirectoryIndex(std::vector<std::string> indexes, std::string path)
+{
 	std::string	tmpIndex;
 
 	if (path.size() == 0)
@@ -164,32 +186,15 @@ bool	Response::foundDirectoryIndex(std::vector<std::string> indexes, std::string
 	{
 		tmpIndex = path + *st;
 		std::cerr << "Index path ***" << tmpIndex << "***" << std::endl;
-		if (access(tmpIndex.data(), F_OK | R_OK) != -1)
-		{
-			if (stat(tmpIndex.data(), &buf) == -1 || S_ISDIR(buf.st_mode) || !S_ISREG(buf.st_mode))
-				continue ;
-			this->_targetFile.open(tmpIndex.data(), std::ifstream::binary);
-			if (this->_targetFile.fail())
-				continue ;
-			if (buf.st_size > 1048576)
-			{
-				this->_chunked = true;
-				this->_bodySize = 1048586;
-			}
-			else
-				this->_bodySize = buf.st_size;
-			this->_targetFilePath = tmpIndex;
-			std::cerr << "Targeted file: " << tmpIndex.data() << std::endl;
+		if (this->openFile(tmpIndex))
 			return (true);
-		}
 	}
 	return (false);
 }
 
-void	Response::createFileResponse(void)
+std::string	Response::createFileResponse(void)
 {
 	std::string			extension = "";
-	std::stringstream	header;
 	std::stringstream	size;
 
 	if (this->_targetFilePath.find_last_of(".") != std::string::npos)
@@ -202,23 +207,49 @@ void	Response::createFileResponse(void)
 		this->_targetFile.read(&(this->_body[0]), 1048576);
 		if (!this->_targetFile.eof() && this->_targetFile.fail())
 		{
-			this->errorResponse(500);
-			return ;
+			this->_responseType = 1;
+			return (extension);
 		}
 		this->_bodySize = this->_targetFile.gcount();
+		std::cerr << "Chunk size:" << this->_bodySize << std::endl;
 		this->_fileConsumed = false;
+		for (int i = 0; i < 15 ; i++)
+		{
+			std::cout << this->_body[i];
+		}
+		std::cout << std::endl;
 		size << std::hex << this->_bodySize;
 		size <<	"\r\n";
-		this->_body = size.str() + this->_body + std::string("\r\n");
-		this->_bodySize += size.str().size() + 2;
+		std::cerr << "HEX size " << size.str() << std::endl;
+		std::string	hex_size = size.str();
+		std::size_t	hex_length = size.str().size();
+		std::size_t	cpas = 0;
+		for (std::size_t j = (this->_bodySize - 1); j != 0; j--)
+		{
+			this->_body[j + hex_length] = this->_body[j];
+		}
+		for (std::string::iterator st = hex_size.begin(); st != hex_size.end(); st++, cpas++)
+		{
+			this->_body[cpas] = *st;
+		}
+		for (int i = 0; i < 15 ; i++)
+		{
+			std::cout << this->_body[i];
+		}
+		this->_bodySize += hex_length;
+		std::cout << std::endl;
+		this->_body[this->_bodySize] = '\r';
+		this->_body[this->_bodySize + 1] = '\n';
+		this->_bodySize +=  2;
+		std::cerr << "Chunk size " << this->_bodySize << std::endl;
 	}
 	else
 	{
 		this->_targetFile.read(&(this->_body[0]), (this->_bodySize + 1));
 		if (!this->_targetFile.eof() && this->_targetFile.fail())
 		{
-			this->errorResponse(500);
-			return ;
+			this->_responseType = 1;
+			return (extension);
 		}
 		this->_bodySize = this->_targetFile.gcount();
 		if (this->_targetFile.eof())
@@ -230,6 +261,13 @@ void	Response::createFileResponse(void)
 		else
 			this->_fileConsumed = false;
 	}
+	return (extension);
+}
+
+void	Response::create200Header(std::string extension)
+{
+	std::stringstream	header;
+
 	header << "HTTP/1.1 200 "<< DEFAULT200STATUS << "\r\n";
 	header << setBaseHeader();
 	header << "Content-type: " << extension << "\r\n";
@@ -246,6 +284,7 @@ void	Response::makeResponse(Request & req)
 	bool				hasLoc = false;
 	std::string			fullPath;
 	struct stat			buf;
+	std::string			extension;
 
 	if (this->_responseType == 1)
 		return ;
@@ -276,7 +315,27 @@ void	Response::makeResponse(Request & req)
 	std::cerr << "Fully qualified path: ***" << fullPath << "***" << std::endl;
 	if (!pathIsValid(fullPath, &buf))
 	{
-		this->errorResponse(404);
+		if (hasLoc && loc.getDefaultErrorPage().find("404") != loc.getDefaultErrorPage().end())
+			fullPath = (loc.getDefaultErrorPage())["404"];
+		else if (!hasLoc && this->_targetServer->getDefaultErrorPage().find("404") != this->_targetServer->getDefaultErrorPage().end())
+			fullPath = (this->_targetServer->getDefaultErrorPage())["404"];
+		else
+		{
+			this->errorResponse(404);
+			return ;
+		}
+		if (!this->openFile(fullPath))
+		{
+			this->errorResponse(404);
+			return ;
+		}
+		extension = this->createFileResponse();
+		if (this->_responseType == 1)
+		{
+			this->errorResponse(500);
+			return ;
+		}
+		this->createFileErrorHeader(404, extension);
 		return ;
 	}
 	// std::cerr << "Exists" << std::endl;
@@ -291,27 +350,40 @@ void	Response::makeResponse(Request & req)
 //		std::cerr << "Number of potential indexes: " << indexes.size() << std::endl;
 		if (foundDirectoryIndex(indexes, fullPath))
 		{
-			this->createFileResponse();
+			extension = this->createFileResponse();
+			if (this->_responseType == 1)
+			{
+				this->errorResponse(500);
+				return ;
+			}
+			this->create200Header(extension);
 			return;
 		}
 		else
 		{
-			ListDirectory listing(fullPath, req.getFile());
-			_body = listing.listing();
-			_bodySize = _body.size();
-
-			std::cout << "the full path is: " << fullPath << std::endl;
-			std::cout << "the body is: " << _body << std::endl;
-
-			std::stringstream header;
-			header << "HTTP/1.1 200 "<< DEFAULT200STATUS << "\r\n";
-			header << setBaseHeader();
-			header << "Content-type: text/html" << "\r\n";
-			header << "Content-Length: " << this->_bodySize << "\r\n";
-			header << "Connection: keep-alive\r\n";
-			header << "\r\n";
-			this->_header = header.str();
-			this->_headerSize = this->_header.size();
+			try
+			{
+				ListDirectory listing(fullPath, req.getFile());
+				_body = listing.listing();
+				_bodySize = _body.size();
+	
+				std::cout << "the full path is: " << fullPath << std::endl;
+				std::cout << "the body is: " << _body << std::endl;
+	
+				std::stringstream header;
+				header << "HTTP/1.1 200 "<< DEFAULT200STATUS << "\r\n";
+				header << setBaseHeader();
+				header << "Content-type: text/html" << "\r\n";
+				header << "Content-Length: " << this->_bodySize << "\r\n";
+				header << "Connection: keep-alive\r\n";
+				header << "\r\n";
+				this->_header = header.str();
+				this->_headerSize = this->_header.size();
+			}
+			catch (std::exception const & src)
+			{
+				this->errorResponse(500);
+			}
 			return ;
 		}
 	}
@@ -328,11 +400,37 @@ void	Response::makeResponse(Request & req)
 			else
 				this->_bodySize = buf.st_size;
 			this->_targetFilePath = fullPath;
-			this->createFileResponse();
+			extension = this->createFileResponse();
+			if (this->_responseType == 1)
+			{
+				this->errorResponse(500);
+				return ;
+			}
+			this->create200Header(extension);
 			return;
 		}			
 	}
-	this->errorResponse(404);
+	if (hasLoc && loc.getDefaultErrorPage().find("404") != loc.getDefaultErrorPage().end())
+		fullPath = (loc.getDefaultErrorPage())["404"];
+	else if (!hasLoc && this->_targetServer->getDefaultErrorPage().find("404") != this->_targetServer->getDefaultErrorPage().end())
+		fullPath = (this->_targetServer->getDefaultErrorPage())["404"];
+	else
+	{
+		this->errorResponse(404);
+		return ;
+	}
+	if (!this->openFile(fullPath))
+	{
+		this->errorResponse(404);
+		return ;
+	}
+	extension = this->createFileResponse();
+	if (this->_responseType == 1)
+	{
+		this->errorResponse(500);
+		return ;
+	}
+	this->createFileErrorHeader(404, extension);
 }
 
 Response::Response(Response const & src): _header(src._header), _headerSize(src._headerSize), _body(src._body), _bodySize(src._bodySize), _headerSent(src._headerSent), _over(src._over), _fileConsumed(src._fileConsumed), _close(src._close), _targetServer(src._targetServer), _responseType(src._responseType)
@@ -402,6 +500,10 @@ void	Response::errorResponse(int error)
 			status << " 416 " << DEFAULT416STATUS;
 			body = DEFAULT416BODY;
 			break;
+		case 500:
+			status << " 500 " << DEFAULT500STATUS;
+			body = DEFAULT500BODY;
+			break;
 		case 505:
 			status << " 505 " << DEFAULT505STATUS;
 			body = DEFAULT505BODY;
@@ -411,7 +513,6 @@ void	Response::errorResponse(int error)
 			this->_header = header.str();
 			break;
 	}
-
 	header << "HTTP/1.1" << status.str() << "\r\n";
 	header << setBaseHeader();
 	header << "Content-type: text/html\r\n";
@@ -424,17 +525,46 @@ void	Response::errorResponse(int error)
 	this->_bodySize = this->_body.size();
 }
 
-void	Response::basicResponse(void)
+void	Response::createFileErrorHeader(int errorCode, std::string mime)
 {
 	std::stringstream	header;
-	
-	this->_body = DEFAULT200BODY;
-	this->_bodySize = this->_body.size();
-	header << "HTTP/1.1 200 "<< DEFAULT200STATUS << "\r\n";
+	std::stringstream	status;
+	std::string			body;
+
+	this->_close = true;
+	switch (errorCode)
+	{
+		case 400:
+			status << " 400 " << DEFAULT400STATUS;
+			break ;
+		case 401:
+			status << " 401 " << DEFAULT401STATUS;
+			break ;
+		case 403:
+			status << " 403 " << DEFAULT403STATUS;
+			break ;
+		case 404:
+			status << " 404 " << DEFAULT404STATUS;
+			break;
+		case 405:
+			status << " 405 " << DEFAULT405STATUS;
+			break;
+		case 416:
+			status << " 416 " << DEFAULT416STATUS;
+			break;
+		case 505:
+			status << " 505 " << DEFAULT505STATUS;
+			break ;
+		default:
+			header << "HTTP/1.1 400 " << "Oupsy daisy" << "\r\n";
+			this->_header = header.str();
+			break;
+	}
+	header << "HTTP/1.1" << status.str() << "\r\n";
 	header << setBaseHeader();
-	header << "Content-type: text/html\r\n";
-	header << "Content-Length: " << this->_bodySize << "\r\n";
-	header << "Connection: keep-alive\r\n";
+	header << "Content-type: " << mime << "\r\n";
+	this->_chunked ? (header << "Transfer-Encoding: chunked\r\n") : (header << "Content-Length: " << this->_bodySize << "\r\n");
+	header << "Connection: close\r\n";
 	header << "\r\n";
 	this->_header = header.str();
 	this->_headerSize = this->_header.size();
@@ -522,10 +652,35 @@ bool	Response::bodyBytesSent(std::size_t bytes)
 				this->_over = true;
 				return (true);
 			}
+			for (int i = 0; i < 15 ; i++)
+			{
+				std::cout << this->_body[i];
+			}
+			std::cout << std::endl;
 			size << std::hex << this->_bodySize;
 			size <<	"\r\n";
-			this->_body = size.str() + this->_body + std::string("\r\n");
-			this->_bodySize += size.str().size() + 2;
+			std::cerr << "HEX size " << size.str() << std::endl;
+			std::string	hex_size = size.str();
+			std::size_t	hex_length = size.str().size();
+			std::size_t	cpas = 0;
+			for (std::size_t j = (this->_bodySize - 1); j != 0; j--)
+			{
+				this->_body[j + hex_length] = this->_body[j];
+			}
+			for (std::string::iterator st = hex_size.begin(); st != hex_size.end(); st++, cpas++)
+			{
+				this->_body[cpas] = *st;
+			}
+			for (int i = 0; i < 15 ; i++)
+			{
+				std::cout << this->_body[i];
+			}
+			this->_bodySize += hex_length;
+			std::cout << std::endl;
+			this->_body[this->_bodySize] = '\r';
+			this->_body[this->_bodySize + 1] = '\n';
+			this->_bodySize +=  2;
+			std::cerr << "Chunk size " << this->_bodySize << std::endl;
 		}
 		else if (this->_responseType == 2 && !this->_fileConsumed && this->_targetFile.is_open())
 		{
