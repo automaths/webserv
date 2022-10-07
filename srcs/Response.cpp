@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/29 12:29:34 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/06 21:18:50 by nsartral         ###   ########.fr       */
+/*   Updated: 2022/10/07 14:39:34 by nsartral         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -294,28 +294,26 @@ void	Response::makeResponse(Request & req)
 			this->createFileResponse();
 			return;
 		}
-/*		else
+		else
 		{
-			List files in directory
-			$uri = req.getFile();
-	
-			<!DOCTYPE html>
-			<html lang="en">
-			<head>
-			<meta charset="UTF-8">
-			<meta http-equiv="X-UA-Compatible" content="IE=edge">
-			<meta name="viewport" content="width=device-width, initial-scale=1.0">
-			<title>Index $uri</title>
-			</head>
-			<body>
-				<h1>$uri</h1>
-				<ul>
-					<li><a href="/$uri/file1">file1</a></li>
-					<li><a href="/$uri/file2">file2</a></li>
-				</ul>
-			</body>
-			</html>			
-		} */
+			ListDirectory listing(fullPath, req.getFile());
+			_body = listing.listing();
+			_bodySize = _body.size();
+
+			std::cout << "the full path is: " << fullPath << std::endl;
+			std::cout << "the body is: " << _body << std::endl;
+
+			std::stringstream header;
+			header << "HTTP/1.1 200 "<< DEFAULT200STATUS << "\r\n";
+			header << setBaseHeader();
+			header << "Content-type: text/html" << "\r\n";
+			header << "Content-Length: " << this->_bodySize << "\r\n";
+			header << "Connection: keep-alive\r\n";
+			header << "\r\n";
+			this->_header = header.str();
+			this->_headerSize = this->_header.size();
+			return ;
+		}
 	}
 	else if (S_ISREG(buf.st_mode))
 	{

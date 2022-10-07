@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: bdetune <marvin@42.fr>                     +#+  +:+       +#+        */
+/*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/29 12:26:22 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/06 14:13:13 by bdetune          ###   ########.fr       */
+/*   Updated: 2022/10/07 13:46:09 by nsartral         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,7 @@
 # include "Request.hpp"
 # include "MimeTypes.hpp"
 # include <vector>
+# include "ListDirectory.hpp"
 
 class Response
 {
