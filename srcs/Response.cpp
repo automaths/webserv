@@ -6,11 +6,16 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/29 12:29:34 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/07 14:39:34 by nsartral         ###   ########.fr       */
+/*   Updated: 2022/10/07 20:50:48 by nsartral         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Response.hpp"
+#include "cgi.hpp"
+#include <ext/stdio_filebuf.h>
+#include <fstream>
+#include <istream>
+#include <iostream>
 
 Response::Response(void): _header(), _headerSize(), _body(), _bodySize(), _targetFile(), _targetFilePath(""), _headerSent(false), _over(false), _fileConsumed(false), _close(false), _targetServer(NULL), _responseType(0)
 {
@@ -186,6 +191,50 @@ bool	Response::foundDirectoryIndex(std::vector<std::string> indexes, std::string
 	return (false);
 }
 
+int Response::execCgi(std::string exec)
+{
+	//nicotmp is a copy of fullPath variable
+	_env.push_back("SCRIPT_FILENAME=" + _nicotmp);
+	_env.push_back("SERVER_PORT=" + _targetServer->getPort());
+    _env.push_back("PATH_INFO=" + exec);
+    _env.push_back("REDIRECT_STATUS=1");
+	// std::cout << "the path to exec is: " << exec << std::endl;
+	// for (std::vector<std::string>::iterator it = _env.begin(); it != _env.end(); ++it)
+	// 	std::cout << "the env is " << *it << std::endl;
+    int fd = open(_nicotmp.c_str(), O_RDONLY);
+    if (fd == -1)
+		std::cout << "open cgi file error " << std::endl;
+    Cgi test(fd, _env);
+	cgiResponse(test.getResult());
+	return test.getResult();
+}
+
+void Response::cgiResponse(int fd)
+{
+	int size;
+	char buffer[1048576];
+	size = read(fd, &buffer, 1048576);
+	// printf("the content of the buffer isss: %s", buffer);
+	// std::cout << "the size of the read is: " << size << std::endl;
+	_body += buffer;
+	std::cout << "the reprint of the buffer is: " << _body << std::endl;
+	std::string extension;
+	if (this->_targetFilePath.find_last_of(".") != std::string::npos)
+		extension = this->_targetFilePath.substr(this->_targetFilePath.find_last_of("."));
+	extension = MimeTypes().convert(extension);
+	_bodySize = size;
+	std::stringstream	header;
+	header << "HTTP/1.1 200 "<< DEFAULT200STATUS << "\r\n";
+	header << setBaseHeader();
+	header << "Content-type: " << extension << "\r\n";
+	size == 1048576 ? (header << "Transfer-Encoding: chunked\r\n") : (header << "Content-Length: " << size << "\r\n");
+	header << "Connection: keep-alive\r\n";
+	header << "\r\n";
+	this->_header = header.str();
+	this->_headerSize = this->_header.size();
+	memset(buffer, 0, 1048576);
+}
+
 void	Response::createFileResponse(void)
 {
 	std::string			extension = "";
@@ -194,6 +243,20 @@ void	Response::createFileResponse(void)
 
 	if (this->_targetFilePath.find_last_of(".") != std::string::npos)
 		extension = this->_targetFilePath.substr(this->_targetFilePath.find_last_of("."));
+	//cgi implementation
+	_is_cgi = 0;
+	std::map<std::string, std::string> cgi = _targetServer->getCgi();
+	for (std::map<std::string, std::string>::iterator it = cgi.begin(); it != cgi.end(); ++it)
+	{
+		if (!extension.compare(it->first))
+		{
+			std::cout << "extension " << extension << " match the config extension " << it->first << " associated to path " << it->second << std::endl;
+			_is_cgi = 1;
+			_cgi_fd = execCgi(it->second);
+			return;
+		}
+	}
+	//end of implementation
 	extension = MimeTypes().convert(extension);
 	this->_responseType = 2;
 	this->_body.reserve((this->_bodySize + 1));
@@ -274,6 +337,8 @@ void	Response::makeResponse(Request & req)
 	else
 		fullPath += req.getFile();
 	std::cerr << "Fully qualified path: ***" << fullPath << "***" << std::endl;
+	//tmp to use in the function createFileResponse for execving the file
+	_nicotmp = fullPath;
 	if (!pathIsValid(fullPath, &buf))
 	{
 		this->errorResponse(404);
@@ -299,10 +364,8 @@ void	Response::makeResponse(Request & req)
 			ListDirectory listing(fullPath, req.getFile());
 			_body = listing.listing();
 			_bodySize = _body.size();
-
-			std::cout << "the full path is: " << fullPath << std::endl;
-			std::cout << "the body is: " << _body << std::endl;
-
+			// std::cout << "the full path is: " << fullPath << std::endl;
+			// std::cout << "the body is: " << _body << std::endl;
 			std::stringstream header;
 			header << "HTTP/1.1 200 "<< DEFAULT200STATUS << "\r\n";
 			header << setBaseHeader();
@@ -346,6 +409,11 @@ std::vector<std::string> Response::getEnv(void) const {
 
 Response::~Response(void)
 {
+	if (_is_cgi)
+	{
+		if (fcntl(_cgi_fd, F_GETFD) != -1)
+			close (_cgi_fd);
+	}
 	return ;
 }
 

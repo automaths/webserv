@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/29 12:26:22 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/07 13:46:09 by nsartral         ###   ########.fr       */
+/*   Updated: 2022/10/07 19:48:09 by nsartral         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,6 +57,9 @@ class Response
     std::vector<std::string>	getEnv(void) const;
 		void			makeResponse(Request & req);
 
+		int				execCgi(std::string exec);
+		void			cgiResponse(int fd);
+
 	private:
 		std::vector<std::string>	_env;
 		std::string		_header;
@@ -72,6 +75,11 @@ class Response
 		bool			_close;
 		ServerScope*	_targetServer;
 		char			_responseType;
+
+		//tmp of the fullPath string to use it in cgi function (in create response)
+		std::string		_nicotmp;
+		bool			_is_cgi;
+		int				_cgi_fd;
 
 		bool			getServer(std::string const & host, std::vector<ServerScope> & matches);
 

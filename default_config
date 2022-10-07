@@ -5,6 +5,8 @@ http{
 		root ./www/default;
 		index index.html index.htm;
 
+		cgi .php /usr/lib/cgi-bin/php8.1 .js /usr/lib/hehejexistepas  
+
 		server_name default;
 
 		location /Downloads {
@@ -23,7 +25,6 @@ http{
 		index index.html index.htm;
 
 		server_name basic;
-
 
 		error_page  404     /404.html;
 		error_page  403     /403.html;
