@@ -6,16 +6,18 @@
 /*   By: tnaton <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/10/05 17:41:22 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/06 12:45:21 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/10 19:22:31 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 #define GET "GET"
 #define POST "POST"
+#define PUT "PUT"
 #define DELETE "DELETE"
 #include <string>
 #include <map>
+#include <vector>
 #include <list>
 #include <utility>
 #include <iostream>
@@ -29,8 +31,12 @@ class Request{
 	public:
 
 		Request();
+		Request(const Request &);
 		~Request(){};
+		Request & operator=(const Request &);
 
+		bool		moveBody(std::string &);
+		void		parseBody(std::string &);
 		int			parseHeaders(void);
 		int			parseChunk(std::string &);
 		int			checkType(std::string &);
@@ -52,6 +58,8 @@ class Request{
 		std::string		_body;
 		std::string		_buff;
 		std::map<std::string, std::list<std::string> > _headers;
-		int				_isbody;
+		bool			_isbody;
 		unsigned int	_bodysize;
+		std::ofstream	_putfile;
+		std::ifstream	_tmpfile;
 };
