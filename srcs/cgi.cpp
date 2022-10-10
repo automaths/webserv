@@ -1,7 +1,7 @@
 #include "cgi.hpp"
 
 void Cgi::execving() {
-    finding_path();
+
     converting_argz();
     converting_env();
     if (pipe(_fd) == -1)
@@ -15,20 +15,10 @@ void Cgi::execving() {
         close(_fd[1]);
 }
 
-void Cgi::finding_path(){
-    for (std::vector<std::string>::iterator it = _env.begin(); it != _env.end(); ++it)
-        if (it->find("PATH_INFO=") != std::string::npos)
-            _path = it->substr(it->find_first_of('=') + 1, it->size() - it->find_first_of('='));
-}
-
 void Cgi::converting_argz(){
     _argz = (char **)malloc(sizeof(char *) * 3);
-    _argz[0] = strdup("coucou");
-    for (std::vector<std::string>::iterator it = _env.begin(); it != _env.end(); ++it)
-    {
-        if (it->find("SCRIPT_FILENAME=") == 0)
-            _argz[1] = strdup(it->substr(it->find_first_of('=') + 1, it->size() - it->find_first_of('=')).c_str());
-    }
+    _argz[0] = strdup(_exec.c_str());
+    _argz[1] = (char*)_target.c_str();
     _argz[2] = NULL;
 }
 
@@ -41,19 +31,22 @@ void Cgi::converting_env(){
 }
 
 void Cgi::forking() {
-    if (dup2(_request, STDIN_FILENO) == -1)
-        exit(1);
+    if (_fd_input != -1)
+    {
+        if (dup2(_fd_input, STDIN_FILENO) == -1)
+            exit(1);
+        close (_fd_input);
+    }
     if (dup2(_fd[1], STDOUT_FILENO) == -1)
         exit(1);
-    close (_request);
     close(_fd[1]);
-    if (execve(_path.c_str(), _argz, _envp) == -1)
+    if (execve(_argz[0], _argz, _envp) == -1)
         exit(1);
 }
 
 void Cgi::print_inputs() {
     int i = 0;
-    std::cout << "the path is: " << _path << std::endl;
+    std::cout << "the path is: " << _argz[0] << std::endl;
     while (_argz[i] != NULL)
         printf("the argz is: %s\n", _argz[i++]);
     i = 0;

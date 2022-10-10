@@ -5,7 +5,7 @@ http{
 		root ./www/default;
 		index index.html index.htm;
 
-		cgi .php /usr/lib/cgi-bin/php8.1 .js /usr/lib/hehejexistepas  
+		cgi .php /usr/lib/cgi-bin/php .js /usr/lib/hehejexistepas  
 
 		server_name default;
 

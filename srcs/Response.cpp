@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/29 12:29:34 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/10 14:42:30 by nsartral         ###   ########.fr       */
+/*   Updated: 2022/10/10 19:13:36 by nsartral         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -199,21 +199,11 @@ bool	Response::foundDirectoryIndex(std::vector<std::string> indexes, std::string
 
 int Response::execCgi(std::string exec)
 {
-	//nicotmp is a copy of fullPath variable
-	_env.push_back("SCRIPT_FILENAME=" + _nicotmp); // target file path variable
+	_env.push_back("SCRIPT_FILENAME=" + _targetFilePath);
 	_env.push_back("SERVER_PORT=" + _targetServer->getPort());
     _env.push_back("PATH_INFO=" + exec);
     _env.push_back("REDIRECT_STATUS=1");
-	// std::cout << "the path to exec is: " << exec << std::endl;
-	// for (std::vector<std::string>::iterator it = _env.begin(); it != _env.end(); ++it)
-	// 	std::cout << "the env is " << *it << std::endl;
-    int fd = open(_nicotmp.c_str(), O_RDONLY);
-    if (fd == -1)
-		std::cout << "open cgi file error " << std::endl;
-    Cgi test(fd, _env);
-
-	cgiResponse(test.getResult());
-
+    Cgi test(_targetFilePath, exec, _env, _cgi_input);
 	return test.getResult();
 }
 
@@ -222,26 +212,50 @@ void Response::cgiResponse(int fd)
 	int size;
 	char buffer[1048576];
 	size = read(fd, &buffer, 1048576);
-	// printf("the content of the buffer isss: %s", buffer);
-	// std::cout << "the size of the read is: " << size << std::endl;
-	_body += buffer;
-	std::cout << "the reprint of the buffer is: " << _body << std::endl;
+	if (size == 0)
+	{
+		_fileConsumed = true;
+		_body = "\r\n0\r\n";
+		_bodySize = 5;
+		return;
+	}
 	std::string extension;
 	if (this->_targetFilePath.find_last_of(".") != std::string::npos)
 		extension = this->_targetFilePath.substr(this->_targetFilePath.find_last_of("."));
-	extension = MimeTypes().convert(extension);
-	_bodySize = size;
-	std::stringstream	header;
-	header << "HTTP/1.1 200 "<< DEFAULT200STATUS << "\r\n";
-	header << setBaseHeader();
-	header << "Content-type: " << extension << "\r\n";
-	size == 1048576 ? (header << "Transfer-Encoding: chunked\r\n") : (header << "Content-Length: " << size << "\r\n");
-	header << "Connection: keep-alive\r\n";
-	header << "\r\n";
-	this->_header = header.str();
-	this->_headerSize = this->_header.size();
+	if (_headerSent)
+	{
+		_body.clear();
+		std::stringstream hexsize;
+		hexsize << std::hex << size << "\r\n";
+		_body += hexsize.str();
+		_body += buffer;
+	}
+	else
+	{
+		_body = buffer;
+		std::string cgiHeader = _body.substr(0, _body.find_first_of("\r\n\r\n") + 2);
+		std::cout << "the cgi header is: \n" << cgiHeader << std::endl;
+		std::cout << "end" << std::endl;
+		_body.erase(0, _body.find_first_of("\r\n\r\n") + 4);
+		// _body += buffer;
+		_bodySize = _body.size();
+		std::stringstream	header;
+		header << "HTTP/1.1 200 "<< DEFAULT200STATUS << "\r\n";
+		header << setBaseHeader();
+		header << cgiHeader;
+		if (cgiHeader.find("Content-type:") == std::string::npos)
+			header << "Content-type: " << MimeTypes().convert(extension) << "\r\n";
+		// header << "Transfer-Encoding: chunked\r\n";
+		header << "Content-size: " << _body.size() + cgiHeader.size() << "\r\n";
+		header << "Connection: keep-alive\r\n";
+		header << "\r\n";
+		this->_header = header.str();
+		this->_headerSize = this->_header.size();
+
+		std::cout << "the header is :" << header.str() << std::endl;
+		std::cout << "the body is: " << _body << std::endl;
+	}
 	memset(buffer, 0, 1048576);
-	// header on the first response 
 }
 
 std::string	Response::createFileResponse(void)
@@ -253,7 +267,9 @@ std::string	Response::createFileResponse(void)
 		extension = this->_targetFilePath.substr(this->_targetFilePath.find_last_of("."));
 	//cgi implementation
 	_is_cgi = 0;
-	std::map<std::string, std::string> cgi = _targetServer->getCgi(); // not always taget server, can be location, inherit in location ? 
+	_cgi_fd = -1;
+	_cgi_input = -1; //to set to the target file in the case of a POST or PUT
+	std::map<std::string, std::string> cgi = _targetServer->getCgi(); 
 	for (std::map<std::string, std::string>::iterator it = cgi.begin(); it != cgi.end(); ++it)
 	{
 		if (!extension.compare(it->first))
@@ -261,6 +277,7 @@ std::string	Response::createFileResponse(void)
 			std::cout << "extension " << extension << " match the config extension " << it->first << " associated to path " << it->second << std::endl;
 			_is_cgi = 1;
 			_cgi_fd = execCgi(it->second);
+			cgiResponse(_cgi_fd);
 			return (extension);
 		}
 	}
@@ -379,8 +396,6 @@ void	Response::makeResponse(Request & req)
 	else
 		fullPath += req.getFile();
 	std::cerr << "Fully qualified path: ***" << fullPath << "***" << std::endl;
-	//tmp to use in the function createFileResponse for execving the file
-	_nicotmp = fullPath;
 	if (!pathIsValid(fullPath, &buf))
 	{
 		if (hasLoc && loc.getDefaultErrorPage().find("404") != loc.getDefaultErrorPage().end())
@@ -392,12 +407,15 @@ void	Response::makeResponse(Request & req)
 			this->errorResponse(404);
 			return ;
 		}
+		_targetFilePath = fullPath;
 		if (!this->openFile(fullPath))
 		{
 			this->errorResponse(404);
 			return ;
 		}
 		extension = this->createFileResponse();
+		if (_is_cgi)
+			return ;
 		if (this->_responseType == 1)
 		{
 			this->errorResponse(500);
@@ -419,6 +437,8 @@ void	Response::makeResponse(Request & req)
 		if (foundDirectoryIndex(indexes, fullPath))
 		{
 			extension = this->createFileResponse();
+			if (_is_cgi)
+				return ;
 			if (this->_responseType == 1)
 			{
 				this->errorResponse(500);
@@ -469,6 +489,8 @@ void	Response::makeResponse(Request & req)
 				this->_bodySize = buf.st_size;
 			this->_targetFilePath = fullPath;
 			extension = this->createFileResponse();
+			if (_is_cgi)
+				return ;
 			if (this->_responseType == 1)
 			{
 				this->errorResponse(500);
@@ -487,12 +509,15 @@ void	Response::makeResponse(Request & req)
 		this->errorResponse(404);
 		return ;
 	}
+	_targetFilePath = fullPath;
 	if (!this->openFile(fullPath))
 	{
 		this->errorResponse(404);
 		return ;
 	}
 	extension = this->createFileResponse();
+	if (_is_cgi)
+		return ;
 	if (this->_responseType == 1)
 	{
 		this->errorResponse(500);

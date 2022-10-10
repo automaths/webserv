@@ -32,23 +32,25 @@ class Cgi {
 
     Cgi(){}
     ~Cgi(){
-        if (_envp)
-            free(_envp);
-        if (_argz[0])
-            free(_argz[0]);
-        if (_argz[1])
-            free(_argz[1]);
-        if (_argz)
-            free(_argz);
+        // if (_envp)
+        //     free(_envp);
+        // if (_argz[0])
+        //     free(_argz[0]);
+        // if (_argz[1])
+        //     free(_argz[1]);
+        // if (_argz)
+        //     free(_argz);
     }
-    Cgi(int request, std::vector<std::string> env)
+    Cgi(std::string targetFilePath, std::string exec, std::vector<std::string> env, int fd_input)
     {
-        _request = request;
+        _target = targetFilePath;
+        _exec = exec;
+        _fd_input = fd_input;
         _env = env;
         execving();
+        waitpid(_pid, 0, 0);
     }
     void execving();
-    void finding_path();
     void converting_argz();
     void converting_env();
     void forking();
@@ -57,9 +59,10 @@ class Cgi {
 
     private:
 
-    int                         _request;
+    std::string                 _target;
+    std::string                 _exec;
     std::vector<std::string>    _env;
-    std::string                 _path;
+    int                         _fd_input;
     char **                     _argz;
     char **                     _envp;
     int                         _pid;
