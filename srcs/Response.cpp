@@ -122,6 +122,16 @@ bool	Response::getIsConsumed(void)
 	return (this->_fileConsumed);
 }
 
+bool	Response::isCgi(void)
+{
+	return (this->_is_cgi);
+}
+
+int	Response::getCgiFd(void)
+{
+	return (this->_cgi_fd);
+}
+
 bool	Response::allowedMethod(std::vector<std::string> methods, std::string currentMethod)
 {
 	std::stringstream	header;
