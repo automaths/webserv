@@ -55,7 +55,8 @@ class Response
 		bool			getIsConsumed(void);
     std::vector<std::string>	getEnv(void) const;
 		void			makeResponse(Request & req);
-
+		bool			isCgi(void);
+		int				getCgiFd(void);
 		int				execCgi(std::string exec);
 		void			cgiResponse(int fd);
 
