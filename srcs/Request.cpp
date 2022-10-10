@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:32:13 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/10 20:18:14 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/10 21:39:50 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 #define NOT_OLD _version!="HTTP/1.0"
 #define NOT_NEW _version!="HTTP/1.1"
 
-Request::Request(void): _type(""), _version(""), _file(""), _body(""), _buff(""), _headers(), _isbody(false), _bodysize(0), _putfile(), _tmpfile() {
+Request::Request(void): _type(""), _version(""), _file(""), _body(""), _buff(NULL), _headers(), _isbody(false), _bodysize(-1), _putfile(), _tmpfile() {
 }
 
 Request::Request(const Request & other): _type(other._type), _version(other._version), _file(other._file), _body(other._body), _headers(other._headers), _isbody(other._isbody), _bodysize(other._bodysize), _putfile(), _tmpfile() {
@@ -336,6 +336,24 @@ int Request::parseChunk(std::string & chunk) {
 		while (chunk.size());
 	}
     return (0);
+}
+
+std::vector<std::pair<int, int> > Request::getRange(int	size) {
+	std::vector<std::pair<int, int> >	ret;
+	std::list<std::string>				lst(_headers["range"]);
+	std::string							tmp;
+
+	while (lst.size()) {
+		tmp = lst.front();
+		if (tmp[0] == '-') {
+			ret.push_back(std::pair<int, int>(size - std::atoi(), size));
+		} else if (tmp[tmp.size()] == '-') {
+		} else {
+
+		}
+		lst.pop_front();
+	}
+	return (ret);
 }
 
 std::string Request::getType(void) const {
