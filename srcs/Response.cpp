@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/29 12:29:34 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/10 19:13:36 by nsartral         ###   ########.fr       */
+/*   Updated: 2022/10/10 19:21:48 by nsartral         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -225,7 +225,7 @@ void Response::cgiResponse(int fd)
 	if (size == 0)
 	{
 		_fileConsumed = true;
-		_body = "\r\n0\r\n";
+		_body = "0\r\n\r\n";
 		_bodySize = 5;
 		return;
 	}
