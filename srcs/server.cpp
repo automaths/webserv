@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/28 13:45:50 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/10 19:54:29 by nsartral         ###   ########.fr       */
+/*   Updated: 2022/10/10 21:37:31 by nsartral         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -104,6 +104,8 @@ void	Server::acceptIncomingConnection(struct epoll_event & event)
 		close(ev.data.fd);
 		return ;
 	}
+	tmp.setSocketFD(ev.data.fd);
+	tmp.setEvent(ev);
 	try
 	{
 		this->_client_sockets.insert(std::pair<int, Client>(ev.data.fd, tmp));
@@ -114,8 +116,7 @@ void	Server::acceptIncomingConnection(struct epoll_event & event)
 		epoll_ctl(this->_epoll_fd, EPOLL_CTL_DEL, ev.data.fd, &ev);
 		close(ev.data.fd);
 	}
-	tmp.setSocketFD(ev.data.fd);
-	tmp.setEvent(ev);
+
 	/*
 	unsigned long address = ntohl(_address.sin_addr.s_addr);
 	std::cout << "Address: ";
@@ -156,6 +157,7 @@ void	Server::readRequest(struct epoll_event & event)
 		}
 		if (result == 200)
 		{
+			std::cerr << "Socket FD before pipe: " << currentClient.getSocketFD() << std::endl;
 			currentResponse = Response(currentRequest, this->_virtual_servers[currentClient.getPortNumber()]);
 			currentResponse.makeResponse(currentRequest);
 			if (currentResponse.isCgi())
@@ -181,6 +183,7 @@ void	Server::readRequest(struct epoll_event & event)
 					this->closeClientSocket(event);
 					return ;
 				}
+				std::cerr << "Socket FD after pipe: " << currentClient.getSocketFD() << std::endl;
 			}
 			else
 			{
@@ -241,6 +244,8 @@ void	Server::sendBody(struct epoll_event & event)
 	}
 	if (this->_client_sockets[event.data.fd].getResponse().bodyBytesSent(sendret))
 	{
+		if (currentResponse.isCgi() && this->_cgi_pipes.find(currentResponse.getCgiFd()) != this->_cgi_pipes.end())
+			this->_cgi_pipes.erase(currentResponse.getCgiFd());
 		if (this->_client_sockets[event.data.fd].getResponse().getClose())
 			this->closeClientSocket(event);
 		else
@@ -255,7 +260,7 @@ void	Server::sendBody(struct epoll_event & event)
 			}
 		}
 	}
-	else if (currentResponse.isCgi() && !currentResponse.getIsConsumed() && !currentResponse.getBodySize())
+	else if (currentResponse.isCgi() && !currentResponse.getBodySize())
 	{
 		struct epoll_event ev;
 
@@ -268,6 +273,7 @@ void	Server::sendBody(struct epoll_event & event)
 		}
 		ev.events = EPOLLIN;
 		ev.data.fd = currentResponse.getCgiFd();
+		this->_cgi_pipes[currentResponse.getCgiFd()] = event.data.fd;
 		if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_ADD, ev.data.fd, &ev) == -1)
 		{
 			perror("");
@@ -302,22 +308,25 @@ void	Server::readPipe(struct epoll_event & event)
 	Client	& currentClient = this->_client_sockets[this->_cgi_pipes[event.data.fd]];
 	Response & currentResponse = currentClient.getResponse();
 
+	std::cerr << "Reading pipe" << std::endl;
 	currentResponse.cgiResponse(event.data.fd);
 	if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_DEL, event.data.fd, &event) == -1)
 	{
 		this->_cgi_pipes.erase(event.data.fd);
 		this->closeClientSocket(currentClient.getEvent());
 	}
+	std::cerr << "Socket FD: " << currentClient.getSocketFD() << std::endl;
 	currentClient.getEvent().events = EPOLLOUT;
-	if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_ADD, currentClient.getEvent().data.fd, &(currentClient.getEvent())) == -1)
+	currentClient.getEvent().data.fd = currentClient.getSocketFD();
+	if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_ADD, currentClient.getSocketFD(), &(currentClient.getEvent())) == -1)
 	{
 		this->_cgi_pipes.erase(event.data.fd);
 		this->closeClientSocket(currentClient.getEvent());
 	}
-	if (currentResponse.getIsConsumed())
-	{
-		this->_cgi_pipes.erase(event.data.fd);
-	}
+	// if (currentResponse.getIsConsumed())
+	// {
+	// 	this->_cgi_pipes.erase(event.data.fd);
+	// }
 }
 
 void Server::execute(void)
@@ -334,22 +343,46 @@ void Server::execute(void)
 		if (g_code)
 			return ;
 		if (ready == -1)
-			continue ;
+		{
+			std::cerr << "epoll_error" << std::endl;
+			return ;
+		}
+		if (ready)
+		{
+			std::cerr << "event ready: " << event[0].data.fd << std::endl;
+		}
+		std::cerr << "nb of readies: " << ready << std::endl;
 		for (int i = 0; i < ready; i++)
 		{
+			std::cerr << "Something is ready" << std::endl;
 			if (this->_listen_sockets.find(event[i].data.fd) != this->_listen_sockets.end())
+			{
+				std::cerr << "Accepting connection" << std::endl;
 				this->acceptIncomingConnection(event[i]);
+			}
 			else if (event[i].events == EPOLLIN)
 			{
 				if (this->_cgi_pipes.find(event[i].data.fd) != this->_cgi_pipes.end())
+				{
 					this->readPipe(event[i]);
+					std::cerr << "fd attribution: " << this->_cgi_pipes[event[i].data.fd] << std::endl;
+					std::cerr << "Header in loop after attribution: " << this->_client_sockets[this->_cgi_pipes[event[i].data.fd]].getResponse().getHeader() << std::endl;
+				}
 				else
+				{
+					std::cerr << "Listening" << std::endl;
 					this->readRequest(event[i]);
+				}
 			}
 			else if (event[i].events == EPOLLOUT)
+			{
+				std::cerr << "fd before: " << event[i].data.fd << std::endl;
+				std::cerr << "Header before sending: " << this->_client_sockets[event[i].data.fd].getResponse().getHeader() << std::endl;
 				this->sendResponse(event[i]);
+			}
         }
 		this->closeTimedoutConnections();
+		sleep(1);
 		std::cout << "The number of clients is: " << this->_client_sockets.size() << std::endl;
     }
 }

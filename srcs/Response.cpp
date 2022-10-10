@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/29 12:29:34 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/10 20:17:48 by nsartral         ###   ########.fr       */
+/*   Updated: 2022/10/10 21:30:33 by nsartral         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -225,6 +225,7 @@ void Response::cgiResponse(int fd)
 	size = read(fd, &buffer, 1048576);
 	if (size == 0)
 	{
+		std::cerr << "END OF PIPE" << std::endl;
 		_fileConsumed = true;
 		_body = "0\r\n\r\n";
 		_bodySize = 5;
@@ -747,12 +748,19 @@ bool	Response::bodyBytesSent(std::size_t bytes)
 {
 	std::stringstream	size;
 
+	std::cerr << "bytes sent: " << bytes << ", body size: " << this->_bodySize << std::endl;
 	if (this->_bodySize <= bytes)
 	{
 		this->_body.clear();
+		this->_bodySize = 0;
 		if (this->_is_cgi && !this->_fileConsumed )
 		{
 			return (false);
+		}
+		else if (this->_is_cgi && this->_fileConsumed)
+		{
+			this->_over = true;
+			return (true);
 		}
 		else if (this->_responseType == 2 && this->_chunked && this->_fileConsumed && !this->_over)
 		{
