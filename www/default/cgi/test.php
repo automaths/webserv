@@ -1,2 +1,12 @@
-coucou je suis le php des bgs
-ouai ouai ouai
+<!DOCTYPE html>
+<html>
+<body>
+
+<h1>My first PHP page</h1>
+
+<?php
+echo "Hello World!";
+?> 
+
+</body>
+</html>

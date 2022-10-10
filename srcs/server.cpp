@@ -128,8 +128,11 @@ void	Server::acceptIncomingConnection(struct epoll_event & event)
 
 void	Server::readRequest(struct epoll_event & event)
 {
-	int		result;
-	ssize_t	recvret = 0;
+	int			result;
+	ssize_t		recvret = 0;
+	Client &	currentClient = this->_client_sockets[event.data.fd];
+	Request &	currentRequest = this->_client_sockets[event.data.fd].getRequest();
+	Response &	currentResponse = this->_client_sockets[event.data.fd].getResponse();
 
 	recvret = recv(event.data.fd, static_cast<void *>(_rdBuffer), 1048576, MSG_DONTWAIT);
 	if (recvret == -1)
@@ -144,7 +147,7 @@ void	Server::readRequest(struct epoll_event & event)
 		_rdBuffer[recvret] = '\0';
 		try
 		{
-			result = this->_client_sockets[event.data.fd].addToRequest(std::string(_rdBuffer));
+			result = currentClient.addToRequest(std::string(_rdBuffer));
 		}
 		catch (std::exception const & e)
 		{
@@ -153,45 +156,41 @@ void	Server::readRequest(struct epoll_event & event)
 		}
 		if (result == 200)
 		{
-			this->_client_sockets[event.data.fd].getResponse() = Response(this->_client_sockets[event.data.fd].getRequest(), this->_virtual_servers[this->_client_sockets[event.data.fd].getPortNumber()]);
-			this->_client_sockets[event.data.fd].getResponse().makeResponse(this->_client_sockets[event.data.fd].getRequest());
-/*			
-			struct epoll_event ev;
-			if (this->_client_sockets[event.data.fd].getResponse().getTargetFD())
-
+			currentResponse = Response(currentRequest, this->_virtual_servers[currentClient.getPortNumber()]);
+			currentResponse.makeResponse(currentRequest);
+			if (currentResponse.isCgi())
 			{
-				std::cerr << "Client FD: " << event.data.fd << std::endl;
+				std::cerr << "CGI" << std::endl;
+				struct epoll_event ev;
+
+				std::memset(&ev, '\0', sizeof(struct epoll_event));
 				if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_DEL, event.data.fd, &event) == -1)
 				{
+					close(currentResponse.getCgiFd());
 					this->closeClientSocket(event);
 					return ;
 				}
-				std::cerr << "Number of clients: " << this->_client_sockets.size() << std::endl;
-				this->_reserve_fds.insert(event.data.fd);
-				this->_response_fds.insert(std::pair<int, Client *>(this->_client_sockets[event.data.fd].getResponse().getTargetFD(), &(this->_client_sockets[event.data.fd])));
-				std::memset(&ev, '\0', sizeof(struct epoll_event));
+				this->_cgi_pipes[currentResponse.getCgiFd()] = &currentClient;
 				ev.events = EPOLLIN;
-				ev.data.fd = this->_client_sockets[event.data.fd].getResponse().getTargetFD();
-				std::cerr << "FD: " << ev.data.fd << std::endl;
+				ev.data.fd = currentResponse.getCgiFd();
 				if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_ADD, ev.data.fd, &ev) == -1)
 				{
 					perror("");
 					close(ev.data.fd);
+					this->_cgi_pipes.erase(currentResponse.getCgiFd());
 					this->closeClientSocket(event);
 					return ;
 				}
-				std::cerr << "Number of clients: " << this->_client_sockets.size() << std::endl;
-				std::cerr << "Number of files to read from: " << this->_response_fds.size() << std::endl;
 			}
 			else
-			{*/
+			{
 				event.events = EPOLLOUT;
 				if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_MOD, event.data.fd, &event) == -1)
 				{
 					this->closeClientSocket(event);
 					std::cerr << "Error Trying to switch socket from reading to writing" << std::endl;
 				}
-//			}
+			}
 		}
 		else if (result)
 		{
@@ -201,8 +200,8 @@ void	Server::readRequest(struct epoll_event & event)
 				this->closeClientSocket(event);
 				return ;
 			}
-			this->_client_sockets[event.data.fd].getResponse() = Response(this->_client_sockets[event.data.fd].getRequest(), this->_virtual_servers[this->_client_sockets[event.data.fd].getPortNumber()], result);
-			this->_client_sockets[event.data.fd].getResponse().makeResponse(this->_client_sockets[event.data.fd].getRequest());
+			currentResponse = Response(currentRequest, this->_virtual_servers[currentClient.getPortNumber()], result);
+			currentResponse.makeResponse(currentRequest);
 			event.events = EPOLLOUT;
 			if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_MOD, event.data.fd, &event) == -1)
 			{
@@ -229,9 +228,11 @@ bool	Server::sendHeader(struct epoll_event & event)
 
 void	Server::sendBody(struct epoll_event & event)
 {
+	Client & currentClient = this->_client_sockets[event.data.fd];
+	Response &	currentResponse = currentClient.getResponse();
 	ssize_t	sendret = 0;
 
-	sendret = send(event.data.fd, this->_client_sockets[event.data.fd].getResponse().getBody().data(), this->_client_sockets[event.data.fd].getResponse().getBodySize(), MSG_NOSIGNAL | MSG_DONTWAIT);
+	sendret = send(event.data.fd, currentResponse.getBody().data(), currentResponse.getBodySize(), MSG_NOSIGNAL | MSG_DONTWAIT);
 	if (sendret == -1)
 	{
 		std::cerr << "Error while sending" << std::endl;
@@ -252,6 +253,27 @@ void	Server::sendBody(struct epoll_event & event)
 				std::cerr << "Error switching from write to read mode" << std::endl;
 				this->closeClientSocket(event);
 			}
+		}
+	}
+	else if (currentResponse.isCgi() && !currentResponse.getIsConsumed())
+	{
+		struct epoll_event ev;
+
+		std::memset(&ev, '\0', sizeof(struct epoll_event));
+		if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_DEL, event.data.fd, &event) == -1)
+		{
+			this->_cgi_pipes.erase(currentResponse.getCgiFd());
+			this->closeClientSocket(event);
+			return ;
+		}
+		ev.events = EPOLLIN;
+		ev.data.fd = currentResponse.getCgiFd();
+		if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_ADD, ev.data.fd, &ev) == -1)
+		{
+			perror("");
+			this->_cgi_pipes.erase(currentResponse.getCgiFd());
+			this->closeClientSocket(event);
+			return ;
 		}
 	}
 }
@@ -275,6 +297,29 @@ void	Server::sendResponse(struct epoll_event & event)
 		this->sendBody(event);
 }
 
+void	Server::readPipe(struct epoll_event & event)
+{
+	Client	& currentClient = *(this->_cgi_pipes[event.data.fd]);
+	Response & currentResponse = currentClient.getResponse();
+
+	currentResponse.cgiResponse(event.data.fd);
+	if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_DEL, event.data.fd, &event) == -1)
+	{
+		this->_cgi_pipes.erase(event.data.fd);
+		this->closeClientSocket(currentClient.getEvent());
+	}
+	currentClient.getEvent().events = EPOLLOUT;
+	if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_ADD, currentClient.getEvent().data.fd, &(currentClient.getEvent())) == -1)
+	{
+		this->_cgi_pipes.erase(event.data.fd);
+		this->closeClientSocket(currentClient.getEvent());
+	}
+	if (currentResponse.getIsConsumed())
+	{
+		this->_cgi_pipes.erase(event.data.fd);
+	}
+}
+
 void Server::execute(void)
 {
 	struct epoll_event	ev, event[10];
@@ -295,7 +340,12 @@ void Server::execute(void)
 			if (this->_listen_sockets.find(event[i].data.fd) != this->_listen_sockets.end())
 				this->acceptIncomingConnection(event[i]);
 			else if (event[i].events == EPOLLIN)
+			{
+				if (this->_cgi_pipes.find(event[i].data.fd) != this->_cgi_pipes.end())
+					this->readPipe(event[i]);
+				else
 					this->readRequest(event[i]);
+			}
 			else if (event[i].events == EPOLLOUT)
 				this->sendResponse(event[i]);
         }

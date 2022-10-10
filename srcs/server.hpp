@@ -38,7 +38,7 @@ class Server {
 	std::map<int, int>							_listen_sockets;	//Listening sockets: <fd, port>
 	std::map<int, Client>						_client_sockets;	//Accepted connections sockets: <fd, Client>
 //	std::set<int>								_reserve_fds;		//Switch between fd to read response from and socket fd to send back data
-//	std::map<int, Client *>						_response_fds;	
+	std::map<int, Client *>						_cgi_pipes;			//Cgi pipes
     struct sockaddr_in							_address;			// Address to bind to a socket
 
 	bool	epollSockets(void);
@@ -50,6 +50,7 @@ class Server {
 	bool	sendHeader(struct epoll_event & event);
 	void	sendBody(struct epoll_event & event);
 	void	closeClientSocket(struct epoll_event & event);
+	void	readPipe(struct epoll_event & event);
 
     class SocketCreationException : public std::exception {virtual const char* what() const throw(){return ("An error occured during socket creation");}};
     class BindException : public std::exception {virtual const char* what() const throw(){return ("An error occured during bind");}};
