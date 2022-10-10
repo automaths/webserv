@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/29 12:29:34 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/10 19:21:48 by nsartral         ###   ########.fr       */
+/*   Updated: 2022/10/10 20:17:48 by nsartral         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -221,12 +221,14 @@ void Response::cgiResponse(int fd)
 {
 	int size;
 	char buffer[1048576];
+	memset(buffer, 0, 1048576);
 	size = read(fd, &buffer, 1048576);
 	if (size == 0)
 	{
 		_fileConsumed = true;
 		_body = "0\r\n\r\n";
 		_bodySize = 5;
+		std::cout << "read is 0" << std::endl;
 		return;
 	}
 	std::string extension;
@@ -287,7 +289,7 @@ std::string	Response::createFileResponse(void)
 			std::cout << "extension " << extension << " match the config extension " << it->first << " associated to path " << it->second << std::endl;
 			_is_cgi = 1;
 			_cgi_fd = execCgi(it->second);
-			cgiResponse(_cgi_fd);
+			// cgiResponse(_cgi_fd);
 			return (extension);
 		}
 	}
