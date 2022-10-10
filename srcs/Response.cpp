@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/29 12:29:34 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/07 20:50:48 by nsartral         ###   ########.fr       */
+/*   Updated: 2022/10/10 14:14:12 by nsartral         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -194,7 +194,7 @@ bool	Response::foundDirectoryIndex(std::vector<std::string> indexes, std::string
 int Response::execCgi(std::string exec)
 {
 	//nicotmp is a copy of fullPath variable
-	_env.push_back("SCRIPT_FILENAME=" + _nicotmp);
+	_env.push_back("SCRIPT_FILENAME=" + _nicotmp); // target file path variable
 	_env.push_back("SERVER_PORT=" + _targetServer->getPort());
     _env.push_back("PATH_INFO=" + exec);
     _env.push_back("REDIRECT_STATUS=1");
@@ -205,7 +205,9 @@ int Response::execCgi(std::string exec)
     if (fd == -1)
 		std::cout << "open cgi file error " << std::endl;
     Cgi test(fd, _env);
+
 	cgiResponse(test.getResult());
+
 	return test.getResult();
 }
 
@@ -233,6 +235,7 @@ void Response::cgiResponse(int fd)
 	this->_header = header.str();
 	this->_headerSize = this->_header.size();
 	memset(buffer, 0, 1048576);
+	// header on the first response 
 }
 
 void	Response::createFileResponse(void)
@@ -245,7 +248,7 @@ void	Response::createFileResponse(void)
 		extension = this->_targetFilePath.substr(this->_targetFilePath.find_last_of("."));
 	//cgi implementation
 	_is_cgi = 0;
-	std::map<std::string, std::string> cgi = _targetServer->getCgi();
+	std::map<std::string, std::string> cgi = _targetServer->getCgi(); // not always taget server, can be location, inherit in location ? 
 	for (std::map<std::string, std::string>::iterator it = cgi.begin(); it != cgi.end(); ++it)
 	{
 		if (!extension.compare(it->first))
@@ -337,8 +340,6 @@ void	Response::makeResponse(Request & req)
 	else
 		fullPath += req.getFile();
 	std::cerr << "Fully qualified path: ***" << fullPath << "***" << std::endl;
-	//tmp to use in the function createFileResponse for execving the file
-	_nicotmp = fullPath;
 	if (!pathIsValid(fullPath, &buf))
 	{
 		this->errorResponse(404);
@@ -391,7 +392,7 @@ void	Response::makeResponse(Request & req)
 			else
 				this->_bodySize = buf.st_size;
 			this->_targetFilePath = fullPath;
-			this->createFileResponse();
+			this->createFileResponse(); 
 			return;
 		}			
 	}
