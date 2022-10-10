@@ -10,10 +10,11 @@ http{
 		server_name default;
 
 		location /Downloads {
+			allow_method POST GET;
 			root ./www/default/bouhbouh;
 			try_files $uri $uri/ =404;
 		}
-		error_page  404     /404.html;
+		error_page  404     ./www/default/w404.html;
 		error_page  403     /403.html;
 	}
 

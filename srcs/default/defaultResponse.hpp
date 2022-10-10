@@ -6,7 +6,7 @@
 /*   By: bdetune <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/29 13:30:25 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/04 20:51:45 by bdetune          ###   ########.fr       */
+/*   Updated: 2022/10/07 20:00:31 by bdetune          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,6 +43,12 @@
 # define DEFAULT416BODY "<html>\n<head><title>416 Request Range Not Satisfiable</title></head>\n<body bgcolor=\"white\">\n<center><h1>416 Request Range Not Satisfiable</h1></center>\n<hr>\n<center><div><img src=\"https://http.cat/416\"  alt=\"A beautiful 416 response\"></div></center>\n<hr>\n<center>webserv/1.0</center>\n</body>\n</html>\n"
 
 # define DEFAULT416STATUS "Request Range Not Satisfiable"
+
+//500
+# define DEFAULT500BODY "<html>\n<head><title>500 Internal Server Error</title></head>\n<body bgcolor=\"white\">\n<center><h1>500 Internal Server Error</h1></center>\n<hr>\n<center><div><img src=\"https://http.cat/500\"  alt=\"A beautiful 500 response\"></div></center>\n<hr>\n<center>webserv/1.0</center>\n</body>\n</html>\n"
+
+# define DEFAULT500STATUS "Internal Server Error"
+
 
 //200
 # define DEFAULT200STATUS "OK"

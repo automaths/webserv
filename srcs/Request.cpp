@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:32:13 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/06 13:03:41 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/07 19:14:47 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 #define NOT_OLD _version!="HTTP/1.0"
 #define NOT_NEW _version!="HTTP/1.1"
 
-Request::Request(void): _type(""), _version("HTTP/1.0"), _file(""), _body(""), _buff(""), _headers(), _isbody(0), _bodysize(0) {
+Request::Request(void): _type(""), _version(""), _file(""), _body(""), _buff(""), _headers(), _isbody(0), _bodysize(0) {
 }
 
 std::string tolower(std::string str) {
@@ -59,7 +59,7 @@ int Request::checkType(std::string & type) {
 			if (tmp2 != tmp && (tmp2 == "" || tmp2.find_first_not_of("0123456789") != NPOS))
 				return (1);
 		}
-		if (!_type.size() || !_file.size())
+		if (!_file.size())
 			return (1);
 		return (0);
 	}
@@ -196,6 +196,8 @@ int Request::parseChunk(std::string & chunk) {
 				if (line != "") {
 					if (checkType(line)) {
 						return (400);
+					} else if (_version == "") {
+						return (200);
 					} else if (NOT_NEW && NOT_OLD) {
 						return (505);
 					}
