@@ -48,7 +48,6 @@ class Cgi {
         _fd_input = fd_input;
         _env = env;
         execving();
-        waitpid(_pid, 0, 0);
     }
     void execving();
     void converting_argz();
