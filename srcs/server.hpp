@@ -38,7 +38,7 @@ class Server {
 	std::map<int, int>							_listen_sockets;	//Listening sockets: <fd, port>
 	std::map<int, Client>						_client_sockets;	//Accepted connections sockets: <fd, Client>
 //	std::set<int>								_reserve_fds;		//Switch between fd to read response from and socket fd to send back data
-	std::map<int, Client *>						_cgi_pipes;			//Cgi pipes
+	std::map<int, int>							_cgi_pipes;			//Cgi pipes
     struct sockaddr_in							_address;			// Address to bind to a socket
 
 	bool	epollSockets(void);

@@ -750,14 +750,28 @@ bool	Response::bodyBytesSent(std::size_t bytes)
 	if (this->_bodySize <= bytes)
 	{
 		this->_body.clear();
-		if (this->_responseType == 2 && this->_chunked && !this->_fileConsumed && this->_targetFile.is_open())
+		if (this->_is_cgi && !this->_fileConsumed )
+		{
+			return (false);
+		}
+		else if (this->_responseType == 2 && this->_chunked && this->_fileConsumed && !this->_over)
+		{
+			this->_body = std::string("0\r\n\r\n");
+			this->_bodySize = 5;
+		}
+		else if (this->_responseType == 2 && this->_chunked && !this->_fileConsumed && this->_targetFile.is_open())
 		{
 			this->_targetFile.read(&(this->_body[0]), 1048576);
 			this->_bodySize = this->_targetFile.gcount();
 			if (this->_targetFile.eof())
 			{
+				this->_fileConsumed = true;
 				if (this->_bodySize == 0)
-					this->_fileConsumed = true;
+				{
+					this->_body = std::string("0\r\n\r\n");
+					this->_bodySize = 5;
+					this->_over = true;
+				}
 			}
 			else if (this->_targetFile.fail())
 			{
@@ -766,7 +780,7 @@ bool	Response::bodyBytesSent(std::size_t bytes)
 			}
 			for (int i = 0; i < 15 ; i++)
 			{
-				std::cout << this->_body[i];
+				std::cout << reinterpret_cast<unsigned char &>(this->_body[i]);
 			}
 			std::cout << std::endl;
 			size << std::hex << this->_bodySize;

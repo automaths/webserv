@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:32:13 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/07 19:14:47 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/10 20:18:14 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,23 @@
 #define NOT_OLD _version!="HTTP/1.0"
 #define NOT_NEW _version!="HTTP/1.1"
 
-Request::Request(void): _type(""), _version(""), _file(""), _body(""), _buff(""), _headers(), _isbody(0), _bodysize(0) {
+Request::Request(void): _type(""), _version(""), _file(""), _body(""), _buff(""), _headers(), _isbody(false), _bodysize(0), _putfile(), _tmpfile() {
+}
+
+Request::Request(const Request & other): _type(other._type), _version(other._version), _file(other._file), _body(other._body), _headers(other._headers), _isbody(other._isbody), _bodysize(other._bodysize), _putfile(), _tmpfile() {
+}
+
+Request & Request::operator=(const Request & other) {
+	if (this == &other)
+		return (*this);
+	_type = other._type;
+	_version = other._version;
+	_file = other._file;
+	_body = other._body;
+	_headers = other._headers;
+	_isbody = other._isbody;
+	_bodysize = other._bodysize;
+	return (*this);
 }
 
 std::string tolower(std::string str) {
@@ -26,13 +42,65 @@ std::string tolower(std::string str) {
 	return (ret);
 }
 
+std::string parseFile(std::string file) {
+	std::vector<std::string>					v;
+	int											count = 0;
+	std::vector<std::string>::reverse_iterator	ref;
+	std::vector<std::string>::reverse_iterator	tmp;
+
+	while (file.size()) {
+		std::cout << "File in while : " << file << " with size : " << file.size() << std::endl;
+		if (file.find("/") != NPOS) {
+			v.push_back(file.substr(0, file.find("/") + 1));
+			file.erase(0, file.find("/") + 1);
+		} else {
+			v.push_back(file);
+			file.erase(0, NPOS);
+		}
+		count++;
+		if (count == 100)
+			break ;
+	}
+	count = 0;
+
+	tmp = v.rbegin();
+	while (tmp != v.rend()) {
+		std::cout << "tmp : " << *tmp << std::endl;
+		ref = tmp + 1;
+		if (*tmp == ".." || *tmp == "/.." || *tmp == "../" || *tmp == "/../") {
+			v.erase(tmp.base());
+			count++;
+		} else if (count) {
+			std::cout << "To be erased : " << *tmp << std::endl;
+			v.erase(tmp.base());
+			std::cout << "To be erased : " << *tmp << std::endl;
+			count--;
+		}
+		tmp = ref;
+		std::cout << "count : " << count << std::endl;
+	}
+	if (count) {
+		file = "/";
+	} else {
+		while (v.size()) {
+			std::cout << "file in second while : " << file << std::endl;
+			file += v.front();
+			v.erase(v.begin());
+		}
+	}
+	if (!file.size())
+		file = "/";
+	std::cout << "file : " << file << std::endl;
+	return (file);
+}
+
 int Request::checkType(std::string & type) {
 	unsigned long i = 0;
 
 	if (type.find(" ") == NPOS) {
 		return (1);
 	}
-	if (!type.find(GET) || !type.find(POST) || !type.find(DELETE)) {
+	if (!type.find(GET) || !type.find(POST) || !type.find(DELETE) || !type.find(PUT)) {
 		i = type.find_first_of(" ");
 		_type = type.substr(0, i);
 		i = type.find_first_not_of(" ", i);
@@ -61,6 +129,7 @@ int Request::checkType(std::string & type) {
 		}
 		if (!_file.size())
 			return (1);
+		_file = parseFile(_file);
 		return (0);
 	}
 	return (1);
@@ -150,12 +219,40 @@ std::string	checkopen(std::string str)
 	ret = 0;
 	while (!ret)
 	{
-		tmp = "/tmp/." + str;
+		tmp = "/tmp/.nomrandomdeswebcerveaux" + str;
 		ret = access(tmp.c_str(), F_OK);
 		if (!ret)
 			str = newchar(str);
 	}
 	return (tmp);
+}
+
+bool Request::moveBody(std::string & path) {
+	char	buff[1048576];
+	if (!_putfile.is_open()) {
+		unlink(path.data());
+		_putfile.open(path.data(), std::ios::binary);
+		_tmpfile.open(_body.data(), std::ios::binary);
+	}
+	_tmpfile.read(buff, 1048576);
+	_putfile.write(buff, _tmpfile.gcount());
+	if (_tmpfile.eof()) {
+		_tmpfile.close();
+		_putfile.close();
+		unlink(_body.data());
+		return (true);
+	}
+	return (false);
+}
+
+void Request::parseBody(std::string & chunk) {
+	if (_body == "") {
+		_body = checkopen("0");
+	}
+	std::ofstream	file(_body.data(), std::ios::binary);
+
+	file.write(chunk.data(), chunk.size());
+	_bodysize -= chunk.size();
 }
 
 int Request::parseChunk(std::string & chunk) {
@@ -164,28 +261,10 @@ int Request::parseChunk(std::string & chunk) {
 	std::cerr << "Chunk in parsing : " << chunk << std::endl;
 
 	if (_isbody) {
-		if (_isbody == 2) {
-			if (_body == "") {
-				_body = checkopen("0");
-			}
-			std::ofstream	file(_body.data(), std::ios::binary);
-			
-			file.write(chunk.data(), chunk.size());
-		} else {
-			if (_bodysize >= 1048576 || _body.size() + chunk.size() >= 1048576) {
-				if (_body == "") {
-					_body = checkopen("0");
-				}
-				std::ofstream	file(_body.data(), std::ios::binary);
-
-				file.write(chunk.data(), chunk.size());
-			} else {
-				_body += chunk;
-			}
-		}
-		_bodysize -= chunk.size();
-		if (!_bodysize)
-			return (200);
+		parseBody(chunk);
+		if (_bodysize)
+			return (201);
+		return (200);
 	} else {
 		if (chunk.find("\x03") != NPOS)
 			return (1);
@@ -215,18 +294,15 @@ int Request::parseChunk(std::string & chunk) {
 			line = chunk.substr(0, chunk.find("\r\n"));
 			chunk.erase(0, (line.length() + 2));
 			if (line == "") {
-				if (_type == POST || _type == "PUT") {
-					_body = chunk;
-					if (_type == POST)
-						_isbody = 1;
-					else
-						_isbody = 2;
+				if (_type == POST || _type == PUT) {
+					_isbody = true;
 					if (_headers.find("content-length") != _headers.end()) {
 						_bodysize = ft_atoi(_headers["content-length"].front());
-						if (_body.size() == _bodysize)
-							return (202);
 					}
-					return (201);
+					parseBody(chunk);
+					if (_bodysize)
+						return (201);
+					return (200);
 				}
 				if (_headers.find("host") == _headers.end() && NOT_OLD)
 					return (400);
