@@ -170,7 +170,7 @@ void	Server::readRequest(struct epoll_event & event)
 					this->closeClientSocket(event);
 					return ;
 				}
-				this->_cgi_pipes[currentResponse.getCgiFd()] = &currentClient;
+				this->_cgi_pipes[currentResponse.getCgiFd()] = event.data.fd;
 				ev.events = EPOLLIN;
 				ev.data.fd = currentResponse.getCgiFd();
 				if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_ADD, ev.data.fd, &ev) == -1)
@@ -255,7 +255,7 @@ void	Server::sendBody(struct epoll_event & event)
 			}
 		}
 	}
-	else if (currentResponse.isCgi() && !currentResponse.getIsConsumed())
+	else if (currentResponse.isCgi() && !currentResponse.getIsConsumed() && !currentResponse.getBodySize())
 	{
 		struct epoll_event ev;
 
@@ -299,7 +299,7 @@ void	Server::sendResponse(struct epoll_event & event)
 
 void	Server::readPipe(struct epoll_event & event)
 {
-	Client	& currentClient = *(this->_cgi_pipes[event.data.fd]);
+	Client	& currentClient = this->_client_sockets[this->_cgi_pipes[event.data.fd]];
 	Response & currentResponse = currentClient.getResponse();
 
 	currentResponse.cgiResponse(event.data.fd);
