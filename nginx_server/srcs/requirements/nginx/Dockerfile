@@ -11,4 +11,5 @@ RUN chmod 0744 /etc/nginx/sites-available/default; \
 	mkdir -p /var/www/html/default;
 COPY ./indexbasic.html /var/www/html/basic/index.html
 COPY ./indexdefault.html /var/www/html/default/index.html
+COPY ./indexdefaulthidden.html /var/www/html/default/.hidden.html
 CMD ["nginx"]
