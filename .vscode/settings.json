@@ -54,6 +54,7 @@
         "ctime": "cpp",
         "bitset": "cpp",
         "set": "cpp",
-        "numbers": "cpp"
+        "numbers": "cpp",
+        "tmp": "cpp"
     }
 }
