@@ -17,7 +17,7 @@
 #include <istream>
 #include <iostream>
 
-Response::Response(void): _header(), _headerSize(), _body(), _bodySize(), _targetFile(), _targetFilePath(""), _headerSent(false), _over(false), _fileConsumed(false), _close(false), _targetServer(NULL), _responseType(0)
+Response::Response(void): _header(), _headerSize(), _body(), _bodySize(), _targetFile(), _targetFilePath(""), _headerSent(false), _over(false), _fileConsumed(false), _close(false), _targetServer(NULL), _responseType(0), _is_cgi(false), _cgi_fd(-1)
 {
 	return ;
 }
@@ -45,7 +45,7 @@ std::vector<std::string> parseEnv(Request & req) {
 	return (env);	
 }
 
-Response::Response(Request & req, std::vector<ServerScope> & matches, int error): _header(), _headerSize(0), _body(), _bodySize(0), _targetFile(), _targetFilePath(""), _headerSent(false), _over(false), _fileConsumed(false), _close(false), _targetServer(NULL), _responseType(0)
+Response::Response(Request & req, std::vector<ServerScope> & matches, int error): _header(), _headerSize(0), _body(), _bodySize(0), _targetFile(), _targetFilePath(""), _headerSent(false), _over(false), _fileConsumed(false), _close(false), _targetServer(NULL), _responseType(0), _is_cgi(false), _cgi_fd(-1)
 {
 	std::map<std::string, std::list<std::string> >				headerMap = req.getHeaders();
 	std::map<std::string, std::list<std::string> >::iterator	host;
@@ -501,7 +501,7 @@ void	Response::makeResponse(Request & req)
 	this->createFileErrorHeader(404, extension);
 }
 
-Response::Response(Response const & src): _header(src._header), _headerSize(src._headerSize), _body(src._body), _bodySize(src._bodySize), _headerSent(src._headerSent), _over(src._over), _fileConsumed(src._fileConsumed), _close(src._close), _targetServer(src._targetServer), _responseType(src._responseType)
+Response::Response(Response const & src): _header(src._header), _headerSize(src._headerSize), _body(src._body), _bodySize(src._bodySize), _headerSent(src._headerSent), _over(src._over), _fileConsumed(src._fileConsumed), _close(src._close), _targetServer(src._targetServer), _responseType(src._responseType), _is_cgi(src._is_cgi), _cgi_fd(src._cgi_fd)
 {
 	return ;
 }
@@ -536,6 +536,8 @@ Response &	Response::operator=(Response const & rhs)
 	this->_close = rhs._close;
 	this->_targetServer = rhs._targetServer;
 	this->_responseType = rhs._responseType;
+	this->_is_cgi = rhs._is_cgi;
+	this->_cgi_fd = rhs._cgi_fd;
 	return (*this);
 }
 
