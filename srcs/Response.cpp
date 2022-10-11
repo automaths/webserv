@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/29 12:29:34 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/11 15:15:23 by bdetune          ###   ########.fr       */
+/*   Updated: 2022/10/11 17:45:43 by nsartral         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -227,9 +227,9 @@ void Response::cgiResponse(int fd)
 	{
 		std::cerr << "END OF PIPE" << std::endl;
 		_fileConsumed = true;
-		_body = "0\r\n\r\n";
+		_body = std::string("0\r\n\r\n");
 		_bodySize = 5;
-		std::cout << "read is 0" << std::endl;
+		close (_cgi_fd);
 		return;
 	}
 	std::string extension;
@@ -245,28 +245,30 @@ void Response::cgiResponse(int fd)
 	}
 	else
 	{
+		_body.clear();
 		_body = buffer;
 		std::string cgiHeader = _body.substr(0, _body.find_first_of("\r\n\r\n") + 2);
-		std::cout << "the cgi header is: \n" << cgiHeader << std::endl;
-		std::cout << "end" << std::endl;
 		_body.erase(0, _body.find_first_of("\r\n\r\n") + 4);
-		// _body += buffer;
+
+		std::stringstream hexsize;
+		hexsize << std::hex << size << "\r\n";
+		_body = hexsize.str() + _body + "\r\n";
 		_bodySize = _body.size();
 		std::stringstream	header;
 		header << "HTTP/1.1 200 "<< DEFAULT200STATUS << "\r\n";
 		header << setBaseHeader();
 		header << cgiHeader;
+		// if (cgiHeader.find("Content-size:") != std::string::npos)
+		// 	cgiHeader.erase(cgiHeader.find("Content-size:"), cgiHeader.find("\r\n", cgiHeader.find("Content-size:")));
 		if (cgiHeader.find("Content-type:") == std::string::npos)
 			header << "Content-type: " << MimeTypes().convert(extension) << "\r\n";
-		// header << "Transfer-Encoding: chunked\r\n";
-		header << "Content-size: " << _body.size() + cgiHeader.size() << "\r\n";
 		header << "Connection: keep-alive\r\n";
+		header << "Transfer-Encoding: chunked\r\n";
 		header << "\r\n";
 		this->_header = header.str();
 		this->_headerSize = this->_header.size();
-
-		std::cout << "the header is :" << header.str() << std::endl;
-		std::cout << "the body is: " << _body << std::endl;
+		// std::cout << "the header is :" << header.str() << std::endl;
+		// std::cout << "the body is: " << _body << std::endl;
 	}
 	memset(buffer, 0, 1048576);
 }
@@ -290,7 +292,6 @@ std::string	Response::createFileResponse(void)
 			std::cout << "extension " << extension << " match the config extension " << it->first << " associated to path " << it->second << std::endl;
 			_is_cgi = 1;
 			_cgi_fd = execCgi(it->second);
-			// cgiResponse(_cgi_fd);
 			return (extension);
 		}
 	}
