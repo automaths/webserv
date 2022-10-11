@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/29 12:29:34 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/11 17:45:43 by nsartral         ###   ########.fr       */
+/*   Updated: 2022/10/11 18:25:12 by nsartral         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -247,28 +247,32 @@ void Response::cgiResponse(int fd)
 	{
 		_body.clear();
 		_body = buffer;
-		std::string cgiHeader = _body.substr(0, _body.find_first_of("\r\n\r\n") + 2);
-		_body.erase(0, _body.find_first_of("\r\n\r\n") + 4);
+		std::cout << "the buffer is: " << buffer << std::endl;
+		std::string cgiHeader = _body.substr(0, _body.find("\r\n\r\n") + 2);
+		_body.erase(0, _body.find("\r\n\r\n") + 4);
+
+		std::cout << "the mid body is: " << _body << std::endl;
 
 		std::stringstream hexsize;
-		hexsize << std::hex << size << "\r\n";
+		hexsize << std::hex << size;
 		_body = hexsize.str() + _body + "\r\n";
 		_bodySize = _body.size();
+
 		std::stringstream	header;
 		header << "HTTP/1.1 200 "<< DEFAULT200STATUS << "\r\n";
 		header << setBaseHeader();
-		header << cgiHeader;
 		// if (cgiHeader.find("Content-size:") != std::string::npos)
-		// 	cgiHeader.erase(cgiHeader.find("Content-size:"), cgiHeader.find("\r\n", cgiHeader.find("Content-size:")));
-		if (cgiHeader.find("Content-type:") == std::string::npos)
-			header << "Content-type: " << MimeTypes().convert(extension) << "\r\n";
+			// cgiHeader.erase(cgiHeader.find("Content-size:"), cgiHeader.find("\r\n", cgiHeader.find("Content-size:")));
+		// if (cgiHeader.find("Content-type:") == std::string::npos)
+			// header << "Content-type: " << MimeTypes().convert(extension) << "\r\n";
+		header << cgiHeader;
 		header << "Connection: keep-alive\r\n";
 		header << "Transfer-Encoding: chunked\r\n";
 		header << "\r\n";
 		this->_header = header.str();
 		this->_headerSize = this->_header.size();
-		// std::cout << "the header is :" << header.str() << std::endl;
-		// std::cout << "the body is: " << _body << std::endl;
+		std::cout << "the header is :" << header.str() << std::endl;
+		std::cout << "the body is: " << _body << std::endl;
 	}
 	memset(buffer, 0, 1048576);
 }
