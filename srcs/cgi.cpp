@@ -5,14 +5,19 @@ void Cgi::execving() {
     converting_argz();
     converting_env();
     if (pipe(_fd) == -1)
-        throw PipeException();
+		throw PipeException();
+	std::cerr << "reading end: " << _fd[0] << " , writing end: " << _fd[1] << std::endl;
     _pid = fork();
     if (_pid == -1)
         throw ForkException();
     if (_pid == 0)
         forking();
     else
+	{
         close(_fd[1]);
+		if (_fd_input != -1)
+			close(_fd_input);
+	}
 }
 
 void Cgi::converting_argz(){
@@ -40,6 +45,7 @@ void Cgi::forking() {
     if (dup2(_fd[1], STDOUT_FILENO) == -1)
         exit(1);
     close(_fd[1]);
+	close(_fd[0]);
     if (execve(_argz[0], _argz, _envp) == -1)
         exit(1);
 }
