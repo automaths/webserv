@@ -6,7 +6,7 @@
 #    By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/09/27 13:15:29 by tnaton            #+#    #+#              #
-#    Updated: 2022/10/07 17:29:53 by nsartral         ###   ########.fr        #
+#    Updated: 2022/10/11 19:41:30 by nsartral         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -19,9 +19,9 @@ NAME = webserv
 
 OBJDIR := objs
 
-SRCS = webserv.cpp Request.cpp Response.cpp Client.cpp server.cpp scope_configuration.cpp scope_http.cpp scope_server.cpp scope_location.cpp ListDirectory.cpp cgi.cpp
+SRCS = webserv.cpp Request.cpp Response.cpp Client.cpp server.cpp scope_configuration.cpp scope_http.cpp scope_server.cpp scope_location.cpp ListDirectory.cpp cgi.cpp StatusCode.cpp
 
-INC = server.hpp Request.hpp Client.hpp Response.hpp scope_configuration.hpp scope_http.hpp scope_server.hpp scope_location.hpp
+INC = server.hpp Request.hpp Client.hpp Response.hpp scope_configuration.hpp scope_http.hpp scope_server.hpp scope_location.hpp StatusCode.hpp
 
 CXXFLAGS = -Wall -Wextra -Werror -g -std=c++98 #-fsanitize=address
 
