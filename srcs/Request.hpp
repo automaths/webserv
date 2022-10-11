@@ -6,7 +6,7 @@
 /*   By: tnaton <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/10/05 17:41:22 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/11 19:34:43 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/11 20:30:55 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,7 +62,7 @@ class Request{
 		std::string		_buff;
 		std::map<std::string, std::list<std::string> > _headers;
 		bool			_isbody;
-		unsigned int	_bodysize;
+		int				_bodysize;
 		std::ofstream	_putfile;
 		std::ifstream	_tmpfile;
 };
