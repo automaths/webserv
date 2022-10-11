@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:32:13 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/11 14:25:02 by bdetune          ###   ########.fr       */
+/*   Updated: 2022/10/11 18:37:44 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -227,10 +227,22 @@ std::string	checkopen(std::string str)
 	return (tmp);
 }
 
+void createpath(std::string & path) {
+	std::string	tmp = "";
+
+	while (path != tmp) {
+		tmp += path.substr(0, path.find("/") + 1);
+		path.erase(0, path.find("/") + 1);
+		if (access(tmp.data(), F_OK)) {
+		}
+	}
+	unlink(path.data());
+}
+
 bool Request::moveBody(std::string & path) {
 	char	buff[1048576];
 	if (!_putfile.is_open()) {
-		unlink(path.data());
+		createpath(path);
 		_putfile.open(path.data(), std::ios::binary);
 		_tmpfile.open(_body.data(), std::ios::binary);
 	}
