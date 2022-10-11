@@ -6,7 +6,7 @@
 /*   By: tnaton <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/10/05 17:41:22 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/10 21:26:57 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/11 19:34:43 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,8 @@
 #include <cstdlib>
 #include <sstream>
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 class Request{
 

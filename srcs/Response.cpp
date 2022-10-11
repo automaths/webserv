@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/29 12:29:34 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/11 20:39:37 by nsartral         ###   ########.fr       */
+/*   Updated: 2022/10/11 20:45:01 by nsartral         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,24 +58,21 @@ Response::Response(Request & req, std::vector<ServerScope> & matches, int error)
 {
 	std::map<std::string, std::list<std::string> >				headerMap = req.getHeaders();
 	std::map<std::string, std::list<std::string> >::iterator	host;
-	for (std::map<std::string, std::list<std::string> >::iterator st = headerMap.begin(); st != headerMap.end(); st++)
+/*	for (std::map<std::string, std::list<std::string> >::iterator st = headerMap.begin(); st != headerMap.end(); st++)
 	{
 		std::cerr << "Key: " << (*st).first << std::endl;
 		for (std::list<std::string>::iterator first = (*st).second.begin(); first != (*st).second.end(); first++)
 		{
 			std::cerr << "Val: " << *first << std::endl;
 		}
-	}
+	}*/
 	if (error)
 		errorResponse(error);
 	else
 	{
 		host = headerMap.find(std::string("host"));
 		if (host != headerMap.end())
-		{
-			std::cerr << "Host" << std::endl;	
 			this->getServer(headerMap[std::string("host")].front(), matches);
-		}
 		else
 			this->_targetServer = &(matches.front());
 	}
@@ -201,6 +198,7 @@ bool	Response::openFile(std::string path)
 bool	Response::foundDirectoryIndex(std::vector<std::string> indexes, std::string path)
 {
 	std::string	tmpIndex;
+	struct stat	buf;
 
 	if (path.size() == 0)
 		path = "/";
@@ -210,8 +208,11 @@ bool	Response::foundDirectoryIndex(std::vector<std::string> indexes, std::string
 	{
 		tmpIndex = path + *st;
 		std::cerr << "Index path ***" << tmpIndex << "***" << std::endl;
-		if (this->openFile(tmpIndex))
+		if (access(tmpIndex.data(), F_OK | R_OK) == 0 && stat(tmpIndex.data(), &buf) != -1 && !S_ISDIR(buf.st_mode) && S_ISREG(buf.st_mode))
+		{
+			this->_targetFilePath = tmpIndex;
 			return (true);
+		}
 	}
 	return (false);
 }
@@ -410,7 +411,43 @@ void	Response::create200Header(std::string extension)
 	this->_headerSize = this->_header.size();
 }
 
-void	Response::makeResponse(Request & req)
+bool	Response::serverSet(void)
+{
+	return (this->_targetServer == NULL ? false : true);
+}
+
+bool	Response::canPUT(std::string fullPath)
+{
+	std::string::size_type	index = 0;
+	std::string::size_type	current = 0;
+	bool					ret = true;
+
+	while (((index = fullPath.find('/', current)) != std::string::npos))
+	{
+		std::cerr << "Position of /: " << index << std::endl;
+		if (access(fullPath.substr(0, index).data(), F_OK) == 0)
+		{
+			if (access(fullPath.substr(0, index).data(), W_OK) != 0)
+				ret = false;
+			else
+				ret = true;
+		}
+		else
+			break;
+		current = index + 1;
+		if (current == fullPath.size())
+			break ;
+		std::cerr << "Position to begin search: " << current << std::endl;
+	}
+	return (ret);
+}
+
+std::string &	Response::getTargetFile(void)
+{
+	return (this->_targetFilePath);
+}
+
+void	Response::makeResponse(Request & req, int result)
 {
 	LocationScope		loc;
 	bool				hasLoc = false;
@@ -445,6 +482,46 @@ void	Response::makeResponse(Request & req)
 	else
 		fullPath += req.getFile();
 	std::cerr << "Fully qualified path: ***" << fullPath << "***" << std::endl;
+	if (req.getType() == std::string("PUT"))
+	{
+		if (!canPUT(fullPath))
+		{
+			if (hasLoc && loc.getDefaultErrorPage().find("404") != loc.getDefaultErrorPage().end())
+				fullPath = (loc.getDefaultErrorPage())["404"];
+			else if (!hasLoc && this->_targetServer->getDefaultErrorPage().find("404") != this->_targetServer->getDefaultErrorPage().end())
+				fullPath = (this->_targetServer->getDefaultErrorPage())["404"];
+			else
+			{
+				this->errorResponse(404);
+				return ;
+			}
+			_targetFilePath = fullPath;
+			if (!this->openFile(fullPath))
+			{
+				this->errorResponse(404);
+				return ;
+			}
+			extension = this->createFileResponse();
+			if (_is_cgi)
+				return ;
+			if (this->_responseType == 1)
+			{
+				this->errorResponse(500);
+				return ;
+			}
+			this->createFileErrorHeader(404, extension);
+			return ;
+		}
+		this->_targetFilePath = fullPath;
+		if (result == 201)
+			return ;
+		if (req.moveBody(fullPath))
+		{
+			std::cerr << "Finished moving file" << std::endl;
+			this->errorResponse(201);
+		}
+		return ;
+	}
 	if (!pathIsValid(fullPath, &buf))
 	{
 		if (hasLoc && loc.getDefaultErrorPage().find("404") != loc.getDefaultErrorPage().end())
@@ -476,15 +553,20 @@ void	Response::makeResponse(Request & req)
 	// std::cerr << "Exists" << std::endl;
 	if (S_ISDIR(buf.st_mode))
 	{
-//		std::cerr << "is directory" << std::endl;
 		std::vector<std::string>	indexes;
 		if (hasLoc)
 			indexes = loc.getIndex();
 		else
 			indexes = this->_targetServer->getIndex();
-//		std::cerr << "Number of potential indexes: " << indexes.size() << std::endl;
 		if (foundDirectoryIndex(indexes, fullPath))
 		{
+			if (result == 201)
+				return ;
+			if (!this->openFile(this->_targetFilePath))
+			{
+				this->errorResponse(500);
+				return ;
+			}
 			extension = this->createFileResponse();
 			if (_is_cgi)
 				return ;
@@ -496,7 +578,7 @@ void	Response::makeResponse(Request & req)
 			this->create200Header(extension);
 			return;
 		}
-		else
+		else if (req.getType() == std::string("GET"))
 		{
 			try
 			{
@@ -523,9 +605,68 @@ void	Response::makeResponse(Request & req)
 			}
 			return ;
 		}
+		else
+		{
+			if (hasLoc && loc.getDefaultErrorPage().find("404") != loc.getDefaultErrorPage().end())
+				fullPath = (loc.getDefaultErrorPage())["404"];
+			else if (!hasLoc && this->_targetServer->getDefaultErrorPage().find("404") != this->_targetServer->getDefaultErrorPage().end())
+				fullPath = (this->_targetServer->getDefaultErrorPage())["404"];
+			else
+			{
+				this->errorResponse(404);
+				return ;
+			}
+			_targetFilePath = fullPath;
+			if (!this->openFile(fullPath))
+			{
+				this->errorResponse(404);
+				return ;
+			}
+			extension = this->createFileResponse();
+			if (_is_cgi)
+				return ;
+			if (this->_responseType == 1)
+			{
+				this->errorResponse(500);
+				return ;
+			}
+			this->createFileErrorHeader(404, extension);
+			return ;
+		}
 	}
 	else if (S_ISREG(buf.st_mode))
 	{
+		this->_targetFilePath = fullPath;
+		if (access(fullPath.data(), F_OK | R_OK) != 0)
+		{
+			if (hasLoc && loc.getDefaultErrorPage().find("404") != loc.getDefaultErrorPage().end())
+				fullPath = (loc.getDefaultErrorPage())["404"];
+			else if (!hasLoc && this->_targetServer->getDefaultErrorPage().find("404") != this->_targetServer->getDefaultErrorPage().end())
+				fullPath = (this->_targetServer->getDefaultErrorPage())["404"];
+			else
+			{
+				this->errorResponse(404);
+				return ;
+			}
+			_targetFilePath = fullPath;
+			if (!this->openFile(fullPath))
+			{
+				this->errorResponse(404);
+				return ;
+			}
+			extension = this->createFileResponse();
+			if (_is_cgi)
+				return ;
+			if (this->_responseType == 1)
+			{
+				this->errorResponse(500);
+				return ;
+			}
+			this->createFileErrorHeader(404, extension);
+			return ;
+		}
+		if (result == 201)
+			return ;
 		this->_targetFile.open(fullPath.data(), std::ifstream::binary);
 		if (!this->_targetFile.fail())
 		{
@@ -536,7 +677,7 @@ void	Response::makeResponse(Request & req)
 			}
 			else
 				this->_bodySize = buf.st_size;
-			this->_targetFilePath = fullPath;
+
 			extension = this->createFileResponse();
 			if (_is_cgi)
 				return ;
@@ -625,6 +766,9 @@ void	Response::errorResponse(int error)
 	this->_close = true;
 	switch (error)
 	{
+		case 201:
+			status << " 201 " << DEFAULT201STATUS;
+			body = DEFAULT201BODY;
 		case 400:
 			status << " 400 " << DEFAULT400STATUS;
 			body = DEFAULT400BODY;
@@ -798,10 +942,16 @@ bool	Response::bodyBytesSent(std::size_t bytes)
 			this->_over = true;
 			return (true);
 		}
+		else if (this->_responseType == 2 && this->_chunked && this->_fileConsumed && this->_over)
+		{
+			return (true);
+		}
 		else if (this->_responseType == 2 && this->_chunked && this->_fileConsumed && !this->_over)
 		{
 			this->_body = std::string("0\r\n\r\n");
 			this->_bodySize = 5;
+			this->_over = true;
+			return (false);
 		}
 		else if (this->_responseType == 2 && this->_chunked && !this->_fileConsumed && this->_targetFile.is_open())
 		{
