@@ -6,7 +6,7 @@
 /*   By: bdetune <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/28 13:45:50 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/06 14:35:01 by bdetune          ###   ########.fr       */
+/*   Updated: 2022/10/11 14:20:37 by bdetune          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -180,6 +180,10 @@ void	Server::readRequest(struct epoll_event & event)
 					this->_cgi_pipes.erase(currentResponse.getCgiFd());
 					this->closeClientSocket(event);
 					return ;
+				}
+				for (std::map<int, int>::iterator st = this->_cgi_pipes.begin(); st != this->_cgi_pipes.end(); st++)
+				{
+					std::cerr << "pipe: " << st->first << " socket fd: " << st->second << std::endl;
 				}
 			}
 			else
