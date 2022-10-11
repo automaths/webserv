@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:32:13 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/11 18:37:44 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/11 19:52:36 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -234,6 +234,7 @@ void createpath(std::string & path) {
 		tmp += path.substr(0, path.find("/") + 1);
 		path.erase(0, path.find("/") + 1);
 		if (access(tmp.data(), F_OK)) {
+			mkdir(tmp.data(), 0);
 		}
 	}
 	unlink(path.data());
@@ -241,9 +242,10 @@ void createpath(std::string & path) {
 
 bool Request::moveBody(std::string & path) {
 	char	buff[1048576];
+
 	if (!_putfile.is_open()) {
 		createpath(path);
-		_putfile.open(path.data(), std::ios::binary);
+		_putfile.open(path.data(), std::ios::binary | std::ios::trunc);
 		_tmpfile.open(_body.data(), std::ios::binary);
 	}
 	_tmpfile.read(buff, 1048576);
