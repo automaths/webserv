@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/28 13:45:50 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/11 18:47:33 by bdetune          ###   ########.fr       */
+/*   Updated: 2022/10/11 20:26:38 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -149,6 +149,7 @@ void	Server::readRequest(struct epoll_event & event)
 		try
 		{
 			result = currentClient.addToRequest(std::string(_rdBuffer));
+			std::cerr << "Result : " << result << std::endl;
 		}
 		catch (std::exception const & e)
 		{
@@ -162,7 +163,7 @@ void	Server::readRequest(struct epoll_event & event)
 			currentResponse = Response(currentRequest, this->_virtual_servers[currentClient.getPortNumber()]);
 			currentResponse.makeResponse(currentRequest, result);
 		}
-		if (result == 200)
+		else if (result == 200)
 		{
 			if (!currentResponse.serverSet())
 				currentResponse = Response(currentRequest, this->_virtual_servers[currentClient.getPortNumber()]);

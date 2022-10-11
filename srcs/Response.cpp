@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/29 12:29:34 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/11 19:52:24 by bdetune          ###   ########.fr       */
+/*   Updated: 2022/10/11 20:24:43 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -388,10 +388,12 @@ bool	Response::serverSet(void)
 bool	Response::canPUT(std::string fullPath)
 {
 	std::string::size_type	index = 0;
+	std::string::size_type	current = 0;
 	bool					ret = true;
 
-	while ((index = fullPath.find("/", index) != std::string::npos))
+	while (((index = fullPath.find('/', current)) != std::string::npos))
 	{
+		std::cerr << "Position of /: " << index << std::endl;
 		if (access(fullPath.substr(0, index).data(), F_OK) == 0)
 		{
 			if (access(fullPath.substr(0, index).data(), W_OK) != 0)
@@ -401,11 +403,10 @@ bool	Response::canPUT(std::string fullPath)
 		}
 		else
 			break;
-		if (index != (fullPath.size() - 1))
-			index++;
-		else
+		current = index + 1;
+		if (current == fullPath.size())
 			break ;
-
+		std::cerr << "Position to begin search: " << current << std::endl;
 	}
 	return (ret);
 }
