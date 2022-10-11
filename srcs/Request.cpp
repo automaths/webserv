@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:32:13 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/11 19:52:36 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/11 20:59:08 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -227,14 +227,18 @@ std::string	checkopen(std::string str)
 	return (tmp);
 }
 
-void createpath(std::string & path) {
+void createPath(std::string & path) {
 	std::string	tmp = "";
+	int			i = 0;
 
-	while (path != tmp) {
-		tmp += path.substr(0, path.find("/") + 1);
-		path.erase(0, path.find("/") + 1);
+	std::cerr << "Creating path : " << path << std::endl;
+	while (path != tmp && path.size() > tmp.size()) {
+		tmp += path.substr(i, path.find("/", i) + 1 - i);
+		std::cerr << "Tmp in createPath : " << tmp << std::endl;
+		i = path.find("/", i) + 1;
 		if (access(tmp.data(), F_OK)) {
-			mkdir(tmp.data(), 0);
+			std::cerr << "Creating subdir : " << tmp << std::endl;
+			mkdir(tmp.data(), 777);
 		}
 	}
 	unlink(path.data());
@@ -244,7 +248,7 @@ bool Request::moveBody(std::string & path) {
 	char	buff[1048576];
 
 	if (!_putfile.is_open()) {
-		createpath(path);
+		createPath(path);
 		_putfile.open(path.data(), std::ios::binary | std::ios::trunc);
 		_tmpfile.open(_body.data(), std::ios::binary);
 	}
@@ -276,7 +280,7 @@ int Request::parseChunk(std::string & chunk) {
 
 	if (_isbody) {
 		parseBody(chunk);
-		if (_bodysize)
+		if (_bodysize > 0)
 			return (201);
 		return (200);
 	} else {
@@ -314,7 +318,7 @@ int Request::parseChunk(std::string & chunk) {
 						_bodysize = ft_atoi(_headers["content-length"].front());
 					}
 					parseBody(chunk);
-					if (_bodysize)
+					if (_bodysize > 0)
 						return (201);
 					return (200);
 				}
