@@ -6,13 +6,13 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/28 13:45:50 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/11 14:47:24 by bdetune          ###   ########.fr       */
+/*   Updated: 2022/10/11 18:47:33 by bdetune          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "server.hpp"
 
-Server::Server(void): _epoll_fd(-1)
+Server::Server(void): _filesMoving(false), _epoll_fd(-1)
 {
 	return ;
 }
@@ -155,11 +155,30 @@ void	Server::readRequest(struct epoll_event & event)
 			std::cerr << "Parsing error: " << e.what() << std::endl;
 			return ;
 		}
+		if (result == 201)
+		{
+			if (currentResponse.serverSet())
+				return ;
+			currentResponse = Response(currentRequest, this->_virtual_servers[currentClient.getPortNumber()]);
+			currentResponse.makeResponse(currentRequest, result);
+		}
 		if (result == 200)
 		{
-			std::cerr << "Socket FD before pipe: " << currentClient.getSocketFD() << std::endl;
-			currentResponse = Response(currentRequest, this->_virtual_servers[currentClient.getPortNumber()]);
-			currentResponse.makeResponse(currentRequest);
+			if (!currentResponse.serverSet())
+				currentResponse = Response(currentRequest, this->_virtual_servers[currentClient.getPortNumber()]);
+			currentResponse.makeResponse(currentRequest, result);
+			if (currentRequest.getType() == std::string("PUT") && !currentResponse.getBodySize())
+			{
+				if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_DEL, event.data.fd, &event) == -1)
+				{
+					close(currentResponse.getCgiFd());
+					this->closeClientSocket(event);
+					return ;
+				}
+				this->_filesMoving = true;
+				this->_filesMovingClients.push_back(&currentClient);
+				return ;
+			}
 			if (currentResponse.isCgi())
 			{
 				std::cerr << "CGI" << std::endl;
@@ -208,7 +227,7 @@ void	Server::readRequest(struct epoll_event & event)
 				return ;
 			}
 			currentResponse = Response(currentRequest, this->_virtual_servers[currentClient.getPortNumber()], result);
-			currentResponse.makeResponse(currentRequest);
+			currentResponse.makeResponse(currentRequest, result);
 			event.events = EPOLLOUT;
 			if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_MOD, event.data.fd, &event) == -1)
 			{
@@ -337,13 +356,18 @@ void Server::execute(void)
 {
 	struct epoll_event	ev, event[10];
 	int ready;
+	int	timeout;
 
 	if (!this->epollSockets())
 		throw EpollCreateException();
 	std::memset(&ev, '\0', sizeof(struct epoll_event));
 	while (true)
 	{
-		ready = epoll_wait(this->_epoll_fd, event, 10, 1000);
+		if (this->_filesMoving)
+			timeout = 0;
+		else
+			timeout = 1000;
+		ready = epoll_wait(this->_epoll_fd, event, 10, timeout);
 		if (g_code)
 			return ;
 		if (ready == -1)
@@ -362,9 +386,34 @@ void Server::execute(void)
 			else if (event[i].events == EPOLLOUT)
 				this->sendResponse(event[i]);
         }
+		if (this->_filesMoving)
+			this->moveFiles();
 		this->closeTimedoutConnections();
 		std::cout << "The number of clients is: " << this->_client_sockets.size() << std::endl;
     }
+}
+
+void	Server::moveFiles(void)
+{
+	bool	finished;
+	std::vector<Client *>::reverse_iterator st = this->_filesMovingClients.rbegin();
+
+	while (st != this->_filesMovingClients.rend())
+	{
+		finished = (*st)->getRequest().moveBody((*st)->getResponse().getTargetFile());
+		if (finished)
+		{
+			(*st)->getEvent().events = EPOLLIN;
+			(*st)->getEvent().data.fd = (*st)->getSocketFD();
+			if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_ADD, (*st)->getSocketFD(), &((*st)->getEvent())) == -1)
+				this->closeClientSocket((*st)->getEvent());
+			std::cerr << "Finished moving file" << std::endl;
+			this->_filesMovingClients.erase(st.base());	
+		}
+		st--;
+	}
+	if (this->_filesMovingClients.size() == 0)
+		this->_filesMoving = false;
 }
 
 void	Server::closeTimedoutConnections(void)

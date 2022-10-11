@@ -6,7 +6,7 @@
 /*   By: bdetune <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:13:06 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/06 13:14:04 by bdetune          ###   ########.fr       */
+/*   Updated: 2022/10/11 18:28:21 by bdetune          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -90,6 +90,7 @@ void	Client::setIpAddress(unsigned long address)
 
 Request &	Client::getRequest(void)
 {
+	this->_lastConnection = std::time(NULL);
 	return (this->_request);
 }
 

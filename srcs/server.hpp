@@ -32,15 +32,18 @@ class Server {
 
     private:
     
+	bool										_filesMoving;
 	int											_epoll_fd;			//fd for epoll queue
 	char										_rdBuffer[1048577];	//Reading buffer
 	std::map<int, std::vector<ServerScope> >	_virtual_servers;	//List of servers per ports
 	std::map<int, int>							_listen_sockets;	//Listening sockets: <fd, port>
 	std::map<int, Client>						_client_sockets;	//Accepted connections sockets: <fd, Client>
+	std::vector<Client *>						_filesMovingClients;
 //	std::set<int>								_reserve_fds;		//Switch between fd to read response from and socket fd to send back data
 	std::map<int, int>							_cgi_pipes;			//Cgi pipes
     struct sockaddr_in							_address;			// Address to bind to a socket
 
+	void	moveFiles(void);
 	bool	epollSockets(void);
 	void	bufferFile(struct epoll_event & event);
 	void	acceptIncomingConnection(struct epoll_event & event);

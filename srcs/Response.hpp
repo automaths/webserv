@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/29 12:26:22 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/10 18:24:58 by nsartral         ###   ########.fr       */
+/*   Updated: 2022/10/11 18:48:37 by bdetune          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,6 +47,8 @@ class Response
 		std::size_t		getHeaderSize(void);
 		std::string &	getBody(void);
 		std::size_t		getBodySize(void);
+		std::string &	getTargetFile(void);
+		bool			serverSet(void);
 		bool			headerIsSent(void);
 		bool			isOver(void);
 		bool			headerBytesSent(std::size_t bytes);
@@ -54,7 +56,7 @@ class Response
 		bool			getClose(void);
 		bool			getIsConsumed(void);
     std::vector<std::string>	getEnv(void) const;
-		void			makeResponse(Request & req);
+		void			makeResponse(Request & req, int result);
 		bool			isCgi(void);
 		int				getCgiFd(void);
 		int				execCgi(std::string exec);
@@ -83,6 +85,7 @@ class Response
 
 		bool			getServer(std::string const & host, std::vector<ServerScope> & matches);
 
+		bool			canPUT(std::string fullPath);
 		bool			findLocation(LocationScope *loc, std::vector<LocationScope> locations, std::string uri);
 		bool			allowedMethod(std::vector<std::string> methods, std::string currentMethod);
 		bool			pathIsValid(std::string path, struct stat * buf);
