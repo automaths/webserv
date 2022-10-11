@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/29 12:29:34 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/11 20:24:43 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/11 20:45:01 by nsartral         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,6 +43,15 @@ std::vector<std::string> parseEnv(Request & req) {
 		tmp++;
 	}
 	return (env);	
+}
+
+void	Response::closeCgiFd(void)
+{
+	if (this->_cgi_fd != -1)
+	{
+		close(this->_cgi_fd);
+		this->_cgi_fd = -1;
+	}
 }
 
 Response::Response(Request & req, std::vector<ServerScope> & matches, int error): _header(), _headerSize(0), _body(), _bodySize(0), _targetFile(), _targetFilePath(""), _headerSent(false), _over(false), _fileConsumed(false), _close(false), _targetServer(NULL), _responseType(0), _is_cgi(false), _cgi_fd(-1)
@@ -221,6 +230,7 @@ int Response::execCgi(std::string exec)
 void Response::cgiResponse(int fd)
 {
 	int size;
+	bool error_status;
 	char buffer[1048576];
 	memset(buffer, 0, 1048576);
 	size = read(fd, &buffer, 1048576);
@@ -230,9 +240,10 @@ void Response::cgiResponse(int fd)
 		_fileConsumed = true;
 		_body = std::string("0\r\n\r\n");
 		_bodySize = 5;
-		close (_cgi_fd);
+		// close (_cgi_fd); 
 		return;
 	}
+	error_status = false;
 	std::string extension;
 	if (this->_targetFilePath.find_last_of(".") != std::string::npos)
 		extension = this->_targetFilePath.substr(this->_targetFilePath.find_last_of("."));
@@ -248,32 +259,52 @@ void Response::cgiResponse(int fd)
 	{
 		_body.clear();
 		_body = buffer;
-		std::cout << "the buffer is: " << buffer << std::endl;
+		// std::cout << "the buffer is: " << buffer << std::endl;
 		std::string cgiHeader = _body.substr(0, _body.find("\r\n\r\n") + 2);
 		_body.erase(0, _body.find("\r\n\r\n") + 4);
-
-		std::cout << "the mid body is: " << _body << std::endl;
-
+		// std::cout << "the mid body is: " << _body << std::endl;
 		std::stringstream hexsize;
 		hexsize << std::hex << size;
 		_body = hexsize.str() + _body + "\r\n";
 		_bodySize = _body.size();
-
 		std::stringstream	header;
-		header << "HTTP/1.1 200 "<< DEFAULT200STATUS << "\r\n";
+		if (cgiHeader.find("Status: ") != std::string::npos)
+		{
+			//need to have a variable with the protocol or parse the environment variable passed to the cgi
+			header << "HTTP/1.1 " << cgiHeader.substr(cgiHeader.find("Status: ") + 8, cgiHeader.find("\r\n", cgiHeader.find("Status: ")) - 8) << "\r\n";
+			std::string str = cgiHeader.substr(cgiHeader.find("Status: ") + 8, cgiHeader.find("\r\n", cgiHeader.find("Status: ")) - 8);
+			str.erase(0, str.find_first_of("0123456789"));
+			if (atoi(str.substr(0, str.find_first_not_of("0123456789")).c_str()) > 399)
+			{
+				error_status = true;
+				std::cout << "it is an error message" << std::endl;
+			}
+			cgiHeader.erase(cgiHeader.find("Status: "), cgiHeader.find("\r\n", cgiHeader.find("Status: ")) + 2);
+		}
+		else
+			header << "HTTP/1.1 200 "<< DEFAULT200STATUS << "\r\n";
 		header << setBaseHeader();
+		header << cgiHeader;
 		// if (cgiHeader.find("Content-size:") != std::string::npos)
 			// cgiHeader.erase(cgiHeader.find("Content-size:"), cgiHeader.find("\r\n", cgiHeader.find("Content-size:")));
 		// if (cgiHeader.find("Content-type:") == std::string::npos)
 			// header << "Content-type: " << MimeTypes().convert(extension) << "\r\n";
-		header << cgiHeader;
-		header << "Connection: keep-alive\r\n";
-		header << "Transfer-Encoding: chunked\r\n";
+		if (error_status)
+			header << "Connection: close\r\n";
+		else
+			header << "Connection: keep-alive\r\n";
+		if (!error_status)
+			header << "Transfer-Encoding: chunked\r\n";
 		header << "\r\n";
 		this->_header = header.str();
 		this->_headerSize = this->_header.size();
-		std::cout << "the header is :" << header.str() << std::endl;
-		std::cout << "the body is: " << _body << std::endl;
+		if (error_status)
+		{
+			_body.clear();
+			_bodySize = 0;
+		}
+		// std::cout << "the header is :" << header.str() << std::endl;
+		// std::cout << "the body is: " << _body << std::endl;
 	}
 	memset(buffer, 0, 1048576);
 }

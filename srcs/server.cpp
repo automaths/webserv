@@ -6,7 +6,11 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/28 13:45:50 by bdetune           #+#    #+#             */
+<<<<<<< HEAD
+/*   Updated: 2022/10/11 20:39:54 by nsartral         ###   ########.fr       */
+=======
 /*   Updated: 2022/10/11 20:26:38 by tnaton           ###   ########.fr       */
+>>>>>>> 8ab6c634b385695f4dac89828413949be8406207
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -270,6 +274,8 @@ void	Server::sendBody(struct epoll_event & event)
 	{
 		if (currentResponse.isCgi() && this->_cgi_pipes.find(currentResponse.getCgiFd()) != this->_cgi_pipes.end())
 			this->_cgi_pipes.erase(currentResponse.getCgiFd());
+		if (currentResponse.isCgi())
+			currentResponse.closeCgiFd();
 		if (this->_client_sockets[event.data.fd].getResponse().getClose())
 			this->closeClientSocket(event);
 		else

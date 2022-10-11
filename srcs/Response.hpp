@@ -6,7 +6,11 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/29 12:26:22 by bdetune           #+#    #+#             */
+<<<<<<< HEAD
+/*   Updated: 2022/10/11 20:39:46 by nsartral         ###   ########.fr       */
+=======
 /*   Updated: 2022/10/11 18:48:37 by bdetune          ###   ########.fr       */
+>>>>>>> 8ab6c634b385695f4dac89828413949be8406207
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,6 +63,7 @@ class Response
 		void			makeResponse(Request & req, int result);
 		bool			isCgi(void);
 		int				getCgiFd(void);
+		void			closeCgiFd(void);
 		int				execCgi(std::string exec);
 		void			cgiResponse(int fd);
 
