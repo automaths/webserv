@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/29 12:29:34 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/10 21:30:33 by nsartral         ###   ########.fr       */
+/*   Updated: 2022/10/11 15:15:23 by bdetune          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -297,7 +297,7 @@ std::string	Response::createFileResponse(void)
 	//end of implementation
 	extension = MimeTypes().convert(extension);
 	this->_responseType = 2;
-	this->_body.reserve((this->_bodySize + 1));
+	this->_body.reserve((this->_bodySize + 2));
 	if (this->_chunked)
 	{
 		this->_targetFile.read(&(this->_body[0]), 1048576);
@@ -320,9 +320,9 @@ std::string	Response::createFileResponse(void)
 		std::string	hex_size = size.str();
 		std::size_t	hex_length = size.str().size();
 		std::size_t	cpas = 0;
-		for (std::size_t j = (this->_bodySize - 1); j != 0; j--)
+		for (std::size_t j = this->_bodySize; j > 0; j--)
 		{
-			this->_body[j + hex_length] = this->_body[j];
+			this->_body[j - 1 + hex_length] = this->_body[j - 1];
 		}
 		for (std::string::iterator st = hex_size.begin(); st != hex_size.end(); st++, cpas++)
 		{
@@ -779,6 +779,7 @@ bool	Response::bodyBytesSent(std::size_t bytes)
 					this->_body = std::string("0\r\n\r\n");
 					this->_bodySize = 5;
 					this->_over = true;
+					return (false);
 				}
 			}
 			else if (this->_targetFile.fail())
@@ -797,9 +798,9 @@ bool	Response::bodyBytesSent(std::size_t bytes)
 			std::string	hex_size = size.str();
 			std::size_t	hex_length = size.str().size();
 			std::size_t	cpas = 0;
-			for (std::size_t j = (this->_bodySize - 1); j != 0; j--)
+			for (std::size_t j = this->_bodySize; j > 0; j--)
 			{
-				this->_body[j + hex_length] = this->_body[j];
+				this->_body[j - 1 + hex_length] = this->_body[j - 1];
 			}
 			for (std::string::iterator st = hex_size.begin(); st != hex_size.end(); st++, cpas++)
 			{
