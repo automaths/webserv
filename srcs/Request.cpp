@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:32:13 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/10 21:39:50 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/11 13:09:52 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -346,10 +346,11 @@ std::vector<std::pair<int, int> > Request::getRange(int	size) {
 	while (lst.size()) {
 		tmp = lst.front();
 		if (tmp[0] == '-') {
-			ret.push_back(std::pair<int, int>(size - std::atoi(), size));
+			ret.push_back(std::pair<int, int>(size - std::atoi(tmp.substr(1, NPOS).data()), size));
 		} else if (tmp[tmp.size()] == '-') {
+			ret.push_back(std::pair<int, int>(std::atoi(tmp.substr(0, tmp.size() - 1).data()), size));
 		} else {
-
+			ret.push_back(std::pair<int, int>(std::atoi(tmp.substr(0, tmp.find("-")).data()), std::atoi(tmp.substr(tmp.find("-") + 1, NPOS).data())));
 		}
 		lst.pop_front();
 	}
