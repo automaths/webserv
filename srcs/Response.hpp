@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/29 12:26:22 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/10 18:24:58 by nsartral         ###   ########.fr       */
+/*   Updated: 2022/10/11 20:39:46 by nsartral         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,6 +57,7 @@ class Response
 		void			makeResponse(Request & req);
 		bool			isCgi(void);
 		int				getCgiFd(void);
+		void			closeCgiFd(void);
 		int				execCgi(std::string exec);
 		void			cgiResponse(int fd);
 
