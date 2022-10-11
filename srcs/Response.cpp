@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/29 12:29:34 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/11 20:45:01 by nsartral         ###   ########.fr       */
+/*   Updated: 2022/10/11 21:15:39 by nsartral         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -237,6 +237,7 @@ void Response::cgiResponse(int fd)
 	if (size == 0)
 	{
 		std::cerr << "END OF PIPE" << std::endl;
+		this->_over = true;
 		_fileConsumed = true;
 		_body = std::string("0\r\n\r\n");
 		_bodySize = 5;
@@ -251,9 +252,10 @@ void Response::cgiResponse(int fd)
 	{
 		_body.clear();
 		std::stringstream hexsize;
-		hexsize << std::hex << size << "\r\n";
+		hexsize << std::hex << size - _cgiHeadersize + 2 << "\r\n";
 		_body += hexsize.str();
 		_body += buffer;
+		_bodySize = _body.size();
 	}
 	else
 	{
@@ -264,7 +266,8 @@ void Response::cgiResponse(int fd)
 		_body.erase(0, _body.find("\r\n\r\n") + 4);
 		// std::cout << "the mid body is: " << _body << std::endl;
 		std::stringstream hexsize;
-		hexsize << std::hex << size;
+		_cgiHeadersize = cgiHeader.size() + 2;
+		hexsize << std::hex << size - cgiHeader.size() + 2 - 4; //not always four, calculate the hexadecimals
 		_body = hexsize.str() + _body + "\r\n";
 		_bodySize = _body.size();
 		std::stringstream	header;

@@ -6,11 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/29 12:26:22 by bdetune           #+#    #+#             */
-<<<<<<< HEAD
-/*   Updated: 2022/10/11 20:39:46 by nsartral         ###   ########.fr       */
-=======
-/*   Updated: 2022/10/11 18:48:37 by bdetune          ###   ########.fr       */
->>>>>>> 8ab6c634b385695f4dac89828413949be8406207
+/*   Updated: 2022/10/11 21:06:09 by nsartral         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -87,6 +83,7 @@ class Response
 		bool			_is_cgi;
 		int				_cgi_fd;
 		int				_cgi_input;
+		int				_cgiHeadersize;
 
 		bool			getServer(std::string const & host, std::vector<ServerScope> & matches);
 
