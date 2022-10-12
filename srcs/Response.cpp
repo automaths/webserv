@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/29 12:29:34 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/11 21:15:39 by nsartral         ###   ########.fr       */
+/*   Updated: 2022/10/12 17:01:55 by nsartral         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -252,9 +252,16 @@ void Response::cgiResponse(int fd)
 	{
 		_body.clear();
 		std::stringstream hexsize;
-		hexsize << std::hex << size - _cgiHeadersize + 2 << "\r\n";
-		_body += hexsize.str();
-		_body += buffer;
+
+		std::stringstream hex_length;
+		hex_length << std::hex << size + 2;
+		char length[100];
+		hex_length.read(length, 100);
+		
+		hexsize << std::hex << size + 2 << "\r\n";
+		_body = hexsize.str() + buffer + "\r\n";
+		// _body += hexsize.str();
+		// _body += buffer;
 		_bodySize = _body.size();
 	}
 	else
@@ -267,31 +274,52 @@ void Response::cgiResponse(int fd)
 		// std::cout << "the mid body is: " << _body << std::endl;
 		std::stringstream hexsize;
 		_cgiHeadersize = cgiHeader.size() + 2;
-		hexsize << std::hex << size - cgiHeader.size() + 2 - 4; //not always four, calculate the hexadecimals
+
+		std::stringstream hex_length;
+		hex_length << std::hex << size - cgiHeader.size() + 2;
+		char length[100];
+		hex_length.read(length, 100);
+
+		hexsize << std::hex << size - cgiHeader.size() + 2 - hex_length.gcount() - 2;
 		_body = hexsize.str() + _body + "\r\n";
 		_bodySize = _body.size();
 		std::stringstream	header;
-		if (cgiHeader.find("Status: ") != std::string::npos)
+		if (cgiHeader.find("Location:") != std::string::npos)
 		{
 			//need to have a variable with the protocol or parse the environment variable passed to the cgi
-			header << "HTTP/1.1 " << cgiHeader.substr(cgiHeader.find("Status: ") + 8, cgiHeader.find("\r\n", cgiHeader.find("Status: ")) - 8) << "\r\n";
-			std::string str = cgiHeader.substr(cgiHeader.find("Status: ") + 8, cgiHeader.find("\r\n", cgiHeader.find("Status: ")) - 8);
+			header << "HTTP/1.1 " << cgiHeader.substr(cgiHeader.find("Location:") + 9, cgiHeader.find("\r\n", cgiHeader.find("Location:")) - 9) << "\r\n";
+			std::string str = cgiHeader.substr(cgiHeader.find("Location:") + 9, cgiHeader.find("\r\n", cgiHeader.find("Location:")) - 9);
 			str.erase(0, str.find_first_of("0123456789"));
 			if (atoi(str.substr(0, str.find_first_not_of("0123456789")).c_str()) > 399)
 			{
 				error_status = true;
 				std::cout << "it is an error message" << std::endl;
 			}
-			cgiHeader.erase(cgiHeader.find("Status: "), cgiHeader.find("\r\n", cgiHeader.find("Status: ")) + 2);
+			cgiHeader.erase(cgiHeader.find("Location:"), cgiHeader.find("\r\n", cgiHeader.find("Location:")) + 2);
+		}
+		if (cgiHeader.find("Status:") != std::string::npos)
+		{
+			//need to have a variable with the protocol or parse the environment variable passed to the cgi
+			header << "HTTP/1.1 " << cgiHeader.substr(cgiHeader.find("Status:") + 7, cgiHeader.find("\r\n", cgiHeader.find("Status:")) - 7) << "\r\n";
+			std::string str = cgiHeader.substr(cgiHeader.find("Status:") + 7, cgiHeader.find("\r\n", cgiHeader.find("Status:")) - 7);
+			str.erase(0, str.find_first_of("0123456789"));
+			if (atoi(str.substr(0, str.find_first_not_of("0123456789")).c_str()) > 399)
+			{
+				error_status = true;
+				std::cout << "it is an error message" << std::endl;
+			}
+			cgiHeader.erase(cgiHeader.find("Status:"), cgiHeader.find("\r\n", cgiHeader.find("Status:")) + 2);
 		}
 		else
 			header << "HTTP/1.1 200 "<< DEFAULT200STATUS << "\r\n";
 		header << setBaseHeader();
 		header << cgiHeader;
+		if (cgiHeader.find("Content-type:") == std::string::npos)
+			header << "Content-type: " << MimeTypes().convert(extension) << "\r\n";
+
+
 		// if (cgiHeader.find("Content-size:") != std::string::npos)
 			// cgiHeader.erase(cgiHeader.find("Content-size:"), cgiHeader.find("\r\n", cgiHeader.find("Content-size:")));
-		// if (cgiHeader.find("Content-type:") == std::string::npos)
-			// header << "Content-type: " << MimeTypes().convert(extension) << "\r\n";
 		if (error_status)
 			header << "Connection: close\r\n";
 		else

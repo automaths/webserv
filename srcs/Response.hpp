@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/29 12:26:22 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/11 21:06:09 by nsartral         ###   ########.fr       */
+/*   Updated: 2022/10/12 14:14:23 by nsartral         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,6 +84,8 @@ class Response
 		int				_cgi_fd;
 		int				_cgi_input;
 		int				_cgiHeadersize;
+		// bool			_internal_redirect;
+		// std::string		_redirection;
 
 		bool			getServer(std::string const & host, std::vector<ServerScope> & matches);
 
