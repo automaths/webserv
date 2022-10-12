@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:32:13 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/11 20:59:08 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/12 15:24:20 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -105,7 +105,7 @@ int Request::checkType(std::string & type) {
 		_type = type.substr(0, i);
 		i = type.find_first_not_of(" ", i);
 		type.erase(0, i);
-		_file = type.substr(0, type.find_first_of(" "));
+		_file = "/" + type.substr(0, type.find_first_of(" "));
 		type.erase(0, _file.size());
 		type.erase(0, type.find_first_not_of(" "));
 		if (type.size()) {
@@ -233,13 +233,13 @@ void createPath(std::string & path) {
 
 	std::cerr << "Creating path : " << path << std::endl;
 	while (path != tmp && path.size() > tmp.size()) {
+		if (access(tmp.data(), F_OK)) {
+			std::cerr << "Creating subdir : " << tmp << std::endl;
+			mkdir(tmp.data(), S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
+		}
 		tmp += path.substr(i, path.find("/", i) + 1 - i);
 		std::cerr << "Tmp in createPath : " << tmp << std::endl;
 		i = path.find("/", i) + 1;
-		if (access(tmp.data(), F_OK)) {
-			std::cerr << "Creating subdir : " << tmp << std::endl;
-			mkdir(tmp.data(), 777);
-		}
 	}
 	unlink(path.data());
 }
