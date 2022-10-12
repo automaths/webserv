@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:32:13 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/12 15:48:17 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/12 16:57:25 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -94,6 +94,49 @@ std::string parseFile(std::string file) {
 	return (file);
 }
 
+std::string PercentDecoding(std::string uri) {
+	std::string		ret;
+	size_t			pos;
+	std::map<std::string, std::string> map;
+
+	map["%20"] = " ";
+	map["%21"] = "!";
+	map["%23"] = "#";
+	map["%24"] = "$";
+	map["%25"] = "%";
+	map["%26"] = "&";
+	map["%27"] = "'";
+	map["%28"] = "(";
+	map["%29"] = ")";
+	map["%2A"] = "*";
+	map["%2B"] = "+";
+	map["%2C"] = ",";
+	map["%2F"] = "/";
+	map["%3A"] = ":";
+	map["%3B"] = ";";
+	map["%3D"] = "=";
+	map["%3F"] = "?";
+	map["%40"] = "@";
+	map["%5B"] = "[";
+	map["%5D"] = "]";
+
+	while (uri.size()) {
+		if ((pos = uri.find("%")) != NPOS) {
+			if (map.find(uri.substr(pos, 3)) != map.end()) {
+				ret += uri.substr(0, pos) + map[uri.substr(pos, 3)];
+			} else {
+				ret += uri.substr(0, pos + 3);
+			}
+			uri.erase(0, pos + 3);
+		} else {
+			ret += uri;
+			break;
+		}
+	}
+	std::cerr << "Decoded URI : " << ret << std::endl;
+	return (ret);
+}
+
 int Request::checkType(std::string & type) {
 	unsigned long i = 0;
 
@@ -105,7 +148,7 @@ int Request::checkType(std::string & type) {
 		_type = type.substr(0, i);
 		i = type.find_first_not_of(" ", i);
 		type.erase(0, i);
-		_file = "/" + type.substr(0, type.find_first_of(" "));
+		_file = type.substr(0, type.find_first_of(" "));
 		type.erase(0, _file.size());
 		type.erase(0, type.find_first_not_of(" "));
 		if (type.size()) {
@@ -127,6 +170,7 @@ int Request::checkType(std::string & type) {
 			if (tmp2 != tmp && (tmp2 == "" || tmp2.find_first_not_of("0123456789") != NPOS))
 				return (1);
 		}
+		_file = "/" + PercentDecoding(_file);
 		if (!_file.size())
 			return (1);
 		_file = parseFile(_file);
