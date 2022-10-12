@@ -16,6 +16,8 @@
 #include <cstdlib>
 #include <csignal>
 #define PORT 8080
+#define READCHUNKSIZE 1048576
+#define WATCHEDEVENTS 100
 
 extern volatile std::sig_atomic_t g_code;
 
@@ -34,7 +36,7 @@ class Server {
     
 	bool										_filesMoving;
 	int											_epoll_fd;			//fd for epoll queue
-	char										_rdBuffer[1048577];	//Reading buffer
+	char										_rdBuffer[READCHUNKSIZE + 1];	//Reading buffer
 	std::map<int, std::vector<ServerScope> >	_virtual_servers;	//List of servers per ports
 	std::map<int, int>							_listen_sockets;	//Listening sockets: <fd, port>
 	std::map<int, Client>						_client_sockets;	//Accepted connections sockets: <fd, Client>
@@ -42,6 +44,8 @@ class Server {
 //	std::set<int>								_reserve_fds;		//Switch between fd to read response from and socket fd to send back data
 	std::map<int, int>							_cgi_pipes;			//Cgi pipes
     struct sockaddr_in							_address;			// Address to bind to a socket
+	struct epoll_event*							_watchedEvents;
+	struct epoll_event							_tmpEv;
 
 	void	moveFiles(void);
 	bool	epollSockets(void);
@@ -50,8 +54,8 @@ class Server {
 	void	closeTimedoutConnections(void);
 	void	readRequest(struct epoll_event & event);
 	void	sendResponse(struct epoll_event & event);
-	bool	sendHeader(struct epoll_event & event);
-	void	sendBody(struct epoll_event & event);
+	bool	sendHeader(struct epoll_event & event, Client & currentClient);
+	void	sendBody(struct epoll_event & event, Client & currentClient);
 	void	closeClientSocket(struct epoll_event & event);
 	void	readPipe(struct epoll_event & event);
 
