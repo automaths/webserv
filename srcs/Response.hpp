@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/29 12:26:22 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/12 14:14:23 by nsartral         ###   ########.fr       */
+/*   Updated: 2022/10/12 20:16:24 by nsartral         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,7 +83,6 @@ class Response
 		bool			_is_cgi;
 		int				_cgi_fd;
 		int				_cgi_input;
-		int				_cgiHeadersize;
 		// bool			_internal_redirect;
 		// std::string		_redirection;
 
