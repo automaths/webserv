@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:32:13 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/12 15:24:20 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/12 15:48:17 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -267,9 +267,9 @@ void Request::parseBody(std::string & chunk) {
 	if (_body == "") {
 		_body = checkopen("0");
 	}
-	std::ofstream	file(_body.data(), std::ios::binary);
-
-	file.write(chunk.data(), chunk.size());
+	if (!_putfile.is_open())
+		_putfile.open(_body.data(), std::ios::binary);
+	_putfile.write(chunk.data(), chunk.size());
 	_bodysize -= chunk.size();
 }
 
@@ -280,8 +280,11 @@ int Request::parseChunk(std::string & chunk) {
 
 	if (_isbody) {
 		parseBody(chunk);
-		if (_bodysize > 0)
+		std::cerr << "Bodysize : " << _bodysize << std::endl;
+		if (_bodysize > 0) {
 			return (201);
+		}
+		_putfile.close();
 		return (200);
 	} else {
 		if (chunk.find("\x03") != NPOS)
