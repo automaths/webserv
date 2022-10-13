@@ -1,5 +1,4 @@
 <?php setcookie( "testcookie", "", 0, "", "", false, true )?>
-
 <!DOCTYPE html>
 <html>
 <body>
