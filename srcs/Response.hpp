@@ -56,8 +56,8 @@ class Response
 		bool			getClose(void);
 		bool			getIsConsumed(void);
     std::vector<std::string>	getEnv(void) const;
-		bool			precheck(Request & req, int result);
-		void			makeResponse(Request & req, int result);
+		bool			precheck(Request & req);
+		void			makeResponse(Request & req);
 		bool			isCgi(void);
 		int				getCgiFd(void);
 		void			closeCgiFd(void);

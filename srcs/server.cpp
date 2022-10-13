@@ -164,13 +164,33 @@ void	Server::readRequest(struct epoll_event & event)
 			if (currentResponse.serverSet())
 				return ;
 			currentResponse = Response(currentRequest, this->_virtual_servers[currentClient.getPortNumber()]);
-			currentResponse.makeResponse(currentRequest, result);
+			if (!currentResponse.precheck(currentRequest))
+			{
+				event.events = EPOLLOUT;
+				if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_MOD, event.data.fd, &event) == -1)
+				{
+					this->closeClientSocket(event);
+					std::cerr << "Error Trying to switch socket from reading to writing" << std::endl;
+				}
+			}
 		}
 		else if (result == 200)
 		{
 			if (!currentResponse.serverSet())
+			{
 				currentResponse = Response(currentRequest, this->_virtual_servers[currentClient.getPortNumber()]);
-			currentResponse.makeResponse(currentRequest, result);
+				if (!currentResponse.precheck(currentRequest))
+				{
+					event.events = EPOLLOUT;
+					if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_MOD, event.data.fd, &event) == -1)
+					{
+						this->closeClientSocket(event);
+						std::cerr << "Error Trying to switch socket from reading to writing" << std::endl;
+					}
+					return ;
+				}
+			}
+			currentResponse.makeResponse(currentRequest);
 			if (currentRequest.getType() == std::string("PUT") && !currentResponse.getBodySize())
 			{
 				if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_DEL, event.data.fd, &event) == -1)
@@ -222,7 +242,8 @@ void	Server::readRequest(struct epoll_event & event)
 				return ;
 			}
 			currentResponse = Response(currentRequest, this->_virtual_servers[currentClient.getPortNumber()], result);
-			currentResponse.makeResponse(currentRequest, result);
+			// currentResponse.precheck
+			// currentResponse.makeResponse(currentRequest);
 			event.events = EPOLLOUT;
 			if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_MOD, event.data.fd, &event) == -1)
 			{
