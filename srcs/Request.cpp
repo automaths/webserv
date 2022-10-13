@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:32:13 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/12 16:57:25 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/12 21:19:29 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,12 @@ Request::Request(void): _type(""), _version(""), _file(""), _body(""), _buff("")
 }
 
 Request::Request(const Request & other): _type(other._type), _version(other._version), _file(other._file), _body(other._body), _headers(other._headers), _isbody(other._isbody), _bodysize(other._bodysize), _putfile(), _tmpfile() {
+}
+
+Request::~Request(void) {
+	if (_putfile.is_open()) {
+		unlink(_body.data());
+	}
 }
 
 Request & Request::operator=(const Request & other) {
@@ -232,7 +238,7 @@ int Request::parseHeaders(void) {
 		}
 	}
 	map = _headers.begin();
-	while (map != _headers.end()) {
+	while (map != _headers.end()) { 
 		std::cout << "Key :" << map->first << std::endl;
 		std::list<std::string>::iterator val = map->second.begin();
 		while (val != map->second.end()) {
@@ -271,9 +277,34 @@ std::string	checkopen(std::string str)
 	return (tmp);
 }
 
-void createPath(std::string & path) {
+int	rm(const char *fpath, const struct stat *buf, int typeflag, struct FTW *ftwbuf) {
+	(void)ftwbuf;
+	(void)buf;
+
+	std::cerr << "Fpath in rm : " << fpath << std::endl;
+
+	if (typeflag == FTW_DP) {
+		if (rmdir(fpath))
+			return (1);
+	} else {
+		if (unlink(fpath)) {
+			return (1);
+		}
+	}
+	return (0);
+}
+
+bool nuke(std::string & path) {
+	std::cerr << "Nuking : " << path << std::endl;
+	if (nftw(path.data(), &rm, 1, FTW_DEPTH))
+		return (false);
+	return (true);
+}
+
+int createPath(std::string & path) {
 	std::string	tmp = "";
 	int			i = 0;
+	struct		stat buf;
 
 	std::cerr << "Creating path : " << path << std::endl;
 	while (path != tmp && path.size() > tmp.size()) {
@@ -285,14 +316,22 @@ void createPath(std::string & path) {
 		std::cerr << "Tmp in createPath : " << tmp << std::endl;
 		i = path.find("/", i) + 1;
 	}
+	if (!access(path.data(), F_OK) && !stat(path.data(), &buf) && S_ISDIR(buf.st_mode)) {
+		if (nuke(path))
+			return (403);
+	} else if (access(path.data(), F_OK))
+		return (201);
 	unlink(path.data());
+	return (200);
 }
 
-bool Request::moveBody(std::string & path) {
+int Request::moveBody(std::string & path) {
 	char	buff[1048576];
+	int		code = 200;
 
 	if (!_putfile.is_open()) {
-		createPath(path);
+		if ((code = createPath(path)) == 403)
+			return (403);
 		_putfile.open(path.data(), std::ios::binary | std::ios::trunc);
 		_tmpfile.open(_body.data(), std::ios::binary);
 	}
@@ -302,9 +341,9 @@ bool Request::moveBody(std::string & path) {
 		_tmpfile.close();
 		_putfile.close();
 		unlink(_body.data());
-		return (true);
+		return (code);
 	}
-	return (false);
+	return (0);
 }
 
 void Request::parseBody(std::string & chunk) {
@@ -326,7 +365,7 @@ int Request::parseChunk(std::string & chunk) {
 		parseBody(chunk);
 		std::cerr << "Bodysize : " << _bodysize << std::endl;
 		if (_bodysize > 0) {
-			return (201);
+			return (0);
 		}
 		_putfile.close();
 		return (200);

@@ -6,7 +6,7 @@
 /*   By: tnaton <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/10/05 17:41:22 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/11 20:30:55 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/12 21:11:33 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,17 +27,18 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <ftw.h>
 
 class Request{
 
 	public:
 
-		Request();
+		Request(void);
 		Request(const Request &);
-		~Request(){};
+		~Request(void);
 		Request & operator=(const Request &);
 
-		bool		moveBody(std::string &);
+		int			moveBody(std::string &);
 		void		parseBody(std::string &);
 		int			parseHeaders(void);
 		int			parseChunk(std::string &);
