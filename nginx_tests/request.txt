@@ -1,5 +1,3 @@
-GET / HTTP/1.1 
-Host: www.example.com
-Connection: keep-alive
-
+GET /cgi/big.php HTTP/1.1 
+Host: default
 

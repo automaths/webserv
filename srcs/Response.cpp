@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/29 12:29:34 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/12 20:47:32 by nsartral         ###   ########.fr       */
+/*   Updated: 2022/10/13 14:01:45 by nsartral         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -219,10 +219,36 @@ bool	Response::foundDirectoryIndex(std::vector<std::string> indexes, std::string
 
 int Response::execCgi(std::string exec)
 {
-	_env.push_back("SCRIPT_FILENAME=" + _targetFilePath);
+	_env.push_back("SERVER_SOFTWARE=Webserv/1.0");
+	std::vector<std::string> server_name = _targetServer->getServerName();
+	std::string server_name_env;
+	server_name_env = "SERVER_NAME=";
+	for (std::vector<std::string>::iterator it = server_name.begin(); it != server_name.end(); ++it)
+	{
+		server_name_env += *it;
+		if (++it != server_name.end())
+			server_name_env += ":";
+		--it;
+	}
+	_env.push_back(server_name_env);
+	_env.push_back("SERVER_PROTOCOL=HTTP/1.1");
 	_env.push_back("SERVER_PORT=" + _targetServer->getPort());
+	// std::string
+
+
+
+
+	_env.push_back("SCRIPT_FILENAME=" + _targetFilePath);
     _env.push_back("PATH_INFO=" + exec);
     _env.push_back("REDIRECT_STATUS=1");
+	
+
+	
+
+
+
+
+
     Cgi test(_targetFilePath, exec, _env, _cgi_input);
 	return test.getResult();
 }
@@ -230,7 +256,7 @@ int Response::execCgi(std::string exec)
 void Response::cgiResponse(int fd)
 {
 	int size;
-	bool error_status = false;
+	bool no_send = false;
 	char buffer[1048576];
 	memset(buffer, 0, 1048576);
 	size = read(fd, &buffer, 1048576);
@@ -270,6 +296,7 @@ void Response::cgiResponse(int fd)
 				std::cout << "yay not done" << std::endl;
 				return;
 			}
+			no_send = 1;
 		}
 		if (cgiHeader.find("Status:") != std::string::npos)
 		{
@@ -277,7 +304,7 @@ void Response::cgiResponse(int fd)
 			std::string str = cgiHeader.substr(cgiHeader.find("Status:") + 7, cgiHeader.find("\r\n", cgiHeader.find("Status:")) - 7);
 			str.erase(0, str.find_first_of("0123456789"));
 			if (atoi(str.substr(0, str.find_first_not_of("0123456789")).c_str()) > 399)
-				error_status = true;
+				no_send = true;
 			cgiHeader.erase(cgiHeader.find("Status:"), cgiHeader.find("\r\n", cgiHeader.find("Status:")) + 2);
 		}
 		else
@@ -288,16 +315,16 @@ void Response::cgiResponse(int fd)
 			header << "Content-type: " << MimeTypes().convert( _targetFilePath.substr(_targetFilePath.find_last_of("."))) << "\r\n";
 		if (cgiHeader.find("Content-size:") != std::string::npos)
 			cgiHeader.erase(cgiHeader.find("Content-size:"), cgiHeader.find("\r\n", cgiHeader.find("Content-size:")) + 2);
-		if (error_status)
+		if (no_send)
 			header << "Connection: close\r\n";
 		else
 			header << "Connection: keep-alive\r\n";
-		if (!error_status)
+		if (!no_send)
 			header << "Transfer-Encoding: chunked\r\n";
 		header << "\r\n";
 		_header = header.str();
 		_headerSize = _header.size();
-		if (error_status)
+		if (no_send)
 		{
 			_body.clear();
 			_bodySize = 0;
