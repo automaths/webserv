@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tnaton <marvin@42.fr>                      +#+  +:+       +#+        */
+/*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/10/05 17:41:22 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/13 14:37:40 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/13 20:50:21 by nsartral         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,6 +48,7 @@ class Request{
 		std::string	getVersion(void) const;
 		std::string	getFile(void) const;
 		std::string	getBody(void) const;
+		std::string getQuery() const;
 		std::map<std::string, std::list<std::string> >	getHeaders(void) const;
 		std::vector<std::pair<int, int> >				getRange(int);
 

@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/29 12:29:34 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/13 19:31:06 by nsartral         ###   ########.fr       */
+/*   Updated: 2022/10/13 21:28:02 by nsartral         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,33 +18,33 @@
 #include <iostream>
 #include <unistd.h>
 
-Response::Response(void): _header(), _headerSize(), _body(), _bodySize(), _targetFile(), _targetFilePath(""), _headerSent(false), _chunked(false), _over(false), _fileConsumed(false), _close(false), _req(NULL), _targetServer(NULL), _targetLocation(NULL), _responseType(0), _is_cgi(false), _cgi_fd(-1), _cgi_input(-1)
+Response::Response(void): _header(), _headerSize(), _body(), _bodySize(), _targetFile(), _targetFilePath(""), _headerSent(false), _chunked(false), _over(false), _fileConsumed(false), _close(false), _req(NULL), _targetServer(NULL), _targetLocation(NULL), _responseType(0), _is_cgi(false), _cgi_fd(-1), _cgi_input(-1), _root(""), _extension("")
 {
 	return ;
 }
 
-std::vector<std::string> parseEnv(Request & req) {
-	std::vector<std::string>	env;
-	std::map<std::string, std::list<std::string> > map = req.getHeaders();
-	std::map<std::string, std::list<std::string> >::iterator tmp = map.begin();
-	std::string					val;
+// std::vector<std::string> parseEnv(Request & req) {
+// 	std::vector<std::string>	env;
+// 	std::map<std::string, std::list<std::string> > map = req.getHeaders();
+// 	std::map<std::string, std::list<std::string> >::iterator tmp = map.begin();
+// 	std::string					val;
 
-	env.push_back("REQUEST_METHOD=" + req.getType());
-	env.push_back("SERVER_PROTOCOL=" + req.getVersion());
-	while (tmp != map.end()) {
-		val = "";
-		std::list<std::string>::iterator i = (*tmp).second.begin(); 
-		while (i != (*tmp).second.end()) {
-			val += *i;
-			i++;
-			if (i != (*tmp).second.end())
-				val += ",";
-		}
-		env.push_back("HTTP_" + (*tmp).first + "=" + val);
-		tmp++;
-	}
-	return (env);	
-}
+// 	env.push_back("REQUEST_METHOD=" + req.getType());
+// 	env.push_back("SERVER_PROTOCOL=" + req.getVersion());
+// 	while (tmp != map.end()) {
+// 		val = "";
+// 		std::list<std::string>::iterator i = (*tmp).second.begin(); 
+// 		while (i != (*tmp).second.end()) {
+// 			val += *i;
+// 			i++;
+// 			if (i != (*tmp).second.end())
+// 				val += ",";
+// 		}
+// 		env.push_back("HTTP_" + (*tmp).first + "=" + val);
+// 		tmp++;
+// 	}
+// 	return (env);	
+// }
 
 void	Response::closeCgiFd(void)
 {
@@ -55,7 +55,7 @@ void	Response::closeCgiFd(void)
 	}
 }
 
-Response::Response(Request & req, std::vector<ServerScope> & matches, int error): _header(), _headerSize(0), _body(), _bodySize(0), _targetFile(), _targetFilePath(""), _headerSent(false), _chunked(false), _over(false), _fileConsumed(false), _close(false), _req(&req), _targetServer(NULL), _targetLocation(NULL), _responseType(0), _is_cgi(false), _cgi_fd(-1), _cgi_input(-1)
+Response::Response(Request & req, std::vector<ServerScope> & matches, int error): _header(), _headerSize(0), _body(), _bodySize(0), _targetFile(), _targetFilePath(""), _headerSent(false), _chunked(false), _over(false), _fileConsumed(false), _close(false), _req(&req), _targetServer(NULL), _targetLocation(NULL), _responseType(0), _is_cgi(false), _cgi_fd(-1), _cgi_input(-1), _root(""), _extension("")
 {
 	std::map<std::string, std::list<std::string> >				headerMap = req.getHeaders();
 	std::map<std::string, std::list<std::string> >::iterator	host;
@@ -215,29 +215,62 @@ bool	Response::foundDirectoryIndex(std::vector<std::string> indexes, std::string
 
 int Response::execCgi(std::string exec)
 {
-	// _env.push_back("SERVER_SOFTWARE=Webserv/1.0");
-	// std::vector<std::string> server_name = _targetServer->getServerName();
-	// std::string server_name_env;
-	// server_name_env = "SERVER_NAME=";
-	// for (std::vector<std::string>::iterator it = server_name.begin(); it != server_name.end(); ++it)
-	// {
-	// 	server_name_env += *it;
-	// 	if (++it != server_name.end())
-	// 		server_name_env += ":";
-	// 	--it;
-	// }
-	// _env.push_back(server_name_env);
-	_env.push_back("SERVER_PROTOCOL=HTTP/1.1");
+	_env.push_back("SERVER_SOFTWARE=Webserv/1.0");
+	std::vector<std::string> server_name = _targetServer->getServerName();
+	std::string server_name_env;
+	server_name_env = "SERVER_NAME=";
+	for (std::vector<std::string>::iterator it = server_name.begin(); it != server_name.end(); ++it)
+	{
+		server_name_env += *it;
+		if (++it != server_name.end())
+			server_name_env += ":";
+		--it;
+	}
+	_env.push_back(server_name_env);
+	_env.push_back("SERVER_PROTOCOL=" + _req->getVersion());
 	_env.push_back("SERVER_PORT=" + _targetServer->getPort());
-	// char buff[100];
-	// std::string cwd = "DOCUMENT_ROOT=";
-	// cwd += getcwd(buff, 100);
-	// _env.push_back(cwd);
-	_env.push_back("REQUEST_METHOD=GET");//get the request method
+	char buff[100];
+	std::string cwd = "DOCUMENT_ROOT=";
+	cwd += getcwd(buff, 100);
+	_env.push_back(cwd);
+	_env.push_back("REQUEST_METHOD=" + _req->getType());
 	_env.push_back("SCRIPT_FILENAME=" + _cgi_file);
-    _env.push_back("PATH_INFO=" + exec);
+	_env.push_back("SCRIPT_NAME=" + _cgi_file);
+	_env.push_back("CONTENT_TYPE=" + MimeTypes().convert(_extension));
+	//CONTENT_LENGTH
+	_env.push_back("QUERY_STRING=" + _req->getQuery());
+    _env.push_back("PATH_INFO=" + _path_info);
+	// std::string tnp = "PATH_TRANSLATED=";
+	// tnp += getcwd(buff, 100);
+	// tnp += _path_info;
+	// _env.push_back(tnp);
+	_env.push_back("REQUEST_URI=" + _targetFilePath);
     _env.push_back("REDIRECT_STATUS=1");
-	std::cout << "THE CGI INPUT" << std::endl << "_cgi_file: " << _cgi_file << std::endl << "exec: " << exec << std::endl << "_cgi_input: " << _cgi_input << std::endl;
+	std::map<std::string, std::list<std::string> > map = _req->getHeaders();
+	std::map<std::string, std::list<std::string> >::iterator tmp = map.begin();
+	std::string	val;
+	std::string temp;
+	while (tmp != map.end()) {
+		val = "";
+		std::list<std::string>::iterator i = (*tmp).second.begin(); 
+		while (i != (*tmp).second.end()) {
+			val += *i;
+			i++;
+			if (i != (*tmp).second.end())
+				val += ",";
+		}
+		temp.clear();
+		for (unsigned int i = 0; i < (*tmp).first.size(); i++) {
+			temp.push_back(std::toupper((*tmp).first[i]));
+		}
+		_env.push_back("HTTP_" + temp + "=" + val);
+		tmp++;
+	}
+	std::cout << "THE ENVIRONMENT OF THE CGI" << std::endl;
+	for (std::vector<std::string>::iterator it = _env.begin(); it != _env.end(); ++it)
+	{
+		std::cout << *it << std::endl;
+	}
     Cgi test(_cgi_file, exec, _env, _cgi_input);
 	return test.getResult();
 }
@@ -332,22 +365,6 @@ std::string	Response::createFileResponse(void)
 	this->_responseType = 2;
 	if (this->_targetFilePath.find_last_of(".") != std::string::npos)
 		extension = this->_targetFilePath.substr(this->_targetFilePath.find_last_of("."));
-	// //cgi implementation
-	// _is_cgi = 0;
-	// _cgi_fd = -1;
-	// _cgi_input = -1; //to set to the target file in the case of a POST or PUT
-	// std::map<std::string, std::string> cgi = _targetServer->getCgi(); 
-	// for (std::map<std::string, std::string>::iterator it = cgi.begin(); it != cgi.end(); ++it)
-	// {
-	// 	if (!extension.compare(it->first))
-	// 	{
-	// 		std::cout << "extension " << extension << " match the config extension " << it->first << " associated to path " << it->second << std::endl;
-	// 		_is_cgi = 1;
-	// 		_cgi_fd = execCgi(it->second);
-	// 		return (extension);
-	// 	}
-	// }
-	// //end of implementation
 	extension = MimeTypes().convert(extension);
 	this->_body.reserve((this->_bodySize + 2));
 	if (this->_chunked)
@@ -471,7 +488,7 @@ bool	Response::precheck(Request & req)
 
 	if (this->_responseType == 1)
 		return (false) ;
-	_env = parseEnv(req); //delete to put into cgi function 
+	// _env = parseEnv(req); //delete to put into cgi function 
 	this->findLocation(this->_targetServer->getLocations(), req.getFile());
 	if ((this->_targetLocation && !allowedMethod(this->_targetLocation->getAllowMethod(), req.getType())) || (!this->_targetLocation && !allowedMethod(this->_targetServer->getAllowMethod(), req.getType())))
 		return (false);
@@ -553,32 +570,15 @@ bool	Response::isCgiPath()
 		return true;
 	_cgi_file.clear();
 	_path_info.clear();
-	std::string root;
 	if (_targetLocation)
-		root = _targetLocation->getRoot();
+		_root = _targetLocation->getRoot();
 	else
-		root = _targetServer->getRoot();
-
+		_root = _targetServer->getRoot();
 	std::string uri = _targetFilePath;
-
-	std::cout << "The root is: " << root << std::endl;
-	std::cout << "The uri is: " << std::endl;
-	// bool point = false;
-	// bool slash = false;
-    // if (uri.size() > 0 && uri[0] == '.')
-	// {
-    //     uri.erase(0, 1);
-	// 	point = true;
-	// }
-    // if (uri.size() > 0 && uri[0] == '/')
-	// {
-    //     uri.erase(0, 1);
-
-	// }
-
+	// std::cout << "The root is: " << root << std::endl;
+	// std::cout << "The uri is: " << std::endl;
     std::string tmp;
 	std::string copy = uri;
-
     while (copy.find('/') != std::string::npos)
     {
         tmp = _cgi_file;
@@ -611,12 +611,11 @@ bool	Response::isCgiPath()
     std::cout << "The file is: " << _cgi_file << std::endl;
     std::cout << "The path_info is: " << _path_info << std::endl;
 	std::map<std::string, std::string> cgi = _targetServer->getCgi(); 
-	std::string extension;
 	if (_cgi_file.find_last_of(".") != std::string::npos)
-		extension = _cgi_file.substr(_cgi_file.find_last_of("."));
+		_extension = _cgi_file.substr(_cgi_file.find_last_of("."));
 	for (std::map<std::string, std::string>::iterator it = cgi.begin(); it != cgi.end(); ++it)
 	{
-		if (!extension.compare(it->first))
+		if (!_extension.compare(it->first))
 		{
 			_is_cgi = 1;
 			return (true);
@@ -718,7 +717,7 @@ void	Response::makeResponse(Request & req)
 	}
 }
 
-Response::Response(Response const & src): _header(src._header), _headerSize(src._headerSize), _body(src._body), _bodySize(src._bodySize), _headerSent(src._headerSent), _chunked(src._chunked), _over(src._over), _fileConsumed(src._fileConsumed), _close(src._close), _req(src._req), _targetServer(src._targetServer), _targetLocation(src._targetLocation), _responseType(src._responseType), _is_cgi(src._is_cgi), _cgi_fd(src._cgi_fd)
+Response::Response(Response const & src): _header(src._header), _headerSize(src._headerSize), _body(src._body), _bodySize(src._bodySize), _headerSent(src._headerSent), _chunked(src._chunked), _over(src._over), _fileConsumed(src._fileConsumed), _close(src._close), _req(src._req), _targetServer(src._targetServer), _targetLocation(src._targetLocation), _responseType(src._responseType), _is_cgi(src._is_cgi), _cgi_fd(src._cgi_fd), _cgi_input(-1), _root(""), _extension("")
 {
 	return ;
 }

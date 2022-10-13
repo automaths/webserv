@@ -59,3 +59,5 @@ void Cgi::print_inputs() {
     while (_envp[i] != NULL)
         printf("the envp is: %s\n", _envp[i++]);
 }
+
+//add getQuery to request

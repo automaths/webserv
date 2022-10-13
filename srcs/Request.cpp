@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:32:13 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/13 15:39:06 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/13 20:51:43 by nsartral         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -188,6 +188,8 @@ int Request::checkType(std::string & type) {
 	_file = parseFile(_file);
 	return (0);
 }
+
+std::string Request::getQuery() const { return _query; }
 
 int ft_atoi(std::string & str) {
 	if (str.size() >= 10) {
