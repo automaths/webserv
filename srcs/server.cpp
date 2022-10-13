@@ -203,11 +203,6 @@ void	Server::readRequest(struct epoll_event & event)
 					this->closeClientSocket(event);
 					return ;
 				}
-				// for (std::map<int, int>::iterator st = this->_cgi_pipes.begin(); st != this->_cgi_pipes.end(); st++)
-				// {
-				// 	std::cerr << "pipe: " << st->first << " socket fd: " << st->second << std::endl;
-				// }
-				// std::cerr << "Socket FD after pipe: " << currentClient.getSocketFD() << std::endl;
 			}
 			else
 			{
@@ -287,19 +282,17 @@ void	Server::sendBody(struct epoll_event & event, Client & currentClient)
 	}
 	else if (currentResponse.isCgi() && !currentResponse.getBodySize())
 	{
-		struct epoll_event ev;
-
-		std::memset(&ev, '\0', sizeof(struct epoll_event));
+		std::memset(&(this->_tmpEv), '\0', sizeof(struct epoll_event));
 		if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_DEL, event.data.fd, &event) == -1)
 		{
 			this->_cgi_pipes.erase(currentResponse.getCgiFd());
 			this->closeClientSocket(event);
 			return ;
 		}
-		ev.events = EPOLLIN;
-		ev.data.fd = currentResponse.getCgiFd();
+		this->_tmpEv.events = EPOLLIN;
+		this->_tmpEv.data.fd = currentResponse.getCgiFd();
 		this->_cgi_pipes[currentResponse.getCgiFd()] = event.data.fd;
-		if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_ADD, ev.data.fd, &ev) == -1)
+		if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_ADD, this->_tmpEv.data.fd, &(this->_tmpEv)) == -1)
 		{
 			perror("");
 			this->_cgi_pipes.erase(currentResponse.getCgiFd());

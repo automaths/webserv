@@ -17,7 +17,7 @@
 #include <istream>
 #include <iostream>
 
-Response::Response(void): _header(), _headerSize(), _body(), _bodySize(), _targetFile(), _targetFilePath(""), _headerSent(false), _over(false), _fileConsumed(false), _close(false), _targetServer(NULL), _responseType(0), _is_cgi(false), _cgi_fd(-1)
+Response::Response(void): _header(), _headerSize(), _body(), _bodySize(), _targetFile(), _targetFilePath(""), _headerSent(false), _chunked(false), _over(false), _fileConsumed(false), _close(false), _targetServer(NULL), _targetLocation(NULL), _responseType(0), _is_cgi(false), _cgi_fd(-1)
 {
 	return ;
 }
@@ -54,18 +54,10 @@ void	Response::closeCgiFd(void)
 	}
 }
 
-Response::Response(Request & req, std::vector<ServerScope> & matches, int error): _header(), _headerSize(0), _body(), _bodySize(0), _targetFile(), _targetFilePath(""), _headerSent(false), _over(false), _fileConsumed(false), _close(false), _targetServer(NULL), _responseType(0), _is_cgi(false), _cgi_fd(-1)
+Response::Response(Request & req, std::vector<ServerScope> & matches, int error): _header(), _headerSize(0), _body(), _bodySize(0), _targetFile(), _targetFilePath(""), _headerSent(false), _chunked(false), _over(false), _fileConsumed(false), _close(false), _targetServer(NULL), _targetLocation(NULL), _responseType(0), _is_cgi(false), _cgi_fd(-1)
 {
 	std::map<std::string, std::list<std::string> >				headerMap = req.getHeaders();
 	std::map<std::string, std::list<std::string> >::iterator	host;
-/*	for (std::map<std::string, std::list<std::string> >::iterator st = headerMap.begin(); st != headerMap.end(); st++)
-	{
-		std::cerr << "Key: " << (*st).first << std::endl;
-		for (std::list<std::string>::iterator first = (*st).second.begin(); first != (*st).second.end(); first++)
-		{
-			std::cerr << "Val: " << *first << std::endl;
-		}
-	}*/
 	if (error)
 		errorResponse(error);
 	else
@@ -79,26 +71,27 @@ Response::Response(Request & req, std::vector<ServerScope> & matches, int error)
 	return ;
 }
 
-bool	Response::findLocation(LocationScope *loc, std::vector<LocationScope> locations, std::string uri)
+bool	Response::findLocation(std::vector<LocationScope> & locations, std::string uri)
 {
 	std::string					path;
 	std::size_t					max_depth = 0;
 	std::size_t					depth;
 	std::string::size_type		index = 0;
 
-	std::cerr << "URI: " << uri << std::endl;
+	// std::cerr << "URI: " << uri << std::endl;
+	if (!locations.size())
+		return (false);
 	for (std::vector<LocationScope>::iterator st = locations.begin(); st != locations.end(); st++)
 	{
 		depth = 0;
 		path = st->getMainPath();
-		if (path.find(" ") == 0)
-			path.erase(0, path.find_first_not_of("\t\n\r\v\f "));
-		if (path.find_last_of("\t\n\r\v\f ") == (path.size() - 1))
-			path.erase((path.find_last_not_of("\t\n\r\v\f ") + 1));
-		std::cerr << "|" << path << "|" << std::endl;
+		// if (path.find(" ") == 0)
+		// 	path.erase(0, path.find_first_not_of("\t\n\r\v\f "));
+		// if (path.find_last_of("\t\n\r\v\f ") == (path.size() - 1))
+		// 	path.erase((path.find_last_not_of("\t\n\r\v\f ") + 1));
+		// std::cerr << "|" << path << "|" << std::endl;
 		if (uri.find(path) == 0)
 		{
-			std::cerr << "Good" << std::endl;
 			while ((index = path.find("/")) != std::string::npos)
 			{
 				path.erase(index, 1);
@@ -107,19 +100,21 @@ bool	Response::findLocation(LocationScope *loc, std::vector<LocationScope> locat
 		}
 		if (depth > max_depth)
 		{
-			*loc = *st;
+			this->_targetLocation = &(*st);
 			max_depth = depth;
 		}
 		else if (depth && depth == max_depth)
 		{
-			if (st->getMainPath().size() > loc->getMainPath().size())
-				*loc = *st;
+			if (st->getMainPath().size() > this->_targetLocation->getMainPath().size())
+				this->_targetLocation = &(*st);
 		}
 	}
-	if (max_depth && loc->getLocations().size())
-		this->findLocation(loc, loc->getLocations(), uri);
 	if (max_depth)
+	{
+		if (this->_targetLocation->getLocations().size())
+			this->findLocation(this->_targetLocation->getLocations(), uri);
 		return (true);
+	}
 	return (false);
 }
 
@@ -317,6 +312,7 @@ std::string	Response::createFileResponse(void)
 	std::string			extension = "";
 	std::stringstream	size;
 
+	this->_responseType = 2;
 	if (this->_targetFilePath.find_last_of(".") != std::string::npos)
 		extension = this->_targetFilePath.substr(this->_targetFilePath.find_last_of("."));
 	//cgi implementation
@@ -336,7 +332,6 @@ std::string	Response::createFileResponse(void)
 	}
 	//end of implementation
 	extension = MimeTypes().convert(extension);
-	this->_responseType = 2;
 	this->_body.reserve((this->_bodySize + 2));
 	if (this->_chunked)
 	{
@@ -450,118 +445,70 @@ std::string &	Response::getTargetFile(void)
 	return (this->_targetFilePath);
 }
 
-void	Response::makeResponse(Request & req, int result)
+bool	Response::precheck(Request & req, int result)
 {
-	LocationScope		loc;
-	bool				hasLoc = false;
 	std::string			fullPath;
 	struct stat			buf;
-	std::string			extension;
+	bool				hasLoc = false;
 
 	if (this->_responseType == 1)
-		return ;
+		return (false) ;
 	_env = parseEnv(req);
-	this->_chunked = false;
-	// std::cerr << this->_targetServer->getRoot() << std::endl;
-	std::vector<LocationScope>	locations = this->_targetServer->getLocations();
-	if (locations.size())
-		hasLoc = this->findLocation(&loc, locations, req.getFile());
-	if ((hasLoc && !allowedMethod(loc.getAllowMethod(), req.getType())) || (!hasLoc && !allowedMethod(this->_targetServer->getAllowMethod(), req.getType())))
-		return;
-	if (hasLoc)
-		fullPath = loc.getRoot();
-	else
-		fullPath = this->_targetServer->getRoot();
-	if (fullPath.find("\t\n\r\v\f ") == 0)
-		fullPath.erase(0, fullPath.find_first_not_of("\t\n\r\v\f "));
-	if (fullPath.find_last_of("\t\n\r\v\f ") == (fullPath.size() - 1))
-		fullPath.erase((fullPath.find_last_not_of("\t\n\r\v\f ") + 1));
-	if (hasLoc)
+	this->findLocation(this->_targetServer->getLocations(), req.getFile());
+	if ((this->_targetLocation && !allowedMethod(this->_targetLocation->getAllowMethod(), req.getType())) || (!this->_targetLocation && !allowedMethod(this->_targetServer->getAllowMethod(), req.getType())))
+		return (false);
+	fullPath = this->_targetLocation ? this->_targetLocation->getRoot() : this->_targetServer->getRoot();
+	// if (fullPath.find("\t\n\r\v\f ") == 0)
+	// 	fullPath.erase(0, fullPath.find_first_not_of("\t\n\r\v\f "));
+	// if (fullPath.find_last_of("\t\n\r\v\f ") == (fullPath.size() - 1))
+	// 	fullPath.erase((fullPath.find_last_not_of("\t\n\r\v\f ") + 1));
+	if (this->_targetLocation)
 	{
 		std::string	partial_root = req.getFile();
-		partial_root.erase(0, loc.getMainPath().size());
+		partial_root.erase(0, this->_targetLocation->getMainPath().size());
 		fullPath += partial_root;
 	}
 	else
 		fullPath += req.getFile();
+	this->_targetFilePath = fullPath;
 	std::cerr << "Fully qualified path: ***" << fullPath << "***" << std::endl;
 	if (req.getType() == std::string("PUT"))
 	{
-		if (!canPUT(fullPath))
+		if (!canPUT(this->_targetFilePath))
 		{
-			if (hasLoc && loc.getDefaultErrorPage().find("404") != loc.getDefaultErrorPage().end())
-				fullPath = (loc.getDefaultErrorPage())["404"];
-			else if (!hasLoc && this->_targetServer->getDefaultErrorPage().find("404") != this->_targetServer->getDefaultErrorPage().end())
-				fullPath = (this->_targetServer->getDefaultErrorPage())["404"];
-			else
-			{
-				this->errorResponse(404);
-				return ;
-			}
-			_targetFilePath = fullPath;
-			if (!this->openFile(fullPath))
-			{
-				this->errorResponse(404);
-				return ;
-			}
-			extension = this->createFileResponse();
-			if (_is_cgi)
-				return ;
-			if (this->_responseType == 1)
-			{
-				this->errorResponse(500);
-				return ;
-			}
-			this->createFileErrorHeader(404, extension);
-			return ;
+			this->errorResponse(403);
+			return (false);
 		}
-		this->_targetFilePath = fullPath;
-		if (result == 201)
-			return ;
-		if (req.moveBody(fullPath))
+		return (true);
+	}
+	if (!pathIsValid(this->_targetFilePath, &buf))
+	{
+		this->errorResponse(404);
+		return (false);
+	}
+}
+
+void	Response::makeResponse(Request & req, int result)
+{
+	std::string			fullPath;
+	struct stat			buf;
+	std::string			extension;
+	int					ret;
+	
+	if (req.getType() == std::string("PUT"))
+	{
+		if ((ret = req.moveBody(this->_targetFilePath)))
 		{
 			std::cerr << "Finished moving file" << std::endl;
-			this->errorResponse(201);
+			this->errorResponse(ret);
 		}
 		return ;
 	}
-	if (!pathIsValid(fullPath, &buf))
-	{
-		if (hasLoc && loc.getDefaultErrorPage().find("404") != loc.getDefaultErrorPage().end())
-			fullPath = (loc.getDefaultErrorPage())["404"];
-		else if (!hasLoc && this->_targetServer->getDefaultErrorPage().find("404") != this->_targetServer->getDefaultErrorPage().end())
-			fullPath = (this->_targetServer->getDefaultErrorPage())["404"];
-		else
-		{
-			this->errorResponse(404);
-			return ;
-		}
-		_targetFilePath = fullPath;
-		if (!this->openFile(fullPath))
-		{
-			this->errorResponse(404);
-			return ;
-		}
-		extension = this->createFileResponse();
-		if (_is_cgi)
-			return ;
-		if (this->_responseType == 1)
-		{
-			this->errorResponse(500);
-			return ;
-		}
-		this->createFileErrorHeader(404, extension);
-		return ;
-	}
-	// std::cerr << "Exists" << std::endl;
 	if (S_ISDIR(buf.st_mode))
 	{
 		std::vector<std::string>	indexes;
-		if (hasLoc)
-			indexes = loc.getIndex();
-		else
-			indexes = this->_targetServer->getIndex();
-		if (foundDirectoryIndex(indexes, fullPath))
+		indexes = this->_targetLocation ? this->_targetLocation->getIndex() : this->_targetServer->getIndex();
+		if (foundDirectoryIndex(indexes, this->_targetFilePath))
 		{
 			if (result == 201)
 				return ;
@@ -610,30 +557,7 @@ void	Response::makeResponse(Request & req, int result)
 		}
 		else
 		{
-			if (hasLoc && loc.getDefaultErrorPage().find("404") != loc.getDefaultErrorPage().end())
-				fullPath = (loc.getDefaultErrorPage())["404"];
-			else if (!hasLoc && this->_targetServer->getDefaultErrorPage().find("404") != this->_targetServer->getDefaultErrorPage().end())
-				fullPath = (this->_targetServer->getDefaultErrorPage())["404"];
-			else
-			{
-				this->errorResponse(404);
-				return ;
-			}
-			_targetFilePath = fullPath;
-			if (!this->openFile(fullPath))
-			{
-				this->errorResponse(404);
-				return ;
-			}
-			extension = this->createFileResponse();
-			if (_is_cgi)
-				return ;
-			if (this->_responseType == 1)
-			{
-				this->errorResponse(500);
-				return ;
-			}
-			this->createFileErrorHeader(404, extension);
+			this->errorResponse(404);
 			return ;
 		}
 	}
@@ -642,30 +566,7 @@ void	Response::makeResponse(Request & req, int result)
 		this->_targetFilePath = fullPath;
 		if (access(fullPath.data(), F_OK | R_OK) != 0)
 		{
-			if (hasLoc && loc.getDefaultErrorPage().find("404") != loc.getDefaultErrorPage().end())
-				fullPath = (loc.getDefaultErrorPage())["404"];
-			else if (!hasLoc && this->_targetServer->getDefaultErrorPage().find("404") != this->_targetServer->getDefaultErrorPage().end())
-				fullPath = (this->_targetServer->getDefaultErrorPage())["404"];
-			else
-			{
-				this->errorResponse(404);
-				return ;
-			}
-			_targetFilePath = fullPath;
-			if (!this->openFile(fullPath))
-			{
-				this->errorResponse(404);
-				return ;
-			}
-			extension = this->createFileResponse();
-			if (_is_cgi)
-				return ;
-			if (this->_responseType == 1)
-			{
-				this->errorResponse(500);
-				return ;
-			}
-			this->createFileErrorHeader(404, extension);
+			this->errorResponse(404);
 			return ;
 		}
 		if (result == 201)
@@ -693,33 +594,10 @@ void	Response::makeResponse(Request & req, int result)
 			return;
 		}			
 	}
-	if (hasLoc && loc.getDefaultErrorPage().find("404") != loc.getDefaultErrorPage().end())
-		fullPath = (loc.getDefaultErrorPage())["404"];
-	else if (!hasLoc && this->_targetServer->getDefaultErrorPage().find("404") != this->_targetServer->getDefaultErrorPage().end())
-		fullPath = (this->_targetServer->getDefaultErrorPage())["404"];
-	else
-	{
-		this->errorResponse(404);
-		return ;
-	}
-	_targetFilePath = fullPath;
-	if (!this->openFile(fullPath))
-	{
-		this->errorResponse(404);
-		return ;
-	}
-	extension = this->createFileResponse();
-	if (_is_cgi)
-		return ;
-	if (this->_responseType == 1)
-	{
-		this->errorResponse(500);
-		return ;
-	}
-	this->createFileErrorHeader(404, extension);
+	this->errorResponse(404);
 }
 
-Response::Response(Response const & src): _header(src._header), _headerSize(src._headerSize), _body(src._body), _bodySize(src._bodySize), _headerSent(src._headerSent), _over(src._over), _fileConsumed(src._fileConsumed), _close(src._close), _targetServer(src._targetServer), _responseType(src._responseType), _is_cgi(src._is_cgi), _cgi_fd(src._cgi_fd)
+Response::Response(Response const & src): _header(src._header), _headerSize(src._headerSize), _body(src._body), _bodySize(src._bodySize), _headerSent(src._headerSent), _chunked(src._chunked), _over(src._over), _fileConsumed(src._fileConsumed), _close(src._close), _targetServer(src._targetServer), _targetLocation(src._targetLocation), _responseType(src._responseType), _is_cgi(src._is_cgi), _cgi_fd(src._cgi_fd)
 {
 	return ;
 }
@@ -749,10 +627,12 @@ Response &	Response::operator=(Response const & rhs)
 	this->_body = rhs._body;
 	this->_bodySize = rhs._bodySize;
 	this->_headerSent = rhs._headerSent;
+	this->_chunked = rhs._chunked;
 	this->_over = rhs._over;
 	this->_fileConsumed = rhs._fileConsumed;
 	this->_close = rhs._close;
 	this->_targetServer = rhs._targetServer;
+	this->_targetLocation = rhs._targetLocation;
 	this->_responseType = rhs._responseType;
 	this->_is_cgi = rhs._is_cgi;
 	this->_cgi_fd = rhs._cgi_fd;
@@ -763,15 +643,56 @@ void	Response::errorResponse(int error)
 {
 	std::stringstream	header;
 	std::stringstream	status;
+	std::stringstream	code;
 	std::string			body;
+	std::string			mime;
 
 	this->_responseType = 1;
 	this->_close = true;
+	code << error;
+	this->_targetFilePath.clear();
+	if (this->_targetLocation && this->_targetLocation->getDefaultErrorPage().find(code.str()) != this->_targetLocation->getDefaultErrorPage().end())
+		this->_targetFilePath = (this->_targetLocation->getDefaultErrorPage())[code.str()];
+	else if (!this->_targetLocation && this->_targetServer->getDefaultErrorPage().find(code.str()) != this->_targetServer->getDefaultErrorPage().end())
+		this->_targetFilePath = (this->_targetServer->getDefaultErrorPage())[code.str()];
+	if (this->_targetFilePath.size())
+	{
+		if (this->openFile(this->_targetFilePath))
+		{
+			mime = this->createFileResponse();
+			if (_is_cgi)
+				return ;
+			if (this->_responseType == 2)
+			{
+				this->createFileErrorHeader(error, mime);
+				return ;
+			}
+			else
+			{
+				this->_targetFile.close();
+				if (error != 500)
+				{
+					this->errorResponse(500);
+					return ;
+				}	
+			}
+		}
+		else
+		{
+			if (error != 404)
+			{
+				this->errorResponse(404);
+				return ;
+			}
+		}
+
+	}
 	switch (error)
 	{
 		case 201:
 			status << " 201 " << DEFAULT201STATUS;
 			body = DEFAULT201BODY;
+			break ;
 		case 400:
 			status << " 400 " << DEFAULT400STATUS;
 			body = DEFAULT400BODY;
@@ -830,26 +751,41 @@ void	Response::createFileErrorHeader(int errorCode, std::string mime)
 	this->_close = true;
 	switch (errorCode)
 	{
+		case 201:
+			status << " 201 " << DEFAULT201STATUS;
+			body = DEFAULT201BODY;
+			break ;
 		case 400:
 			status << " 400 " << DEFAULT400STATUS;
+			body = DEFAULT400BODY;
 			break ;
 		case 401:
 			status << " 401 " << DEFAULT401STATUS;
+			body = DEFAULT401BODY;
 			break ;
 		case 403:
 			status << " 403 " << DEFAULT403STATUS;
+			body = DEFAULT403BODY;
 			break ;
 		case 404:
 			status << " 404 " << DEFAULT404STATUS;
+			body = DEFAULT404BODY;
 			break;
 		case 405:
 			status << " 405 " << DEFAULT405STATUS;
+			body = DEFAULT405BODY;
 			break;
 		case 416:
 			status << " 416 " << DEFAULT416STATUS;
+			body = DEFAULT416BODY;
+			break;
+		case 500:
+			status << " 500 " << DEFAULT500STATUS;
+			body = DEFAULT500BODY;
 			break;
 		case 505:
 			status << " 505 " << DEFAULT505STATUS;
+			body = DEFAULT505BODY;
 			break ;
 		default:
 			header << "HTTP/1.1 400 " << "Oupsy daisy" << "\r\n";

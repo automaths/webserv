@@ -56,6 +56,7 @@ class Response
 		bool			getClose(void);
 		bool			getIsConsumed(void);
     std::vector<std::string>	getEnv(void) const;
+		bool			precheck(Request & req, int result);
 		void			makeResponse(Request & req, int result);
 		bool			isCgi(void);
 		int				getCgiFd(void);
@@ -77,6 +78,7 @@ class Response
 		bool			_fileConsumed;
 		bool			_close;
 		ServerScope*	_targetServer;
+		LocationScope*	_targetLocation;
 		char			_responseType;
 
 		//tmp of the fullPath string to use it in cgi function (in create response)
@@ -88,7 +90,7 @@ class Response
 		bool			getServer(std::string const & host, std::vector<ServerScope> & matches);
 
 		bool			canPUT(std::string fullPath);
-		bool			findLocation(LocationScope *loc, std::vector<LocationScope> locations, std::string uri);
+		bool			findLocation(std::vector<LocationScope> & locations, std::string uri);
 		bool			allowedMethod(std::vector<std::string> methods, std::string currentMethod);
 		bool			pathIsValid(std::string path, struct stat * buf);
 		bool			foundDirectoryIndex(std::vector<std::string> indexes, std::string path);
