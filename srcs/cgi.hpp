@@ -46,6 +46,7 @@ class Cgi {
         _target = targetFilePath;
         _exec = exec;
         _fd_input = fd_input;
+        // _fd_input = -1;
         _env = env;
         execving();
     }

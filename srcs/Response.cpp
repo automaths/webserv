@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/29 12:29:34 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/13 17:06:42 by nsartral         ###   ########.fr       */
+/*   Updated: 2022/10/13 19:31:06 by nsartral         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@
 #include <iostream>
 #include <unistd.h>
 
-Response::Response(void): _header(), _headerSize(), _body(), _bodySize(), _targetFile(), _targetFilePath(""), _headerSent(false), _chunked(false), _over(false), _fileConsumed(false), _close(false), _req(NULL), _targetServer(NULL), _targetLocation(NULL), _responseType(0), _is_cgi(false), _cgi_fd(-1)
+Response::Response(void): _header(), _headerSize(), _body(), _bodySize(), _targetFile(), _targetFilePath(""), _headerSent(false), _chunked(false), _over(false), _fileConsumed(false), _close(false), _req(NULL), _targetServer(NULL), _targetLocation(NULL), _responseType(0), _is_cgi(false), _cgi_fd(-1), _cgi_input(-1)
 {
 	return ;
 }
@@ -55,7 +55,7 @@ void	Response::closeCgiFd(void)
 	}
 }
 
-Response::Response(Request & req, std::vector<ServerScope> & matches, int error): _header(), _headerSize(0), _body(), _bodySize(0), _targetFile(), _targetFilePath(""), _headerSent(false), _chunked(false), _over(false), _fileConsumed(false), _close(false), _req(&req), _targetServer(NULL), _targetLocation(NULL), _responseType(0), _is_cgi(false), _cgi_fd(-1)
+Response::Response(Request & req, std::vector<ServerScope> & matches, int error): _header(), _headerSize(0), _body(), _bodySize(0), _targetFile(), _targetFilePath(""), _headerSent(false), _chunked(false), _over(false), _fileConsumed(false), _close(false), _req(&req), _targetServer(NULL), _targetLocation(NULL), _responseType(0), _is_cgi(false), _cgi_fd(-1), _cgi_input(-1)
 {
 	std::map<std::string, std::list<std::string> >				headerMap = req.getHeaders();
 	std::map<std::string, std::list<std::string> >::iterator	host;
@@ -215,29 +215,30 @@ bool	Response::foundDirectoryIndex(std::vector<std::string> indexes, std::string
 
 int Response::execCgi(std::string exec)
 {
-	_env.push_back("SERVER_SOFTWARE=Webserv/1.0");
-	std::vector<std::string> server_name = _targetServer->getServerName();
-	std::string server_name_env;
-	server_name_env = "SERVER_NAME=";
-	for (std::vector<std::string>::iterator it = server_name.begin(); it != server_name.end(); ++it)
-	{
-		server_name_env += *it;
-		if (++it != server_name.end())
-			server_name_env += ":";
-		--it;
-	}
-	_env.push_back(server_name_env);
+	// _env.push_back("SERVER_SOFTWARE=Webserv/1.0");
+	// std::vector<std::string> server_name = _targetServer->getServerName();
+	// std::string server_name_env;
+	// server_name_env = "SERVER_NAME=";
+	// for (std::vector<std::string>::iterator it = server_name.begin(); it != server_name.end(); ++it)
+	// {
+	// 	server_name_env += *it;
+	// 	if (++it != server_name.end())
+	// 		server_name_env += ":";
+	// 	--it;
+	// }
+	// _env.push_back(server_name_env);
 	_env.push_back("SERVER_PROTOCOL=HTTP/1.1");
 	_env.push_back("SERVER_PORT=" + _targetServer->getPort());
-	char buff[100];
-	std::string cwd = "DOCUMENT_ROOT=";
-	cwd += getcwd(buff, 100);
-	_env.push_back(cwd);
+	// char buff[100];
+	// std::string cwd = "DOCUMENT_ROOT=";
+	// cwd += getcwd(buff, 100);
+	// _env.push_back(cwd);
 	_env.push_back("REQUEST_METHOD=GET");//get the request method
-	_env.push_back("SCRIPT_FILENAME=" + _targetFilePath);
+	_env.push_back("SCRIPT_FILENAME=" + _cgi_file);
     _env.push_back("PATH_INFO=" + exec);
     _env.push_back("REDIRECT_STATUS=1");
-    Cgi test(_targetFilePath, exec, _env, _cgi_input);
+	std::cout << "THE CGI INPUT" << std::endl << "_cgi_file: " << _cgi_file << std::endl << "exec: " << exec << std::endl << "_cgi_input: " << _cgi_input << std::endl;
+    Cgi test(_cgi_file, exec, _env, _cgi_input);
 	return test.getResult();
 }
 
@@ -500,9 +501,18 @@ bool	Response::precheck(Request & req)
 	}
 	if (!pathIsValid(this->_targetFilePath, &buf))
 	{
-		//Check if is CGI, else throw 404 return true, iscgi = 1
-		this->errorResponse(404);
-		return (false);
+		_cgi_file.clear();
+		_path_info.clear();
+		_is_cgi = false;
+		_cgi_fd = -1;
+		_cgi_input = -1;
+		if (isCgiPath())
+			return (true);
+		else
+		{
+			this->errorResponse(404);
+			return (false);
+		}
 	}
 	if (S_ISDIR(buf.st_mode))
 	{
@@ -539,49 +549,67 @@ bool	Response::precheck(Request & req)
 
 bool	Response::isCgiPath()
 {
-	std::string uri;
-	_targetFile.read(&uri[0], 100000);
-    std::string tmp;
-	std::string tmp_root;
-	std::string copy;
-
+	if (_is_cgi == true)
+		return true;
+	_cgi_file.clear();
+	_path_info.clear();
 	std::string root;
 	if (_targetLocation)
 		root = _targetLocation->getRoot();
 	else
 		root = _targetServer->getRoot();
 
+	std::string uri = _targetFilePath;
+
+	std::cout << "The root is: " << root << std::endl;
 	std::cout << "The uri is: " << std::endl;
-	std::cout << "the targetfilepath is: " << _targetFilePath << std::endl;
-    if (uri.size() > 0 && uri[0] == '/')
-        uri.erase(0, 1);
+	// bool point = false;
+	// bool slash = false;
+    // if (uri.size() > 0 && uri[0] == '.')
+	// {
+    //     uri.erase(0, 1);
+	// 	point = true;
+	// }
+    // if (uri.size() > 0 && uri[0] == '/')
+	// {
+    //     uri.erase(0, 1);
+
+	// }
+
+    std::string tmp;
+	std::string copy = uri;
+
     while (copy.find('/') != std::string::npos)
     {
         tmp = _cgi_file;
         tmp += copy.substr(0, copy.find('/'));
-		tmp_root = root + "/" + tmp;
-        if (access(tmp_root.data(), F_OK) == -1)
+        if (access(tmp.data(), F_OK) == -1 && tmp.compare("/") != 0 && tmp.compare("./") != 0 && tmp.size() > 0)
         {
             std::cout << "cant access " << tmp << std::endl;
             break;
         }
         _cgi_file += copy.substr(0, copy.find('/') + 1);
-        copy.erase(0, copy.find('/') + 1);
+        copy.erase(0, copy.find('/'));
+		if (copy.size() > 0)
+			copy.erase(0, 1);
     }
     if (_cgi_file.size() != uri.size())
     {
         tmp = _cgi_file;
         tmp += copy;
-		tmp_root = root + "/" + tmp;
-        if (access(tmp_root.data(), F_OK) != -1)
+        if (access(tmp.data(), F_OK) != -1)
             _cgi_file += copy;
+		else
+		{
+			if (_cgi_file.size() > 0)
+				_cgi_file.erase(_cgi_file.size() - 1, 1);
+		}
     }
 	_path_info = uri.substr(_cgi_file.size(), uri.size() - _cgi_file.size());
+	// if (point == true)
+	// 	_cgi_file = "." + _cgi_file;
     std::cout << "The file is: " << _cgi_file << std::endl;
     std::cout << "The path_info is: " << _path_info << std::endl;
-	_is_cgi = 0;
-	_cgi_fd = -1;
-	_cgi_input = -1; //to set to the target file in the case of a POST or PUT
 	std::map<std::string, std::string> cgi = _targetServer->getCgi(); 
 	std::string extension;
 	if (_cgi_file.find_last_of(".") != std::string::npos)
@@ -590,10 +618,7 @@ bool	Response::isCgiPath()
 	{
 		if (!extension.compare(it->first))
 		{
-			std::cout << "extension " << extension << " match the config extension " << it->first << " associated to path " << it->second << std::endl;
 			_is_cgi = 1;
-			_cgi_fd = execCgi(it->second);
-			std::cout << "Execution of the cgi" << std::endl;
 			return (true);
 		}
 	}
@@ -643,7 +668,21 @@ void	Response::makeResponse(Request & req)
 	}
 	else if (isCgiPath())
 	{
-		;
+		std::map<std::string, std::string> cgi = _targetServer->getCgi(); 
+		std::string extension;
+		if (_cgi_file.find_last_of(".") != std::string::npos)
+			extension = _cgi_file.substr(_cgi_file.find_last_of("."));
+		for (std::map<std::string, std::string>::iterator it = cgi.begin(); it != cgi.end(); ++it)
+		{
+			if (!extension.compare(it->first))
+			{
+				std::cout << "extension " << extension << " match the config extension " << it->first << " associated to path " << it->second << std::endl;
+				std::cout << "Execution of the cgi" << std::endl;
+				_cgi_fd = execCgi(it->second);
+				std::cout << "the cgi_fd is: " << _cgi_fd << std::endl;
+				return ;
+			}
+		}
 	}
 	else
 	{
