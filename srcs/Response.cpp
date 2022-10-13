@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/29 12:29:34 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/13 14:01:45 by nsartral         ###   ########.fr       */
+/*   Updated: 2022/10/13 15:04:17 by nsartral         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@
 #include <fstream>
 #include <istream>
 #include <iostream>
+#include <unistd.h>
 
 Response::Response(void): _header(), _headerSize(), _body(), _bodySize(), _targetFile(), _targetFilePath(""), _headerSent(false), _over(false), _fileConsumed(false), _close(false), _targetServer(NULL), _responseType(0), _is_cgi(false), _cgi_fd(-1)
 {
@@ -233,22 +234,14 @@ int Response::execCgi(std::string exec)
 	_env.push_back(server_name_env);
 	_env.push_back("SERVER_PROTOCOL=HTTP/1.1");
 	_env.push_back("SERVER_PORT=" + _targetServer->getPort());
-	// std::string
-
-
-
-
+	char buff[100];
+	std::string cwd = "DOCUMENT_ROOT=";
+	cwd += getcwd(buff, 100);
+	_env.push_back(cwd);
+	_env.push_back("REQUEST_METHOD=GET");//get the request method
 	_env.push_back("SCRIPT_FILENAME=" + _targetFilePath);
     _env.push_back("PATH_INFO=" + exec);
     _env.push_back("REDIRECT_STATUS=1");
-	
-
-	
-
-
-
-
-
     Cgi test(_targetFilePath, exec, _env, _cgi_input);
 	return test.getResult();
 }
