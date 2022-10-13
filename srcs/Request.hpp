@@ -6,7 +6,7 @@
 /*   By: tnaton <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/10/05 17:41:22 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/12 21:11:33 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/13 14:37:40 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 #define POST "POST"
 #define PUT "PUT"
 #define DELETE "DELETE"
+#define HEAD "HEAD"
 #include <string>
 #include <map>
 #include <vector>
@@ -66,4 +67,5 @@ class Request{
 		int				_bodysize;
 		std::ofstream	_putfile;
 		std::ifstream	_tmpfile;
+		std::string		_query;
 };

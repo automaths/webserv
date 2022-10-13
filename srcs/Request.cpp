@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:32:13 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/12 21:19:29 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/13 15:25:09 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,10 +15,10 @@
 #define NOT_OLD _version!="HTTP/1.0"
 #define NOT_NEW _version!="HTTP/1.1"
 
-Request::Request(void): _type(""), _version(""), _file(""), _body(""), _buff(""), _headers(), _isbody(false), _bodysize(-1), _putfile(), _tmpfile() {
+Request::Request(void): _type(""), _version(""), _file(""), _body(""), _buff(""), _headers(), _isbody(false), _bodysize(-1), _putfile(), _tmpfile(), _query("") {
 }
 
-Request::Request(const Request & other): _type(other._type), _version(other._version), _file(other._file), _body(other._body), _headers(other._headers), _isbody(other._isbody), _bodysize(other._bodysize), _putfile(), _tmpfile() {
+Request::Request(const Request & other): _type(other._type), _version(other._version), _file(other._file), _body(other._body), _headers(other._headers), _isbody(other._isbody), _bodysize(other._bodysize), _putfile(), _tmpfile(), _query(other._query) {
 }
 
 Request::~Request(void) {
@@ -37,6 +37,7 @@ Request & Request::operator=(const Request & other) {
 	_headers = other._headers;
 	_isbody = other._isbody;
 	_bodysize = other._bodysize;
+	_query = other._query;
 	return (*this);
 }
 
@@ -149,40 +150,41 @@ int Request::checkType(std::string & type) {
 	if (type.find(" ") == NPOS) {
 		return (1);
 	}
-	if (!type.find(GET) || !type.find(POST) || !type.find(DELETE) || !type.find(PUT)) {
-		i = type.find_first_of(" ");
-		_type = type.substr(0, i);
-		i = type.find_first_not_of(" ", i);
-		type.erase(0, i);
-		_file = type.substr(0, type.find_first_of(" "));
-		type.erase(0, _file.size());
-		type.erase(0, type.find_first_not_of(" "));
-		if (type.size()) {
-			_version = type.substr(0, type.find(" "));
-			type.erase(0, _version.size());
-			if (_version.size() < 6) {
-				return (1);
-			} if (_version.find("HTTP/")) {
-				return (1);
-			}
-			std::string tmp = _version.substr(5);
-			if (static_cast<std::string>("123456789").find(tmp[0]) == NPOS)
-				return (1);
-			if (tmp == "1")
-				return (1);
-			if (tmp.find_first_not_of("0123456789.") != NPOS)
-				return (1);
-			std::string tmp2 = tmp.substr(tmp.find(".") + 1);
-			if (tmp2 != tmp && (tmp2 == "" || tmp2.find_first_not_of("0123456789") != NPOS))
-				return (1);
-		}
-		_file = "/" + PercentDecoding(_file);
-		if (!_file.size())
+	i = type.find_first_of(" ");
+	_type = type.substr(0, i);
+	i = type.find_first_not_of(" ", i);
+	type.erase(0, i);
+	_file = type.substr(0, type.find_first_of(" "));
+	type.erase(0, _file.size());
+	type.erase(0, type.find_first_not_of(" "));
+	if (type.size()) {
+		_version = type.substr(0, type.find(" "));
+		type.erase(0, _version.size());
+		if (_version.size() < 6) {
 			return (1);
-		_file = parseFile(_file);
-		return (0);
+		} if (_version.find("HTTP/")) {
+			return (1);
+		}
+		std::string tmp = _version.substr(5);
+		if (static_cast<std::string>("123456789").find(tmp[0]) == NPOS)
+			return (1);
+		if (tmp == "1")
+			return (1);
+		if (tmp.find_first_not_of("0123456789.") != NPOS)
+			return (1);
+		std::string tmp2 = tmp.substr(tmp.find(".") + 1);
+		if (tmp2 != tmp && (tmp2 == "" || tmp2.find_first_not_of("0123456789") != NPOS))
+			return (1);
 	}
-	return (1);
+	if (_file.find("?") != NPOS) {
+		_query = _file.substr(_file.find("?") + 1, NPOS);
+		_file.erase(_file.find("?"), NPOS);
+	}
+	_file = "/" + PercentDecoding(_file);
+	if (!_file.size())
+		return (1);
+	_file = parseFile(_file);
+	return (0);
 }
 
 int ft_atoi(std::string & str) {
@@ -379,13 +381,16 @@ int Request::parseChunk(std::string & chunk) {
 				if (line != "") {
 					if (checkType(line)) {
 						return (400);
+					} else if (_type == HEAD) {
+						return (405);
+					} else if (!(_type == GET || _type == POST || _type == PUT || _type == DELETE))
+						return (501);
 					} else if (_version == "") {
 						return (200);
 					} else if (NOT_NEW && NOT_OLD) {
 						return (505);
 					}
 					break;
-				}
 			}
 			while (chunk.size());
 		}
