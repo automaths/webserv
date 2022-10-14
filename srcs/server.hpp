@@ -59,6 +59,7 @@ class Server {
 	void	sendBody(struct epoll_event & event, Client & currentClient);
 	void	closeClientSocket(struct epoll_event & event);
 	void	readPipe(struct epoll_event & event);
+	void	readToWrite(struct epoll_event & event, Client & currentClient, Request & currentRequest, Response & currentResponse);
 
     class SocketCreationException : public std::exception {virtual const char* what() const throw(){return ("An error occured during socket creation");}};
     class BindException : public std::exception {virtual const char* what() const throw(){return ("An error occured during bind");}};
