@@ -97,6 +97,7 @@ Request &	Client::getRequest(void)
 void	Client::resetRequest(void)
 {
 	Request	resetter;
+	std::cerr << "resetting Request" << std::endl;
 	this->_request = resetter;
 }
 

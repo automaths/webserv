@@ -742,10 +742,12 @@ Response &	Response::operator=(Response const & rhs)
 		return (*this);
 	if (this->_targetFile.is_open())
 		this->_targetFile.close();
+	this->closeCgiFd();
 	this->_header = rhs._header;
 	this->_headerSize = rhs._headerSize;
 	this->_body = rhs._body;
 	this->_bodySize = rhs._bodySize;
+	this->_targetFilePath = rhs._targetFilePath;
 	this->_headerSent = rhs._headerSent;
 	this->_chunked = rhs._chunked;
 	this->_over = rhs._over;
@@ -755,6 +757,7 @@ Response &	Response::operator=(Response const & rhs)
 	this->_targetServer = rhs._targetServer;
 	this->_targetLocation = rhs._targetLocation;
 	this->_responseType = rhs._responseType;
+	this->_cgi_file = rhs._cgi_file;
 	this->_is_cgi = rhs._is_cgi;
 	this->_cgi_fd = rhs._cgi_fd;
 	return (*this);

@@ -38,6 +38,7 @@ Request & Request::operator=(const Request & other) {
 	_isbody = other._isbody;
 	_bodysize = other._bodysize;
 	_query = other._query;
+	std::cerr << "After operator=: " << this->_type << ", " << this->_file << std::endl;
 	return (*this);
 }
 

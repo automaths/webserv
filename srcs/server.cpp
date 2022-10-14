@@ -354,6 +354,7 @@ void	Server::readPipe(struct epoll_event & event)
 	{
 		this->_cgi_pipes.erase(event.data.fd);
 		this->closeClientSocket(currentClient.getEvent());
+		return ;
 	}
 	std::cerr << "Socket FD: " << currentClient.getSocketFD() << std::endl;
 	currentClient.getEvent().events = EPOLLOUT;
@@ -362,6 +363,7 @@ void	Server::readPipe(struct epoll_event & event)
 	{
 		this->_cgi_pipes.erase(event.data.fd);
 		this->closeClientSocket(currentClient.getEvent());
+		return ;
 	}
 	// if (currentResponse.getIsConsumed())
 	// {
