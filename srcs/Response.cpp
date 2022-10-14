@@ -556,8 +556,8 @@ bool	Response::isCgiPath()
 	_path_info = uri.substr(_cgi_file.size(), uri.size() - _cgi_file.size());
 	// if (point == true)
 	// 	_cgi_file = "." + _cgi_file;
-    std::cout << "The file is: " << _cgi_file << std::endl;
-    std::cout << "The path_info is: " << _path_info << std::endl;
+    // std::cout << "The file is: " << _cgi_file << std::endl;
+    // std::cout << "The path_info is: " << _path_info << std::endl;
 	std::map<std::string, std::string> cgi = _targetServer->getCgi(); 
 	if (_cgi_file.find_last_of(".") != std::string::npos)
 		_extension = _cgi_file.substr(_cgi_file.find_last_of("."));
@@ -569,7 +569,7 @@ bool	Response::isCgiPath()
 			return (true);
 		}
 	}
-	std::cout << "No execution of cgi" << std::endl;
+	// std::cout << "No execution of cgi" << std::endl;
 	return (false);
 }
 

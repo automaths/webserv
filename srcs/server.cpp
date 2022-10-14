@@ -310,7 +310,26 @@ void	Server::sendResponse(struct epoll_event & event)
 	if (!currentClient.getResponse().headerIsSent())
 	{
 		if (this->sendHeader(event, currentClient))
-			this->sendBody(event, currentClient);
+		{
+			if (!currentClient.getResponse().getBodySize())
+			{
+				if (currentClient.getResponse().isCgi())
+				{
+					this->_cgi_pipes.erase(currentClient.getResponse().getCgiFd());
+					currentClient.getResponse().closeCgiFd();
+				}
+				if (currentClient.getResponse().getClose())
+					this->closeClientSocket(event);
+				else
+				{
+					currentClient.resetRequest();
+					currentClient.resetResponse();
+					event.events = EPOLLIN;
+					if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_MOD, event.data.fd, &event))
+						this->closeClientSocket(event);
+				}
+			}
+		}
 	}
 	else
 		this->sendBody(event, currentClient);

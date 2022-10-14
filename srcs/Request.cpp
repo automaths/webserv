@@ -133,7 +133,7 @@ std::string PercentDecoding(std::string uri) {
 			break;
 		}
 	}
-	std::cerr << "Decoded URI : " << ret << std::endl;
+	// std::cerr << "Decoded URI : " << ret << std::endl;
 	return (ret);
 }
 
