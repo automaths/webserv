@@ -244,8 +244,8 @@ bool Response::internalRedirect(std::string redirect)
 
 	_targetLocation = NULL;
 	std::cout << "REDIRECT" << redirect << std::endl;
-	while (redirect.find_first_of("\t\n\v\r\f ") != std::string::npos)
-		redirect.erase(redirect.find_first_of("\t\v\n\r\f ", 1));
+	// while (redirect.find_first_of("\t\n\v\r\f ") != std::string::npos)
+	// redirect.erase(redirect.find_first_of("\t\v\n\r\f ", 1));
 	_req->parseUri(redirect);
 	std::cout << "GETFILE" << _req->getFile() << std::endl;
 	findLocation(_targetServer->getLocations(), _req->getFile());
@@ -263,8 +263,8 @@ bool Response::internalRedirect(std::string redirect)
 	_targetFilePath = fullPath;
 	std::cout << "Checking the path for internal redirection: ///" << fullPath << "///" << std::endl;
 
-	// while (fullPath.find_first_of("\t\n\v\r\f ") != std::string::npos)
-	// 	fullPath.erase(fullPath.find_first_of("\t\v\n\r\f ", 1));
+	while (fullPath.find_first_of("\t\n\v\r\f ") != std::string::npos)
+		fullPath.erase(fullPath.find_first_of("\t\v\n\r\f ", 1));
 
 	if (access(fullPath.data(), F_OK) == 0)
 	{
@@ -483,6 +483,8 @@ bool	Response::precheck(Request & req)
 	std::string					fullPath;
 	struct stat					buf;
 
+	if (!this->_req)
+		this->_req = &req;
 	if (this->_responseType == 1)
 		return (false) ;
 	this->findLocation(this->_targetServer->getLocations(), req.getFile());
@@ -497,6 +499,8 @@ bool	Response::precheck(Request & req)
 	}
 	else
 		fullPath += req.getFile();
+	while (fullPath.find_first_of("\t\n\v\r\f ") != std::string::npos)
+		fullPath.erase(fullPath.find_first_of("\t\v\n\r\f ", 1));
 	this->_targetFilePath = fullPath;
 	std::cerr << "Fully qualified path: ***" << fullPath << "***" << std::endl;
 	if (req.getType() == std::string("PUT"))
