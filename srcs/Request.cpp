@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:32:13 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/14 15:28:46 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/14 18:37:58 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -308,6 +308,14 @@ bool nuke(std::string & path) {
 	return (true);
 }
 
+int del(std::string & path) {
+	if (access(path.data(), F_OK))
+		return (404);
+	if (nuke(path))
+		return (403);
+	return (200);
+}
+
 int createPath(std::string & path) {
 	std::string	tmp = "";
 	int			i = 0;
@@ -490,4 +498,16 @@ std::string Request::getBody(void) const {
 
 std::map<std::string, std::list<std::string> > Request::getHeaders(void) const {
 	return (_headers);
+}
+
+void Request::setQuery(std::string & str) {
+	_query = str;
+}
+
+void Request::setFile(std::string & str) {
+	_file = str;
+}
+
+void Request::setType(std::string & str) {
+	_type = str;
 }

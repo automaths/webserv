@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/10/05 17:41:22 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/14 18:14:08 by nsartral         ###   ########.fr       */
+/*   Updated: 2022/10/14 19:22:01 by nsartral         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,7 +48,10 @@ class Request{
 		std::string	getVersion(void) const;
 		std::string	getFile(void) const;
 		std::string	getBody(void) const;
-		std::string getQuery() const;
+		std::string	getQuery() const;
+		void		setQuery(std::string &);
+		void		setFile(std::string &);
+		void		setType(std::string &);
 		std::map<std::string, std::list<std::string> >	getHeaders(void) const;
 		std::vector<std::pair<int, int> >				getRange(int);
 
