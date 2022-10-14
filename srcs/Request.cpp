@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:32:13 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/14 18:37:58 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/14 19:44:15 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,6 @@ Request & Request::operator=(const Request & other) {
 	_isbody = other._isbody;
 	_bodysize = other._bodysize;
 	_query = other._query;
-	std::cerr << "After operator=: " << this->_type << ", " << this->_file << std::endl;
 	return (*this);
 }
 
@@ -57,7 +56,6 @@ std::string parseFile(std::string file) {
 	std::vector<std::string>::reverse_iterator	tmp;
 
 	while (file.size()) {
-		std::cout << "File in while : " << file << " with size : " << file.size() << std::endl;
 		if (file.find("/") != NPOS) {
 			v.push_back(file.substr(0, file.find("/") + 1));
 			file.erase(0, file.find("/") + 1);
@@ -73,32 +71,26 @@ std::string parseFile(std::string file) {
 
 	tmp = v.rbegin();
 	while (tmp != v.rend()) {
-		std::cout << "tmp : " << *tmp << std::endl;
 		ref = tmp + 1;
 		if (*tmp == ".." || *tmp == "/.." || *tmp == "../" || *tmp == "/../") {
 			v.erase(tmp.base());
 			count++;
 		} else if (count) {
-			std::cout << "To be erased : " << *tmp << std::endl;
 			v.erase(tmp.base());
-			std::cout << "To be erased : " << *tmp << std::endl;
 			count--;
 		}
 		tmp = ref;
-		std::cout << "count : " << count << std::endl;
 	}
 	if (count) {
 		file = "/";
 	} else {
 		while (v.size()) {
-			std::cout << "file in second while : " << file << std::endl;
 			file += v.front();
 			v.erase(v.begin());
 		}
 	}
 	if (!file.size())
 		file = "/";
-	std::cout << "file : " << file << std::endl;
 	return (file);
 }
 
@@ -145,6 +137,14 @@ std::string PercentDecoding(std::string uri) {
 	return (ret);
 }
 
+void Request::parseUri(std::string file) {
+	if (file.find("?") != NPOS) {
+		_query = file.substr(_file.find("?") + 1, NPOS);
+		file.erase(file.find("?"), NPOS);
+	}
+	_file = PercentDecoding(file);
+}
+
 int Request::checkType(std::string & type) {
 	unsigned long i = 0;
 
@@ -177,11 +177,7 @@ int Request::checkType(std::string & type) {
 		if (tmp2 != tmp && (tmp2 == "" || tmp2.find_first_not_of("0123456789") != NPOS))
 			return (1);
 	}
-	if (_file.find("?") != NPOS) {
-		_query = _file.substr(_file.find("?") + 1, NPOS);
-		_file.erase(_file.find("?"), NPOS);
-	}
-	_file = PercentDecoding(_file);
+	parseUri(_file);
 	if (_file[0] != '/')
 		_file = "/" + _file;
 	if (!_file.size())
@@ -244,16 +240,6 @@ int Request::parseHeaders(void) {
 			_headers.erase("range");
 		}
 	}
-	map = _headers.begin();
-	while (map != _headers.end()) { 
-		std::cout << "Key :" << map->first << std::endl;
-		std::list<std::string>::iterator val = map->second.begin();
-		while (val != map->second.end()) {
-			std::cout << "Val :" << *val << std::endl;
-			val++;
-		}
-		map++;
-	}
 	return (200);
 }
 
@@ -288,8 +274,6 @@ int	rm(const char *fpath, const struct stat *buf, int typeflag, struct FTW *ftwb
 	(void)ftwbuf;
 	(void)buf;
 
-	std::cerr << "Fpath in rm : " << fpath << std::endl;
-
 	if (typeflag == FTW_DP) {
 		if (rmdir(fpath))
 			return (1);
@@ -302,7 +286,6 @@ int	rm(const char *fpath, const struct stat *buf, int typeflag, struct FTW *ftwb
 }
 
 bool nuke(std::string & path) {
-	std::cerr << "Nuking : " << path << std::endl;
 	if (nftw(path.data(), &rm, 1, FTW_DEPTH))
 		return (false);
 	return (true);
@@ -321,14 +304,11 @@ int createPath(std::string & path) {
 	int			i = 0;
 	struct		stat buf;
 
-	std::cerr << "Creating path : " << path << std::endl;
 	while (path != tmp && path.size() > tmp.size()) {
 		if (access(tmp.data(), F_OK)) {
-			std::cerr << "Creating subdir : " << tmp << std::endl;
 			mkdir(tmp.data(), S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
 		}
 		tmp += path.substr(i, path.find("/", i) + 1 - i);
-		std::cerr << "Tmp in createPath : " << tmp << std::endl;
 		i = path.find("/", i) + 1;
 	}
 	if (!access(path.data(), F_OK) && !stat(path.data(), &buf) && S_ISDIR(buf.st_mode)) {
@@ -374,11 +354,8 @@ void Request::parseBody(std::string & chunk) {
 int Request::parseChunk(std::string & chunk) {
 	std::string line;
 
-	std::cerr << "Chunk in parsing : " << chunk << std::endl;
-
 	if (_isbody) {
 		parseBody(chunk);
-		std::cerr << "Bodysize : " << _bodysize << std::endl;
 		if (_bodysize > 0) {
 			return (0);
 		}
