@@ -1,4 +1,14 @@
-<?php setcookie( "testcookie", "", 0, "", "", false, true )?>
+<?php 
+if (!isset($_COOKIE["testcookie"]))
+{
+    echo $_COOKIE["testcookie"];
+}
+else
+{
+    echo "setting";
+    setcookie( "testcookie", "coucou", time() + (86400 * 30));
+}
+?>
 <!DOCTYPE html>
 <html>
 <body>
