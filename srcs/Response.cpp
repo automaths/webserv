@@ -56,18 +56,12 @@ bool	Response::findLocation(std::vector<LocationScope> & locations, std::string 
 	std::size_t					depth;
 	std::string::size_type		index = 0;
 
-	// std::cerr << "URI: " << uri << std::endl;
 	if (!locations.size())
 		return (false);
 	for (std::vector<LocationScope>::iterator st = locations.begin(); st != locations.end(); st++)
 	{
 		depth = 0;
 		path = st->getMainPath();
-		// if (path.find(" ") == 0)
-		// 	path.erase(0, path.find_first_not_of("\t\n\r\v\f "));
-		// if (path.find_last_of("\t\n\r\v\f ") == (path.size() - 1))
-		// 	path.erase((path.find_last_not_of("\t\n\r\v\f ") + 1));
-		// std::cerr << "|" << path << "|" << std::endl;
 		if (uri.find(path) == 0)
 		{
 			while ((index = path.find("/")) != std::string::npos)
@@ -164,7 +158,6 @@ bool	Response::openFile(std::string path)
 	else
 		this->_bodySize = buf.st_size;
 	this->_targetFilePath = path;
-	std::cerr << "Targeted file: " << path << std::endl;
 	return (true);
 }
 
@@ -180,7 +173,6 @@ bool	Response::foundDirectoryIndex(std::vector<std::string> indexes, std::string
 	for (std::vector<std::string>::iterator st = indexes.begin(); st != indexes.end(); st++)
 	{
 		tmpIndex = path + *st;
-		std::cerr << "Index path ***" << tmpIndex << "***" << std::endl;
 		if (access(tmpIndex.data(), F_OK | R_OK) == 0 && stat(tmpIndex.data(), &buf) != -1 && !S_ISDIR(buf.st_mode) && S_ISREG(buf.st_mode))
 		{
 			this->_targetFilePath = tmpIndex;
@@ -291,7 +283,6 @@ bool Response::cgiResponse(int fd)
 	size = read(fd, &buffer, 1048576);
 	if (size == 0)
 	{
-		std::cerr << "END OF PIPE" << std::endl;
 		_over = true;
 		_fileConsumed = true;
 		_body = std::string("0\r\n\r\n");
@@ -386,7 +377,6 @@ std::string	Response::createFileResponse(void)
 			return (extension);
 		}
 		this->_bodySize = this->_targetFile.gcount();
-		std::cerr << "Chunk size:" << this->_bodySize << std::endl;
 		this->_fileConsumed = false;
 		for (int i = 0; i < 15 ; i++)
 		{
@@ -395,7 +385,6 @@ std::string	Response::createFileResponse(void)
 		std::cout << std::endl;
 		size << std::hex << this->_bodySize;
 		size <<	"\r\n";
-		std::cerr << "HEX size " << size.str() << std::endl;
 		std::string	hex_size = size.str();
 		std::size_t	hex_length = size.str().size();
 		std::size_t	cpas = 0;
@@ -416,7 +405,6 @@ std::string	Response::createFileResponse(void)
 		this->_body[this->_bodySize] = '\r';
 		this->_body[this->_bodySize + 1] = '\n';
 		this->_bodySize +=  2;
-		std::cerr << "Chunk size " << this->_bodySize << std::endl;
 	}
 	else
 	{
@@ -429,7 +417,6 @@ std::string	Response::createFileResponse(void)
 		this->_bodySize = this->_targetFile.gcount();
 		if (this->_targetFile.eof())
 		{
-			std::cerr << "EOF" << std::endl;
 			this->_fileConsumed = true;
 			this->_targetFile.close();
 		}
@@ -466,7 +453,6 @@ bool	Response::canPUT(std::string fullPath)
 
 	while (((index = fullPath.find('/', current)) != std::string::npos))
 	{
-		std::cerr << "Position of /: " << index << std::endl;
 		if (access(fullPath.substr(0, index).data(), F_OK) == 0)
 		{
 			if (access(fullPath.substr(0, index).data(), W_OK) != 0)
@@ -479,7 +465,6 @@ bool	Response::canPUT(std::string fullPath)
 		current = index + 1;
 		if (current == fullPath.size())
 			break ;
-		std::cerr << "Position to begin search: " << current << std::endl;
 	}
 	return (ret);
 }
@@ -494,19 +479,13 @@ bool	Response::precheck(Request & req)
 	std::vector<std::string>	indexes;
 	std::string					fullPath;
 	struct stat					buf;
-	// bool						hasLoc = false;
 
 	if (this->_responseType == 1)
 		return (false) ;
-	// _env = parseEnv(req); //delete to put into cgi function 
 	this->findLocation(this->_targetServer->getLocations(), req.getFile());
 	if ((this->_targetLocation && !allowedMethod(this->_targetLocation->getAllowMethod(), req.getType())) || (!this->_targetLocation && !allowedMethod(this->_targetServer->getAllowMethod(), req.getType())))
 		return (false);
 	fullPath = this->_targetLocation ? this->_targetLocation->getRoot() : this->_targetServer->getRoot();
-	// if (fullPath.find("\t\n\r\v\f ") == 0)
-	// 	fullPath.erase(0, fullPath.find_first_not_of("\t\n\r\v\f "));
-	// if (fullPath.find_last_of("\t\n\r\v\f ") == (fullPath.size() - 1))
-	// 	fullPath.erase((fullPath.find_last_not_of("\t\n\r\v\f ") + 1));
 	if (this->_targetLocation)
 	{
 		std::string	partial_root = req.getFile();
@@ -516,16 +495,9 @@ bool	Response::precheck(Request & req)
 	else
 		fullPath += req.getFile();
 	this->_targetFilePath = fullPath;
-	std::cerr << "Fully qualified path: ***" << fullPath << "***" << std::endl;
+	// std::cerr << "Fully qualified path: ***" << fullPath << "***" << std::endl;
 	if (req.getType() == std::string("PUT"))
-	{
-		// if (!canPUT(this->_targetFilePath))
-		// {
-		// 	this->errorResponse(403);
-		// 	return (false);
-		// }
 		return (true);
-	}
 	if (!pathIsValid(this->_targetFilePath, &buf))
 	{
 		_cgi_file.clear();
@@ -551,7 +523,6 @@ bool	Response::precheck(Request & req)
 		}
 		else if (req.getType() == std::string("GET") && access(this->_targetFilePath.data(), R_OK) == 0)
 		{
-			std::cerr << "Is a directory, have to list" << std::endl;
 			this->_responseType = 3;
 			return (true);
 		}
@@ -618,8 +589,8 @@ bool	Response::isCgiPath()
 	_path_info = uri.substr(_cgi_file.size(), uri.size() - _cgi_file.size());
 	// if (point == true)
 	// 	_cgi_file = "." + _cgi_file;
-    std::cout << "The file is: " << _cgi_file << std::endl;
-    std::cout << "The path_info is: " << _path_info << std::endl;
+    // std::cout << "The file is: " << _cgi_file << std::endl;
+    // std::cout << "The path_info is: " << _path_info << std::endl;
 	std::map<std::string, std::string> cgi = _targetServer->getCgi(); 
 	if (_cgi_file.find_last_of(".") != std::string::npos)
 		_extension = _cgi_file.substr(_cgi_file.find_last_of("."));
@@ -631,7 +602,7 @@ bool	Response::isCgiPath()
 			return (true);
 		}
 	}
-	std::cout << "No execution of cgi" << std::endl;
+	// std::cout << "No execution of cgi" << std::endl;
 	return (false);
 }
 
@@ -644,10 +615,7 @@ void	Response::makeResponse(Request & req)
 	if (req.getType() == std::string("PUT"))
 	{
 		if ((ret = req.moveBody(this->_targetFilePath)))
-		{
-			std::cerr << "Finished moving file" << std::endl;
 			this->errorResponse(ret);
-		}
 	}
 	else if (this->_responseType == 3)
 	{
@@ -785,7 +753,6 @@ void	Response::errorResponse(int error)
 	this->_responseType = 1;
 	this->_close = true;
 	code << error;
-	std::cerr << "Error code: " << error  << std::endl;
 	this->_targetFilePath.clear();
 	if (this->_targetLocation && this->_targetLocation->getDefaultErrorPage().find(code.str()) != this->_targetLocation->getDefaultErrorPage().end())
 		this->_targetFilePath = (this->_targetLocation->getDefaultErrorPage())[code.str()];
@@ -800,9 +767,7 @@ void	Response::errorResponse(int error)
 				return ;
 			if (this->_responseType == 2)
 			{
-				std::cerr << "Creating file header" << std::endl;
 				this->createFileErrorHeader(error, mime);
-				std::cerr << "Header created: " << this->_header << std::endl;
 				return ;
 			}
 			else
@@ -1001,7 +966,6 @@ bool	Response::bodyBytesSent(std::size_t bytes)
 {
 	std::stringstream	size;
 
-	std::cerr << "bytes sent: " << bytes << ", body size: " << this->_bodySize << std::endl;
 	if (this->_bodySize <= bytes)
 	{
 		this->_body.clear();
@@ -1053,7 +1017,6 @@ bool	Response::bodyBytesSent(std::size_t bytes)
 			std::cout << std::endl;
 			size << std::hex << this->_bodySize;
 			size <<	"\r\n";
-			std::cerr << "HEX size " << size.str() << std::endl;
 			std::string	hex_size = size.str();
 			std::size_t	hex_length = size.str().size();
 			std::size_t	cpas = 0;
@@ -1074,7 +1037,6 @@ bool	Response::bodyBytesSent(std::size_t bytes)
 			this->_body[this->_bodySize] = '\r';
 			this->_body[this->_bodySize + 1] = '\n';
 			this->_bodySize +=  2;
-			std::cerr << "Chunk size " << this->_bodySize << std::endl;
 		}
 		else if (this->_responseType == 2 && !this->_fileConsumed && this->_targetFile.is_open())
 		{
@@ -1117,7 +1079,6 @@ bool	Response::getServer(std::string const & host, std::vector<ServerScope> & ma
 			if (*first == host)
 			{
 				this->_targetServer = &(*st);
-				std::cerr << "Found Server: " << *first << std::endl;
 				return (true);
 			}
 		}

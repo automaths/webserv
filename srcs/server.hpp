@@ -36,7 +36,8 @@ class Server {
     
 	bool										_filesMoving;
 	int											_epoll_fd;			//fd for epoll queue
-	char										_rdBuffer[READCHUNKSIZE + 1];	//Reading buffer
+	char*										_rdBuffer;			//Reading buffer
+	std::string									_rdBufferCpy;
 	std::map<int, std::vector<ServerScope> >	_virtual_servers;	//List of servers per ports
 	std::map<int, int>							_listen_sockets;	//Listening sockets: <fd, port>
 	std::map<int, Client>						_client_sockets;	//Accepted connections sockets: <fd, Client>

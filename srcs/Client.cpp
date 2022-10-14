@@ -53,7 +53,7 @@ struct epoll_event &	Client::getEvent(void)
 	return (this->_event);
 }
 
-void	Client::setEvent(struct epoll_event event)
+void	Client::setEvent(struct epoll_event & event)
 {
 	this->_event = event;
 }
@@ -97,7 +97,6 @@ Request &	Client::getRequest(void)
 void	Client::resetRequest(void)
 {
 	Request	resetter;
-	std::cerr << "resetting Request" << std::endl;
 	this->_request = resetter;
 }
 
