@@ -360,17 +360,21 @@ void	Server::readPipe(struct epoll_event & event)
 		this->_cgi_pipes.erase(event.data.fd);
 		if (!currentResponse.precheck(currentClient.getRequest()))
 		{
+			std::cerr << "Well that did not work" << std::endl;
 			currentClient.getEvent().events = EPOLLOUT;
 			currentClient.getEvent().data.fd = currentClient.getSocketFD();
 			if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_ADD, currentClient.getSocketFD(), &(currentClient.getEvent())) == -1)
-			{
-				this->_cgi_pipes.erase(event.data.fd);
 				this->closeClientSocket(currentClient.getEvent());
-				return ;
-			}
 			return ;
 		}
-		this->readToWrite(currentClient.getEvent(), currentClient, currentClient.getRequest(), currentResponse);
+		currentClient.getEvent().events = EPOLLIN;
+		currentClient.getEvent().data.fd = currentClient.getSocketFD();
+		if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_ADD, currentClient.getSocketFD(), &(currentClient.getEvent())) == -1)
+		{
+			this->closeClientSocket(currentClient.getEvent());
+			return ;
+		}
+		this->readToWrite(currentClient.getEvent(), currentClient, currentClient.getRequest(), currentClient.getResponse());
 		return ;
 	}
 	currentClient.getEvent().events = EPOLLOUT;
