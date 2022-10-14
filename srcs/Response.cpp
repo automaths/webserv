@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/29 12:29:34 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/14 21:17:28 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/14 21:38:51 by nsartral         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -244,8 +244,8 @@ bool Response::internalRedirect(std::string redirect)
 
 	_targetLocation = NULL;
 	std::cout << "REDIRECT" << redirect << std::endl;
-	// while (redirect.find_first_of("\t\n\v\r\f ") != std::string::npos)
-	// redirect.erase(redirect.find_first_of("\t\v\n\r\f ", 1));
+	while (redirect.find_first_of("\t\n\v\r\f ") != std::string::npos)
+		redirect.erase(redirect.find_first_of("\t\v\n\r\f ", 1));
 	_req->parseUri(redirect);
 	std::cout << "GETFILE" << _req->getFile() << std::endl;
 	findLocation(_targetServer->getLocations(), _req->getFile());
@@ -261,14 +261,12 @@ bool Response::internalRedirect(std::string redirect)
 	else
 		fullPath += _req->getFile();
 	_targetFilePath = fullPath;
-	std::cout << "Checking the path for internal redirection: ///" << fullPath << "///" << std::endl;
 
-	while (fullPath.find_first_of("\t\n\v\r\f ") != std::string::npos)
-		fullPath.erase(fullPath.find_first_of("\t\v\n\r\f ", 1));
+	// while (fullPath.find_first_of("\t\n\v\r\f ") != std::string::npos)
+	// 	fullPath.erase(fullPath.find_first_of("\t\v\n\r\f ", 1));
 
 	if (access(fullPath.data(), F_OK) == 0)
 	{
-		std::cout << "Checking the path for internal redirection: ///" << fullPath << "///" << std::endl;
 		std::cout << "THE ACCESS WORKS" << std::endl;
 		return (true);
 	}
@@ -756,6 +754,10 @@ Response &	Response::operator=(Response const & rhs)
 	this->_cgi_file = rhs._cgi_file;
 	this->_is_cgi = rhs._is_cgi;
 	this->_cgi_fd = rhs._cgi_fd;
+	this->_path_info = rhs._path_info;
+	this->_cgi_input = rhs._cgi_input;
+	this->_root = rhs._root;
+	this->_extension = rhs._extension;
 	return (*this);
 }
 
