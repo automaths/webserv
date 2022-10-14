@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/10/05 17:41:22 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/13 20:50:21 by nsartral         ###   ########.fr       */
+/*   Updated: 2022/10/14 15:24:16 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,7 +62,6 @@ class Request{
 		std::string		_version;
 		std::string		_file;
 		std::string		_body;
-		std::string		_buff;
 		std::map<std::string, std::list<std::string> > _headers;
 		bool			_isbody;
 		int				_bodysize;
