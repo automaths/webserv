@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/29 12:29:34 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/14 21:09:48 by nsartral         ###   ########.fr       */
+/*   Updated: 2022/10/14 21:38:51 by nsartral         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -754,6 +754,10 @@ Response &	Response::operator=(Response const & rhs)
 	this->_cgi_file = rhs._cgi_file;
 	this->_is_cgi = rhs._is_cgi;
 	this->_cgi_fd = rhs._cgi_fd;
+	this->_path_info = rhs._path_info;
+	this->_cgi_input = rhs._cgi_input;
+	this->_root = rhs._root;
+	this->_extension = rhs._extension;
 	return (*this);
 }
 
