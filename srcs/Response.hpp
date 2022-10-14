@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/29 12:26:22 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/13 20:46:00 by nsartral         ###   ########.fr       */
+/*   Updated: 2022/10/14 19:16:19 by nsartral         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,9 +62,10 @@ class Response
 		int				getCgiFd(void);
 		void			closeCgiFd(void);
 		int				execCgi(std::string exec);
-		void			cgiResponse(int fd);
+		bool			cgiResponse(int fd);
 
 		bool			isCgiPath();
+		bool			internalRedirect(std::string redirect);
 
 	private:
 		std::vector<std::string>	_env;
