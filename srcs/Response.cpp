@@ -32,7 +32,7 @@ void	Response::closeCgiFd(void)
 	}
 }
 
-Response::Response(Request & req, std::vector<ServerScope> & matches, int error): _env(), _header(""), _headerSize(0), _body(""), _bodySize(0), _targetFile(), _targetFilePath(""), _headerSent(false), _chunked(false), _over(false), _fileConsumed(false), _close(false), _req(&req), _targetServer(NULL), _targetLocation(NULL), _responseType(0), _is_cgi(false), _cgi_file(""), _path_info(""), _is_cgi(false), _cgi_fd(-1), _cgi_input(-1), _root(""), _extension("")
+Response::Response(Request & req, std::vector<ServerScope> & matches, int error): _env(), _header(""), _headerSize(0), _body(""), _bodySize(0), _targetFile(), _targetFilePath(""), _headerSent(false), _chunked(false), _over(false), _fileConsumed(false), _close(false), _req(&req), _targetServer(NULL), _targetLocation(NULL), _responseType(0), _cgi_file(""), _path_info(""), _is_cgi(false), _cgi_fd(-1), _cgi_input(-1), _root(""), _extension("")
 {
 	std::map<std::string, std::list<std::string> >				headerMap = req.getHeaders();
 	std::map<std::string, std::list<std::string> >::iterator	host;
@@ -670,7 +670,16 @@ void	Response::makeResponse(Request & req)
 			{
 				std::cout << "extension " << extension << " match the config extension " << it->first << " associated to path " << it->second << std::endl;
 				std::cout << "Execution of the cgi" << std::endl;
-				_cgi_fd = execCgi(it->second);
+				try
+				{
+					_cgi_fd = execCgi(it->second);
+				}
+				catch (std::exception const & e)
+				{
+					_is_cgi = 0;
+					this->errorResponse(500);
+					return ;
+				}
 				std::cout << "the cgi_fd is: " << _cgi_fd << std::endl;
 				return ;
 			}

@@ -340,11 +340,19 @@ void	Server::sendResponse(struct epoll_event & event)
 
 void	Server::readPipe(struct epoll_event & event)
 {
+	if (this->_cgi_pipes.find(event.data.fd) != this->_cgi_pipes.end())
+	{
+		if (this->_client_sockets.find(this->_cgi_pipes[event.data.fd]) == this->_client_sockets.end())
+			return ;
+	}
+	else
+		return ;
 	bool			redirection = false;
 	ServerScope*	targetServer;
 	Client	& currentClient = this->_client_sockets[this->_cgi_pipes[event.data.fd]];
 	Response & currentResponse = currentClient.getResponse();
 
+	std::cerr << event.data.fd << std::endl; 
 	redirection = currentResponse.cgiResponse(event.data.fd);
 	if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_DEL, event.data.fd, &event) == -1)
 	{
@@ -364,14 +372,18 @@ void	Server::readPipe(struct epoll_event & event)
 			currentClient.getEvent().events = EPOLLOUT;
 			currentClient.getEvent().data.fd = currentClient.getSocketFD();
 			if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_ADD, currentClient.getSocketFD(), &(currentClient.getEvent())) == -1)
-				this->closeClientSocket(currentClient.getEvent());
+			{
+				close(currentClient.getSocketFD());
+				this->_client_sockets.erase(currentClient.getSocketFD());
+			}
 			return ;
 		}
 		currentClient.getEvent().events = EPOLLIN;
 		currentClient.getEvent().data.fd = currentClient.getSocketFD();
 		if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_ADD, currentClient.getSocketFD(), &(currentClient.getEvent())) == -1)
 		{
-			this->closeClientSocket(currentClient.getEvent());
+			close(currentClient.getSocketFD());
+			this->_client_sockets.erase(currentClient.getSocketFD());
 			return ;
 		}
 		this->readToWrite(currentClient.getEvent(), currentClient, currentClient.getRequest(), currentClient.getResponse());
@@ -382,7 +394,8 @@ void	Server::readPipe(struct epoll_event & event)
 	if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_ADD, currentClient.getSocketFD(), &(currentClient.getEvent())) == -1)
 	{
 		this->_cgi_pipes.erase(event.data.fd);
-		this->closeClientSocket(currentClient.getEvent());
+		close(currentClient.getSocketFD());
+		this->_client_sockets.erase(currentClient.getSocketFD());
 		return ;
 	}
 }
@@ -410,7 +423,7 @@ void Server::execute(void)
 				this->acceptIncomingConnection(this->_watchedEvents[i]);
 			else if (this->_cgi_pipes.find(this->_watchedEvents[i].data.fd) != this->_cgi_pipes.end())
 				this->readPipe(this->_watchedEvents[i]);
-			else
+			else if (this->_client_sockets.find(this->_watchedEvents[i].data.fd) != this->_client_sockets.end())
 			{
 				switch (this->_watchedEvents[i].events)
 				{
