@@ -360,6 +360,7 @@ void	Server::readPipe(struct epoll_event & event)
 		this->_cgi_pipes.erase(event.data.fd);
 		if (!currentResponse.precheck(currentClient.getRequest()))
 		{
+			std::cerr << "Well that did not work" << std::endl;
 			currentClient.getEvent().events = EPOLLOUT;
 			currentClient.getEvent().data.fd = currentClient.getSocketFD();
 			if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_ADD, currentClient.getSocketFD(), &(currentClient.getEvent())) == -1)

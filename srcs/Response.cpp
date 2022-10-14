@@ -495,7 +495,7 @@ bool	Response::precheck(Request & req)
 	else
 		fullPath += req.getFile();
 	this->_targetFilePath = fullPath;
-	// std::cerr << "Fully qualified path: ***" << fullPath << "***" << std::endl;
+	std::cerr << "Fully qualified path: ***" << fullPath << "***" << std::endl;
 	if (req.getType() == std::string("PUT"))
 		return (true);
 	if (!pathIsValid(this->_targetFilePath, &buf))
