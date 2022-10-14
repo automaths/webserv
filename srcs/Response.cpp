@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/29 12:29:34 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/14 20:27:42 by nsartral         ###   ########.fr       */
+/*   Updated: 2022/10/14 20:49:15 by nsartral         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -244,6 +244,8 @@ bool Response::internalRedirect(std::string redirect)
 
 	_targetLocation = NULL;
 	std::cout << "REDIRECT" << redirect << std::endl;
+	while (redirect.find_first_of("\t\n\v\r\f ") != std::string::npos)
+		redirect.erase(redirect.find_first_of("\t\v\n\r\f ", 1));
 	_req->parseUri(redirect);
 	std::cout << "GETFILE" << _req->getFile() << std::endl;
 	findLocation(_targetServer->getLocations(), _req->getFile());
@@ -261,8 +263,8 @@ bool Response::internalRedirect(std::string redirect)
 	_targetFilePath = fullPath;
 	std::cout << "Checking the path for internal redirection: ///" << fullPath << "///" << std::endl;
 
-	while (fullPath.find_first_of("\t\n\v\r\f ") != std::string::npos)
-		fullPath.erase(fullPath.find_first_of("\t\v\n\r\f ", 1));
+	// while (fullPath.find_first_of("\t\n\v\r\f ") != std::string::npos)
+	// 	fullPath.erase(fullPath.find_first_of("\t\v\n\r\f ", 1));
 
 	if (access(fullPath.data(), F_OK) == 0)
 	{
@@ -338,7 +340,10 @@ bool Response::cgiResponse(int fd)
 		if (cgiHeader.find("Content-size:") != std::string::npos)
 			cgiHeader.erase(cgiHeader.find("Content-size:"), cgiHeader.find("\r\n", cgiHeader.find("Content-size:")) + 2);
 		if (no_send)
+		{
 			header << "Connection: close\r\n";
+			_close = true;
+		}
 		else
 			header << "Connection: keep-alive\r\n";
 		if (!no_send)
@@ -351,8 +356,6 @@ bool Response::cgiResponse(int fd)
 			_body.clear();
 			_bodySize = 0;
 		}
-		// std::cout << "the header is :" << header.str() << std::endl;
-		// std::cout << "the body is: " << _body << std::endl;
 	}
 	memset(buffer, 0, 1048576);
 	return false;
