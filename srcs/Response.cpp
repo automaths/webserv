@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/29 12:29:34 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/14 19:44:17 by nsartral         ###   ########.fr       */
+/*   Updated: 2022/10/14 20:27:42 by nsartral         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -249,29 +249,37 @@ bool Response::internalRedirect(std::string redirect)
 {
 	std::vector<std::string>	indexes;
 	std::string					fullPath;
-	struct stat					buf;
 
 	_targetLocation = NULL;
-	_req->parseUri()
-	//reparsed redirect
-	findLocation(_targetServer->getLocations(), redirect);
+	std::cout << "REDIRECT" << redirect << std::endl;
+	_req->parseUri(redirect);
+	std::cout << "GETFILE" << _req->getFile() << std::endl;
+	findLocation(_targetServer->getLocations(), _req->getFile());
 	if ((_targetLocation && !allowedMethod(_targetLocation->getAllowMethod(), "GET")) || (!_targetLocation && !allowedMethod(_targetServer->getAllowMethod(), "GET")))
 		return (false);
 	fullPath = _targetLocation ? _targetLocation->getRoot() : _targetServer->getRoot();
 	if (_targetLocation)
 	{
-		std::string	partial_root = redirect;
+		std::string	partial_root = _req->getFile();
 		partial_root.erase(0, _targetLocation->getMainPath().size());
 		fullPath += partial_root;
 	}
 	else
-		fullPath += redirect;
-	std::cerr << "The location path found: ---" << fullPath << "---" << std::endl;
-	if (access(fullPath.data(), F_OK) != -1)
+		fullPath += _req->getFile();
+	_targetFilePath = fullPath;
+	std::cout << "Checking the path for internal redirection: ///" << fullPath << "///" << std::endl;
+
+	while (fullPath.find_first_of("\t\n\v\r\f ") != std::string::npos)
+		fullPath.erase(fullPath.find_first_of("\t\v\n\r\f ", 1));
+
+	if (access(fullPath.data(), F_OK) == 0)
 	{
-		_targetFilePath = fullPath;
+		std::cout << "Checking the path for internal redirection: ///" << fullPath << "///" << std::endl;
+		std::cout << "THE ACCESS WORKS" << std::endl;
 		return (true);
 	}
+	std::cout << "DEFEAT IN THE ACCESS" << std::endl;
+	return (false);
 }
 
 bool Response::cgiResponse(int fd)
@@ -311,16 +319,13 @@ bool Response::cgiResponse(int fd)
 		{
 			std::string str = cgiHeader.substr(cgiHeader.find("Location:") + 9, cgiHeader.find("\r\n", cgiHeader.find("Location:")) - 9);
 			std::string redirect = str.substr(str.find_first_not_of("\t\v\n\r\f "), str.find("\r\n", str.find_first_not_of("\t\v\n\r\f ")));
-			bool is_internal = false;
-
 			if (internalRedirect(redirect))
 			{
 				std::cout << "This is an internal redirect" << std::endl;
-				// if (stat(fullPath.data(), &buf) == -1)
-				//_type;
-				//_redirection_uri;
-				//_redirection_query;
-
+				_targetFilePath = _req->getFile();
+				std::string type = "GET";
+				_req->setType(type);
+				return true;
 			}
 			no_send = 1;
 		}
