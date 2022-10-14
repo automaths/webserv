@@ -53,7 +53,7 @@ struct epoll_event &	Client::getEvent(void)
 	return (this->_event);
 }
 
-void	Client::setEvent(struct epoll_event event)
+void	Client::setEvent(struct epoll_event & event)
 {
 	this->_event = event;
 }

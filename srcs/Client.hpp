@@ -28,7 +28,7 @@ class Client
 		Client &	operator=(Client const & rhs);
 
 		struct epoll_event &	getEvent(void);
-		void					setEvent(struct epoll_event event);
+		void					setEvent(struct epoll_event & event);
 		int &					getSocketFD(void);
 		void					setSocketFD(int fd);
 		int &					getPortNumber(void);
