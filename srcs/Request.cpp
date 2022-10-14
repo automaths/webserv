@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:32:13 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/14 15:28:46 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/14 18:23:46 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -490,4 +490,16 @@ std::string Request::getBody(void) const {
 
 std::map<std::string, std::list<std::string> > Request::getHeaders(void) const {
 	return (_headers);
+}
+
+void Request::setQuery(std::string & str) {
+	_query = str;
+}
+
+void Request::setFile(std::string & str) {
+	_file = str;
+}
+
+void Request::setType(std::string & str) {
+	_type = str;
 }
