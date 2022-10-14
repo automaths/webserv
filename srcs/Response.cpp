@@ -548,6 +548,16 @@ bool	Response::precheck(Request & req)
 	return (false);
 }
 
+ServerScope*	Response::getServerScope(void)
+{
+	return (this->_targetServer);
+}
+
+void	Response::setServerScope(ServerScope * target)
+{
+	this->_targetServer = target;
+}
+
 bool	Response::isCgiPath()
 {
 	if (_is_cgi == true)

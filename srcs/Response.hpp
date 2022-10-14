@@ -48,6 +48,8 @@ class Response
 		std::string &	getBody(void);
 		std::size_t		getBodySize(void);
 		std::string &	getTargetFile(void);
+		ServerScope*	getServerScope(void);
+		void			setServerScope(ServerScope * target);
 		bool			serverSet(void);
 		bool			headerIsSent(void);
 		bool			isOver(void);
