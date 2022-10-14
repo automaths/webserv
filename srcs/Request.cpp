@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:32:13 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/14 18:37:58 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/14 19:39:18 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -145,6 +145,14 @@ std::string PercentDecoding(std::string uri) {
 	return (ret);
 }
 
+void Request::parseUri(std::string file) {
+	if (file.find("?") != NPOS) {
+		_query = file.substr(_file.find("?") + 1, NPOS);
+		file.erase(file.find("?"), NPOS);
+	}
+	_file = PercentDecoding(file);
+}
+
 int Request::checkType(std::string & type) {
 	unsigned long i = 0;
 
@@ -177,11 +185,7 @@ int Request::checkType(std::string & type) {
 		if (tmp2 != tmp && (tmp2 == "" || tmp2.find_first_not_of("0123456789") != NPOS))
 			return (1);
 	}
-	if (_file.find("?") != NPOS) {
-		_query = _file.substr(_file.find("?") + 1, NPOS);
-		_file.erase(_file.find("?"), NPOS);
-	}
-	_file = PercentDecoding(_file);
+	parseUri(_file);
 	if (_file[0] != '/')
 		_file = "/" + _file;
 	if (!_file.size())

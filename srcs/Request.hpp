@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/10/05 17:41:22 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/14 19:22:01 by nsartral         ###   ########.fr       */
+/*   Updated: 2022/10/14 19:44:46 by nsartral         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,6 +40,7 @@ class Request{
 		Request & operator=(const Request &);
 
 		int			moveBody(std::string &);
+		void		parseUri(std::string);
 		void		parseBody(std::string &);
 		int			parseHeaders(void);
 		int			parseChunk(std::string &);

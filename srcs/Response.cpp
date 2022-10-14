@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/29 12:29:34 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/14 19:19:53 by nsartral         ###   ########.fr       */
+/*   Updated: 2022/10/14 19:44:17 by nsartral         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -251,27 +251,27 @@ bool Response::internalRedirect(std::string redirect)
 	std::string					fullPath;
 	struct stat					buf;
 
-	findLocation(_targetServer->getLocations(), _req->getFile());
-
-	if ((_targetLocation && !allowedMethod(_targetLocation->getAllowMethod(), _req->getType())) || (!_targetLocation && !allowedMethod(_targetServer->getAllowMethod(), _req->getType())))
+	_targetLocation = NULL;
+	_req->parseUri()
+	//reparsed redirect
+	findLocation(_targetServer->getLocations(), redirect);
+	if ((_targetLocation && !allowedMethod(_targetLocation->getAllowMethod(), "GET")) || (!_targetLocation && !allowedMethod(_targetServer->getAllowMethod(), "GET")))
 		return (false);
-
 	fullPath = _targetLocation ? _targetLocation->getRoot() : _targetServer->getRoot();
-
 	if (_targetLocation)
 	{
-		std::string	partial_root = _req->getFile();
+		std::string	partial_root = redirect;
 		partial_root.erase(0, _targetLocation->getMainPath().size());
 		fullPath += partial_root;
 	}
 	else
-		fullPath += _req->getFile();
-
-	_targetFilePath = fullPath;
+		fullPath += redirect;
 	std::cerr << "The location path found: ---" << fullPath << "---" << std::endl;
-
 	if (access(fullPath.data(), F_OK) != -1)
+	{
+		_targetFilePath = fullPath;
 		return (true);
+	}
 }
 
 bool Response::cgiResponse(int fd)
@@ -313,8 +313,9 @@ bool Response::cgiResponse(int fd)
 			std::string redirect = str.substr(str.find_first_not_of("\t\v\n\r\f "), str.find("\r\n", str.find_first_not_of("\t\v\n\r\f ")));
 			bool is_internal = false;
 
-			if (is_internal)
+			if (internalRedirect(redirect))
 			{
+				std::cout << "This is an internal redirect" << std::endl;
 				// if (stat(fullPath.data(), &buf) == -1)
 				//_type;
 				//_redirection_uri;
