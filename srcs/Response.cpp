@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/29 12:29:34 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/13 21:28:02 by nsartral         ###   ########.fr       */
+/*   Updated: 2022/10/14 20:27:42 by nsartral         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -206,13 +206,8 @@ int Response::execCgi(std::string exec)
 	_env.push_back("SCRIPT_FILENAME=" + _cgi_file);
 	_env.push_back("SCRIPT_NAME=" + _cgi_file);
 	_env.push_back("CONTENT_TYPE=" + MimeTypes().convert(_extension));
-	//CONTENT_LENGTH
 	_env.push_back("QUERY_STRING=" + _req->getQuery());
     _env.push_back("PATH_INFO=" + _path_info);
-	// std::string tnp = "PATH_TRANSLATED=";
-	// tnp += getcwd(buff, 100);
-	// tnp += _path_info;
-	// _env.push_back(tnp);
 	_env.push_back("REQUEST_URI=" + _targetFilePath);
     _env.push_back("REDIRECT_STATUS=1");
 	std::map<std::string, std::list<std::string> > map = _req->getHeaders();
@@ -237,14 +232,49 @@ int Response::execCgi(std::string exec)
 	}
 	std::cout << "THE ENVIRONMENT OF THE CGI" << std::endl;
 	for (std::vector<std::string>::iterator it = _env.begin(); it != _env.end(); ++it)
-	{
 		std::cout << *it << std::endl;
-	}
     Cgi test(_cgi_file, exec, _env, _cgi_input);
 	return test.getResult();
 }
 
-void Response::cgiResponse(int fd)
+bool Response::internalRedirect(std::string redirect)
+{
+	std::vector<std::string>	indexes;
+	std::string					fullPath;
+
+	_targetLocation = NULL;
+	std::cout << "REDIRECT" << redirect << std::endl;
+	_req->parseUri(redirect);
+	std::cout << "GETFILE" << _req->getFile() << std::endl;
+	findLocation(_targetServer->getLocations(), _req->getFile());
+	if ((_targetLocation && !allowedMethod(_targetLocation->getAllowMethod(), "GET")) || (!_targetLocation && !allowedMethod(_targetServer->getAllowMethod(), "GET")))
+		return (false);
+	fullPath = _targetLocation ? _targetLocation->getRoot() : _targetServer->getRoot();
+	if (_targetLocation)
+	{
+		std::string	partial_root = _req->getFile();
+		partial_root.erase(0, _targetLocation->getMainPath().size());
+		fullPath += partial_root;
+	}
+	else
+		fullPath += _req->getFile();
+	_targetFilePath = fullPath;
+	std::cout << "Checking the path for internal redirection: ///" << fullPath << "///" << std::endl;
+
+	while (fullPath.find_first_of("\t\n\v\r\f ") != std::string::npos)
+		fullPath.erase(fullPath.find_first_of("\t\v\n\r\f ", 1));
+
+	if (access(fullPath.data(), F_OK) == 0)
+	{
+		std::cout << "Checking the path for internal redirection: ///" << fullPath << "///" << std::endl;
+		std::cout << "THE ACCESS WORKS" << std::endl;
+		return (true);
+	}
+	std::cout << "DEFEAT IN THE ACCESS" << std::endl;
+	return (false);
+}
+
+bool Response::cgiResponse(int fd)
 {
 	int size;
 	bool no_send = false;
@@ -257,7 +287,7 @@ void Response::cgiResponse(int fd)
 		_fileConsumed = true;
 		_body = std::string("0\r\n\r\n");
 		_bodySize = 5;
-		return;
+		return false;
 	}
 	if (_headerSent)
 	{
@@ -280,11 +310,13 @@ void Response::cgiResponse(int fd)
 		{
 			std::string str = cgiHeader.substr(cgiHeader.find("Location:") + 9, cgiHeader.find("\r\n", cgiHeader.find("Location:")) - 9);
 			std::string redirect = str.substr(str.find_first_not_of("\t\v\n\r\f "), str.find("\r\n", str.find_first_not_of("\t\v\n\r\f ")));
-			bool is_internal = false;
-			if (is_internal)
+			if (internalRedirect(redirect))
 			{
-				std::cout << "yay not done" << std::endl;
-				return;
+				std::cout << "This is an internal redirect" << std::endl;
+				_targetFilePath = _req->getFile();
+				std::string type = "GET";
+				_req->setType(type);
+				return true;
 			}
 			no_send = 1;
 		}
@@ -323,6 +355,7 @@ void Response::cgiResponse(int fd)
 		// std::cout << "the body is: " << _body << std::endl;
 	}
 	memset(buffer, 0, 1048576);
+	return false;
 }
 
 std::string	Response::createFileResponse(void)
