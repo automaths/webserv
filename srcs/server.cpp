@@ -150,6 +150,9 @@ void	Server::readRequest(struct epoll_event & event)
 		_rdBuffer[recvret] = '\0';
 		try
 		{
+			// char	tes[] = "Hello\0\0Bye";
+			// std::string	testing;
+			// &(testing[0]) = tes;
 			result = currentClient.addToRequest(std::string(_rdBuffer));
 			std::cerr << "Result : " << result << std::endl;
 		}

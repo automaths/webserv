@@ -18,7 +18,7 @@
 #include <iostream>
 #include <unistd.h>
 
-Response::Response(void): _header(), _headerSize(), _body(), _bodySize(), _targetFile(), _targetFilePath(""), _headerSent(false), _chunked(false), _over(false), _fileConsumed(false), _close(false), _req(NULL), _targetServer(NULL), _targetLocation(NULL), _responseType(0), _is_cgi(false), _cgi_fd(-1), _cgi_input(-1), _root(""), _extension("")
+Response::Response(void): _env(), _header(), _headerSize(), _body(), _bodySize(), _targetFile(), _targetFilePath(""), _headerSent(false), _chunked(false), _over(false), _fileConsumed(false), _close(false), _req(NULL), _targetServer(NULL), _targetLocation(NULL), _responseType(0), _is_cgi(false), _cgi_fd(-1), _cgi_input(-1), _root(""), _extension("")
 {
 	return ;
 }
@@ -55,7 +55,7 @@ void	Response::closeCgiFd(void)
 	}
 }
 
-Response::Response(Request & req, std::vector<ServerScope> & matches, int error): _header(), _headerSize(0), _body(), _bodySize(0), _targetFile(), _targetFilePath(""), _headerSent(false), _chunked(false), _over(false), _fileConsumed(false), _close(false), _req(&req), _targetServer(NULL), _targetLocation(NULL), _responseType(0), _is_cgi(false), _cgi_fd(-1), _cgi_input(-1), _root(""), _extension("")
+Response::Response(Request & req, std::vector<ServerScope> & matches, int error): _env(), _header(), _headerSize(0), _body(), _bodySize(0), _targetFile(), _targetFilePath(""), _headerSent(false), _chunked(false), _over(false), _fileConsumed(false), _close(false), _req(&req), _targetServer(NULL), _targetLocation(NULL), _responseType(0), _is_cgi(false), _cgi_fd(-1), _cgi_input(-1), _root(""), _extension("")
 {
 	std::map<std::string, std::list<std::string> >				headerMap = req.getHeaders();
 	std::map<std::string, std::list<std::string> >::iterator	host;
@@ -717,7 +717,7 @@ void	Response::makeResponse(Request & req)
 	}
 }
 
-Response::Response(Response const & src): _header(src._header), _headerSize(src._headerSize), _body(src._body), _bodySize(src._bodySize), _headerSent(src._headerSent), _chunked(src._chunked), _over(src._over), _fileConsumed(src._fileConsumed), _close(src._close), _req(src._req), _targetServer(src._targetServer), _targetLocation(src._targetLocation), _responseType(src._responseType), _is_cgi(src._is_cgi), _cgi_fd(src._cgi_fd), _cgi_input(-1), _root(""), _extension("")
+Response::Response(Response const & src): _env(src._env), _header(src._header), _headerSize(src._headerSize), _body(src._body), _bodySize(src._bodySize), _headerSent(src._headerSent), _chunked(src._chunked), _over(src._over), _fileConsumed(src._fileConsumed), _close(src._close), _req(src._req), _targetServer(src._targetServer), _targetLocation(src._targetLocation), _responseType(src._responseType), _is_cgi(src._is_cgi), _cgi_fd(src._cgi_fd), _cgi_input(-1), _root(""), _extension("")
 {
 	return ;
 }
@@ -743,6 +743,7 @@ Response &	Response::operator=(Response const & rhs)
 	if (this->_targetFile.is_open())
 		this->_targetFile.close();
 	this->closeCgiFd();
+	this->_env = rhs._env;
 	this->_header = rhs._header;
 	this->_headerSize = rhs._headerSize;
 	this->_body = rhs._body;
@@ -815,9 +816,17 @@ void	Response::errorResponse(int error)
 	}
 	switch (error)
 	{
+		case 200:
+			status << " 200 " << DEFAULT201STATUS;
+			body = DEFAULT200BODY;
+			break ;
 		case 201:
 			status << " 201 " << DEFAULT201STATUS;
 			body = DEFAULT201BODY;
+			break ;
+		case 206:
+			status << " 206 " << DEFAULT201STATUS;
+			body = DEFAULT206BODY;
 			break ;
 		case 400:
 			status << " 400 " << DEFAULT400STATUS;
@@ -843,17 +852,13 @@ void	Response::errorResponse(int error)
 			status << " 416 " << DEFAULT416STATUS;
 			body = DEFAULT416BODY;
 			break;
-		case 500:
-			status << " 500 " << DEFAULT500STATUS;
-			body = DEFAULT500BODY;
-			break;
 		case 505:
 			status << " 505 " << DEFAULT505STATUS;
 			body = DEFAULT505BODY;
 			break ;
 		default:
-			header << "HTTP/1.1 400 " << "Oupsy daisy" << "\r\n";
-			this->_header = header.str();
+			status << " 500 " << DEFAULT500STATUS;
+			body = DEFAULT500BODY;
 			break;
 	}
 	header << "HTTP/1.1" << status.str() << "\r\n";
@@ -877,8 +882,14 @@ void	Response::createFileErrorHeader(int errorCode, std::string mime)
 	this->_close = true;
 	switch (errorCode)
 	{
+		case 200:
+			status << " 200 " << DEFAULT201STATUS;
+			break ;
 		case 201:
 			status << " 201 " << DEFAULT201STATUS;
+			break ;
+		case 206:
+			status << " 206 " << DEFAULT201STATUS;
 			break ;
 		case 400:
 			status << " 400 " << DEFAULT400STATUS;
@@ -898,15 +909,11 @@ void	Response::createFileErrorHeader(int errorCode, std::string mime)
 		case 416:
 			status << " 416 " << DEFAULT416STATUS;
 			break;
-		case 500:
-			status << " 500 " << DEFAULT500STATUS;
-			break;
 		case 505:
 			status << " 505 " << DEFAULT505STATUS;
 			break ;
 		default:
-			header << "HTTP/1.1 400 " << "Oupsy daisy" << "\r\n";
-			this->_header = header.str();
+			status << " 500 " << DEFAULT500STATUS;
 			break;
 	}
 	header << "HTTP/1.1" << status.str() << "\r\n";
