@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/28 13:45:50 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/11 20:49:37 by nsartral         ###   ########.fr       */
+/*   Updated: 2022/10/17 13:30:12 by bdetune          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -243,6 +243,8 @@ bool	Server::sendHeader(struct epoll_event & event, Client & currentClient)
 	sendret = send(event.data.fd, currentClient.getResponse().getHeader().data(), currentClient.getResponse().getHeaderSize(), MSG_NOSIGNAL | MSG_DONTWAIT);
 	if (sendret == -1)
 	{
+		if (currentClient.getResponse().isCgi())
+			this->_cgi_pipes.erase(currentClient.getResponse().getCgiFd());
 		this->closeClientSocket(event);
 		return (false) ;
 	}
@@ -257,6 +259,8 @@ void	Server::sendBody(struct epoll_event & event, Client & currentClient)
 	sendret = send(event.data.fd, currentResponse.getBody().data(), currentResponse.getBodySize(), MSG_NOSIGNAL | MSG_DONTWAIT);
 	if (sendret == -1)
 	{
+		if (currentResponse.isCgi())
+			this->_cgi_pipes.erase(currentResponse.getCgiFd());
 		this->closeClientSocket(event);
 		return ;
 	}
@@ -340,13 +344,6 @@ void	Server::sendResponse(struct epoll_event & event)
 
 void	Server::readPipe(struct epoll_event & event)
 {
-	if (this->_cgi_pipes.find(event.data.fd) != this->_cgi_pipes.end())
-	{
-		if (this->_client_sockets.find(this->_cgi_pipes[event.data.fd]) == this->_client_sockets.end())
-			return ;
-	}
-	else
-		return ;
 	bool			redirection = false;
 	ServerScope*	targetServer;
 	Client	& currentClient = this->_client_sockets[this->_cgi_pipes[event.data.fd]];
@@ -434,6 +431,8 @@ void Server::execute(void)
 						this->readRequest(this->_watchedEvents[i]);
 						break;
 					default:
+						if (this->_client_sockets[this->_watchedEvents[i].data.fd].getResponse().isCgi())
+							this->_cgi_pipes.erase(this->_client_sockets[this->_watchedEvents[i].data.fd].getResponse().getCgiFd());
 						this->closeClientSocket(this->_watchedEvents[i]);
 						break;
 				}
