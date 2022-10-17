@@ -211,10 +211,13 @@ int Response::execCgi(std::string exec)
     _env.push_back("PATH_INFO=" + _path_info);
 	_env.push_back("REQUEST_URI=" + _targetFilePath);
     _env.push_back("REDIRECT_STATUS=1");
-	if (_req->getHeaders().find("content-length") != _req->getHeaders().end())
-		_env.push_back("CONTENT_LENGTH=" + _req->getHeaders()["content-length"].front());
-	if (_req->getHeaders().find("content-type") != _req->getHeaders().end())
-		_env.push_back("CONTENT_TYPE=" + _req->getHeaders()["content-type"].front());
+	if (_req->getHeaders().find(std::string("content-length")) != _req->getHeaders().end())
+		_env.push_back(std::string("CONTENT_LENGTH=") + _req->getHeaders()[std::string("content-length")].front());
+	if (_req->getHeaders().find(std::string("content-type")) != _req->getHeaders().end())
+	{
+		std::cerr << "Has content-type: " << _req->getHeaders()[std::string("content-type")].front() << std::endl;
+		_env.push_back(std::string("CONTENT_TYPE=") + _req->getHeaders()[std::string("content-type")].front());
+	}
 	std::map<std::string, std::list<std::string> > map = _req->getHeaders();
 	std::map<std::string, std::list<std::string> >::iterator tmp = map.begin();
 	std::string	val;

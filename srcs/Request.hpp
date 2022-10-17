@@ -55,7 +55,7 @@ class Request{
 		void		setQuery(std::string &);
 		void		setFile(std::string &);
 		void		setType(std::string &);
-		std::map<std::string, std::list<std::string> >	getHeaders(void) const;
+		std::map<std::string, std::list<std::string> > &	getHeaders(void);
 		std::vector<std::pair<int, int> >				getRange(int);
 		bool nuke(std::string &);
 		int del(std::string &);

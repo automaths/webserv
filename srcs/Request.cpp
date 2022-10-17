@@ -496,7 +496,7 @@ std::string Request::getBody(void) const {
 	return (_body);
 }
 
-std::map<std::string, std::list<std::string> > Request::getHeaders(void) const {
+std::map<std::string, std::list<std::string> > & Request::getHeaders(void) {
 	return (_headers);
 }
 
