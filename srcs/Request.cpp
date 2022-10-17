@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:32:13 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/17 16:54:50 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/17 21:10:46 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -192,7 +192,7 @@ int Request::checkType(std::string & type) {
 std::string Request::getQuery() const { return _query; }
 
 int ft_atoi(std::string & str) {
-	if (str.size() >= 10) {
+	if (str.size() > 10) {
 		throw (std::exception());
 	}
 	return (atoi(str.c_str()));
@@ -357,6 +357,7 @@ void Request::parseBody(std::string & chunk) {
 		_putfile.write(chunk.data(), chunk.size());
 		_bodysize -= chunk.size();
 	}
+	std::cout << "Bodysize left : " << _bodysize << std::endl;
 }
 
 bool	Request::getIsBody() const {
@@ -423,6 +424,7 @@ int Request::parseChunk(std::string & chunk) {
 					_isbody = true;
 					if (_headers.find("content-length") != _headers.end()) {
 						_bodysize = ft_atoi(_headers["content-length"].front());
+						std::cerr << "Bodysize : " << _bodysize << std::endl;
 					}
 					parseBody(chunk);
 					if (_bodysize > 0)

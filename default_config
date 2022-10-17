@@ -1,5 +1,15 @@
 http{
 	server {
+		listen 8181;
+
+		root /sgoinfre/goinfre/Perso/tnaton/putty;
+
+		index index.html index.htm;
+
+		server_name putty;
+	}
+
+	server {
 		listen 8079;
 
 		root ./www/default;
