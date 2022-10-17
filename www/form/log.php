@@ -8,7 +8,7 @@
     </head>
     <body>
     <h1>Find the password and you may enter</h1>
-    <form action="index.php" method="get">
+    <form method="post">
         <input type="text" name="password">
         <input type="submit" value="Try">
     </form>

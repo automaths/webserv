@@ -4,12 +4,12 @@ if (isset($_SESSION["PAGES"]))
     $_SESSION["PAGES"] += 1;
 else
     $_SESSION["PAGES"] = 1;
-if (isset($_GET["password"]))
+if (isset($_POST["password"]))
 {
     // echo "We are getting somewhere\n";
     // var_dump($_GET);
     // var_dump($_COOKIE);
-    if ($_GET["password"] == "impossible")
+    if ($_POST["password"] == "impossible")
     {
         setcookie("Logged", "true", time() + (86400 * 30));
         echo nl2br ("Welcome to webserv\n Number of pages viewed: " . $_SESSION["PAGES"]);
@@ -17,7 +17,6 @@ if (isset($_GET["password"]))
     }
     else
     {
-        setcookie("Logged", "false", time() + (86400 * 30));
         include "log.php";
     }
 }

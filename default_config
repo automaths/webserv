@@ -1,13 +1,6 @@
 http{
 	server {
 		listen 8079;
-		root ./www/form;
-		index index.php;
-		cgi .php /usr/lib/cgi-bin/php;
-		server_name pwd;
-	}
-	server {
-		listen 8079;
 
 		root ./www/default;
 		index index.html index.htm;
@@ -21,6 +14,13 @@ http{
 			root ./www/default/bouhbouh;
 			try_files $uri $uri/ =404;
 		}
+
+		location /form {
+			root ./www/form;
+			index index.php;
+			cgi .php /usr/lib/cgi-bin/php;
+		}
+
 		error_page  404     ./www/default/w404.html;
 		error_page  403     /403.html;
 	}
