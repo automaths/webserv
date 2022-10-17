@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:32:13 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/17 15:32:18 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/17 15:36:10 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -380,6 +380,7 @@ int Request::parseChunk(std::string & chunk) {
 					} else if (!(_type == GET || _type == POST || _type == PUT || _type == DELETE)) {
 						return (501);
 					} else if (_version == "") {
+						_keepalive = false;
 						return (200);
 					} else if (NOT_NEW && NOT_OLD) {
 						return (505);
