@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/10/05 17:41:22 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/17 15:19:47 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/17 15:51:10 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,10 +57,10 @@ class Request{
 		void		setType(std::string &);
 		std::map<std::string, std::list<std::string> >	getHeaders(void) const;
 		std::vector<std::pair<int, int> >				getRange(int);
-
-
+		bool nuke(std::string &);
+		int del(std::string &);
 		void parseAccept();
-
+		int createPath(std::string &);
 
 	private:
 
@@ -76,3 +76,5 @@ class Request{
 		std::string		_query;
 		bool			_keepalive;
 };
+
+int rm(const char *, const struct stat *, int, struct FTW*);

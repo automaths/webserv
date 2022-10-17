@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:32:13 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/17 15:36:10 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/17 15:50:57 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -285,13 +285,13 @@ int	rm(const char *fpath, const struct stat *buf, int typeflag, struct FTW *ftwb
 	return (0);
 }
 
-bool nuke(std::string & path) {
+bool Request::nuke(std::string & path) {
 	if (nftw(path.data(), &rm, 1, FTW_DEPTH))
 		return (false);
 	return (true);
 }
 
-int del(std::string & path) {
+int Request::del(std::string & path) {
 	if (access(path.data(), F_OK))
 		return (404);
 	if (nuke(path))
@@ -299,7 +299,7 @@ int del(std::string & path) {
 	return (200);
 }
 
-int createPath(std::string & path) {
+int Request::createPath(std::string & path) {
 	std::string	tmp = "";
 	int			i = 0;
 	struct		stat buf;
