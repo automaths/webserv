@@ -16,7 +16,9 @@ void Cgi::execving() {
 	{
         close(_fd[1]);
 		if (_fd_input != -1)
+        {
 			close(_fd_input);
+        }
 	}
 }
 
@@ -38,6 +40,7 @@ void Cgi::converting_env(){
 void Cgi::forking() {
     if (_fd_input != -1)
     {
+        std::cout << "coucou c'est le dup" << std::endl;
         if (dup2(_fd_input, STDIN_FILENO) == -1)
             exit(1);
         close (_fd_input);

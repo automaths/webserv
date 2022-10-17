@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: bdetune <marvin@42.fr>                     +#+  +:+       +#+        */
+/*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:13:06 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/11 18:28:21 by bdetune          ###   ########.fr       */
+/*   Updated: 2022/10/17 16:10:20 by nsartral         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -97,6 +97,7 @@ Request &	Client::getRequest(void)
 void	Client::resetRequest(void)
 {
 	Request	resetter;
+	std::cout << "recall" << std::endl;
 	this->_request = resetter;
 }
 
