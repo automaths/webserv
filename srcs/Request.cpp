@@ -294,7 +294,7 @@ bool Request::nuke(std::string & path) {
 int Request::del(std::string & path) {
 	if (access(path.data(), F_OK))
 		return (404);
-	if (nuke(path))
+	if (!nuke(path))
 		return (403);
 	return (200);
 }
@@ -312,7 +312,7 @@ int Request::createPath(std::string & path) {
 		i = path.find("/", i) + 1;
 	}
 	if (!access(path.data(), F_OK) && !stat(path.data(), &buf) && S_ISDIR(buf.st_mode)) {
-		if (nuke(path))
+		if (!nuke(path))
 			return (403);
 	} else if (access(path.data(), F_OK))
 		return (201);

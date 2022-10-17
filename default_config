@@ -1,6 +1,13 @@
 http{
 	server {
 		listen 8079;
+		root ./www/form;
+		index index.php;
+		cgi .php /usr/lib/cgi-bin/php;
+		server_name pwd;
+	}
+	server {
+		listen 8079;
 
 		root ./www/default;
 		index index.html index.htm;

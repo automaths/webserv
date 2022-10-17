@@ -521,6 +521,8 @@ bool	Response::precheck(Request & req)
 	if (S_ISDIR(buf.st_mode))
 	{
 		indexes = this->_targetLocation ? this->_targetLocation->getIndex() : this->_targetServer->getIndex();
+		if (req.getType() == "DELETE")
+			return (true);
 		if (foundDirectoryIndex(indexes, this->_targetFilePath))
 		{
 			this->_responseType = 2;
@@ -627,10 +629,17 @@ void	Response::makeResponse(Request & req)
 	std::string			extension;
 	int					ret;
 	
+	this->_close = !req.isKeepAlive();
 	if (req.getType() == std::string("PUT"))
 	{
 		if ((ret = req.moveBody(this->_targetFilePath)))
 			this->errorResponse(ret);
+	}
+	else if (req.getType() == std::string("DELETE"))
+	{
+		ret = req.del(this->_targetFilePath);
+		std::cout << "Return form delete: " << ret << std::endl;
+		this->errorResponse(ret);
 	}
 	else if (this->_responseType == 3)
 	{
@@ -808,19 +817,19 @@ void	Response::errorResponse(int error)
 				}	
 			}
 		}
-		else
-		{
-			if (error != 404)
-			{
-				this->errorResponse(404);
-				return ;
-			}
-		}
+		// else
+		// {
+		// 	if (error != 404)
+		// 	{
+		// 		this->errorResponse(404);
+		// 		return ;
+		// 	}
+		// }
 	}
 	switch (error)
 	{
 		case 200:
-			status << " 200 " << DEFAULT201STATUS;
+			status << " 200 " << DEFAULT200STATUS;
 			body = DEFAULT200BODY;
 			break ;
 		case 201:
@@ -886,7 +895,7 @@ void	Response::createFileErrorHeader(int errorCode, std::string mime)
 	switch (errorCode)
 	{
 		case 200:
-			status << " 200 " << DEFAULT201STATUS;
+			status << " 200 " << DEFAULT200STATUS;
 			break ;
 		case 201:
 			status << " 201 " << DEFAULT201STATUS;

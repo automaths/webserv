@@ -13,6 +13,11 @@
 #ifndef DEFAULTRESPONSE_HPP
 # define DEFAULTRESPONSE_HPP
 
+//200
+# define DEFAULT200STATUS "OK"
+
+# define DEFAULT200BODY "<html>\n<head><title>200 OK</title></head>\n<body bgcolor=\"white\">\n<center><h1>200 OK</h1></center>\n<hr>\n<center><div><img src=\"https://http.cat/200\"  alt=\"A beautiful 200 response\"></div></center>\n<hr>\n<center>webserv/1.0</center>\n</body>\n</html>\n"
+
 //201
 # define DEFAULT201BODY "<html>\n<head><title>201 Created</title></head>\n<body bgcolor=\"white\">\n<center><h1>201 Created</h1></center>\n<hr>\n<center><div><img src=\"https://http.cat/201\"  alt=\"A beautiful 201 response\"></div></center>\n<hr>\n<center>webserv/1.0</center>\n</body>\n</html>\n"
 
@@ -55,10 +60,6 @@
 # define DEFAULT500STATUS "Internal Server Error"
 
 
-//200
-# define DEFAULT200STATUS "OK"
-
-# define DEFAULT200BODY "<html>\n<head><title>200 OK</title></head>\n<body bgcolor=\"white\">\n<center><h1>200 OK</h1></center>\n<hr>\n<center><div><img src=\"https://http.cat/200\"  alt=\"A beautiful 200 response\"></div></center>\n<hr>\n<center>webserv/1.0</center>\n</body>\n</html>\n"
 
 //206
 # define DEFAULT206STATUS "Partial Content"
