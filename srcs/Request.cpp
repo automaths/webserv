@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:32:13 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/17 16:35:53 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/17 16:54:50 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -350,9 +350,13 @@ void Request::parseBody(std::string & chunk) {
 	}
 	if (!_putfile.is_open())
 		_putfile.open(_body.data(), std::ios::binary);
-	std::cerr << "In parseBody : >" << chunk.data() << "< with size : " << chunk.size() << std::endl;
-	_putfile.write(chunk.data(), chunk.size());
-	_bodysize -= chunk.size();
+	if (chunk.size() > static_cast<unsigned long>(_bodysize)) {
+		_putfile.write(chunk.data(), _bodysize);
+		_bodysize = 0;
+	} else {
+		_putfile.write(chunk.data(), chunk.size());
+		_bodysize -= chunk.size();
+	}
 }
 
 bool	Request::getIsBody() const {
