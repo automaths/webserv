@@ -6,28 +6,35 @@ else
     $_SESSION["PAGES"] = 1;
 if (isset($_POST["password"]))
 {
-    // echo "We are getting somewhere\n";
-    // var_dump($_GET);
-    // var_dump($_COOKIE);
     if ($_POST["password"] == "impossible")
     {
         setcookie("Logged", "true", time() + (86400 * 30));
-        echo nl2br ("Welcome to webserv\n Number of pages viewed: " . $_SESSION["PAGES"]);
-
+        $_SESSION["NEW"] = "true";
+        include "upload.php";
     }
     else
     {
         include "log.php";
     }
+}
+else if (isset($_POST["disconnect"]))
+{
+    if (isset($_COOKIE["Logged"]))
+        $_COOKIE["Logged"] = "false";
+    else
+        setcookie("Logged", "false", time() + (86400 * 30));
+    include "log.php";
 }
 else
 {
     if (isset($_COOKIE["Logged"]) && $_COOKIE["Logged"] == "true")
     {
-        echo nl2br ("Welcome to webserv\n Number of pages viewed: " . $_SESSION["PAGES"]);
+        include "upload.php";
     }
     else
     {
         include "log.php";
     }
 }
+var_dump($_POST);
+var_dump($_FILES);
