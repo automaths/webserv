@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:32:13 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/14 19:44:15 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/17 15:27:08 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,10 +15,10 @@
 #define NOT_OLD _version!="HTTP/1.0"
 #define NOT_NEW _version!="HTTP/1.1"
 
-Request::Request(void): _type(""), _version(""), _file(""), _body(""), _headers(), _isbody(false), _bodysize(-1), _putfile(), _tmpfile(), _query("") {
+Request::Request(void): _type(""), _version(""), _file(""), _body(""), _headers(), _isbody(false), _bodysize(-1), _putfile(), _tmpfile(), _query(""), _keepalive(true) {
 }
 
-Request::Request(const Request & other): _type(other._type), _version(other._version), _file(other._file), _body(other._body), _headers(other._headers), _isbody(other._isbody), _bodysize(other._bodysize), _putfile(), _tmpfile(), _query(other._query) {
+Request::Request(const Request & other): _type(other._type), _version(other._version), _file(other._file), _body(other._body), _headers(other._headers), _isbody(other._isbody), _bodysize(other._bodysize), _putfile(), _tmpfile(), _query(other._query), _keepalive(other._keepalive) {
 }
 
 Request::~Request(void) {
@@ -38,6 +38,7 @@ Request & Request::operator=(const Request & other) {
 	_isbody = other._isbody;
 	_bodysize = other._bodysize;
 	_query = other._query;
+	_keepalive = other._keepalive;
 	return (*this);
 }
 
@@ -133,7 +134,6 @@ std::string PercentDecoding(std::string uri) {
 			break;
 		}
 	}
-	// std::cerr << "Decoded URI : " << ret << std::endl;
 	return (ret);
 }
 
@@ -351,8 +351,7 @@ void Request::parseBody(std::string & chunk) {
 	_bodysize -= chunk.size();
 }
 
-bool	Request::getIsBody() const
-{
+bool	Request::getIsBody() const {
 	return (this->_isbody);
 }
 
@@ -384,6 +383,10 @@ int Request::parseChunk(std::string & chunk) {
 						return (200);
 					} else if (NOT_NEW && NOT_OLD) {
 						return (505);
+					} if (_version == "HTTP/1.0") {
+						_keepalive = false;
+					} else {
+						_keepalive = true;
 					}
 					break;
 				}
@@ -399,7 +402,15 @@ int Request::parseChunk(std::string & chunk) {
 			line = chunk.substr(0, chunk.find("\r\n"));
 			chunk.erase(0, (line.length() + 2));
 			if (line == "") {
-				if (_type == POST || _type == PUT) {
+				if (_headers.find("connection") != _headers.end()) {
+					if (_headers["connection"].front() == "close") {
+						_keepalive = false;
+					} else if (_headers["connection"].front() == "keep-alive") {
+						_keepalive = true;
+					}
+				} if (_headers.find("host") == _headers.end() && NOT_OLD) {
+					return (400);
+				} if (_type == POST || _type == PUT) {
 					_isbody = true;
 					if (_headers.find("content-length") != _headers.end()) {
 						_bodysize = ft_atoi(_headers["content-length"].front());
@@ -408,10 +419,7 @@ int Request::parseChunk(std::string & chunk) {
 					if (_bodysize > 0)
 						return (201);
 					return (200);
-				}
-				if (_headers.find("host") == _headers.end() && NOT_OLD)
-					return (400);
-				try {
+				} try {
 					return (parseHeaders());
 				} catch (std::exception & e) {
 					std::cerr << "Erreur dans le parsing du header :" << e.what() << std::endl;

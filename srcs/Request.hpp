@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/10/05 17:41:22 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/14 19:44:46 by nsartral         ###   ########.fr       */
+/*   Updated: 2022/10/17 15:19:47 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,8 +49,9 @@ class Request{
 		std::string	getVersion(void) const;
 		std::string	getFile(void) const;
 		std::string	getBody(void) const;
-		std::string	getQuery() const;
-		bool		getIsBody() const;
+		std::string	getQuery(void) const;
+		bool		getIsBody(void) const;
+		bool		isKeepAlive(void) const;
 		void		setQuery(std::string &);
 		void		setFile(std::string &);
 		void		setType(std::string &);
@@ -73,4 +74,5 @@ class Request{
 		std::ofstream	_putfile;
 		std::ifstream	_tmpfile; 
 		std::string		_query;
+		bool			_keepalive;
 };
