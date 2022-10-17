@@ -447,20 +447,26 @@ void Server::execute(void)
 
 void	Server::moveFiles(void)
 {
-	bool	finished;
+	int									finished;
+	std::vector<Client *>::iterator st = this->_filesMovingClients.begin();
+	std::vector<Client *>::iterator end = this->_filesMovingClients.end();
 
-	for (std::vector<Client *>::reverse_iterator st = this->_filesMovingClients.rbegin(); st != this->_filesMovingClients.rend(); st++)
+	while (st != end)
 	{
 		finished = (*st)->getRequest().moveBody((*st)->getResponse().getTargetFile());
 		if (finished)
 		{
-			(*st)->getEvent().events = EPOLLIN;
+			std::cerr << "Finished moving file" << std::endl;
+			(*st)->getResponse().errorResponse(finished);
+			(*st)->getEvent().events = EPOLLOUT;
 			(*st)->getEvent().data.fd = (*st)->getSocketFD();
 			if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_ADD, (*st)->getSocketFD(), &((*st)->getEvent())) == -1)
 				this->closeClientSocket((*st)->getEvent());
-			std::cerr << "Finished moving file" << std::endl;
-			this->_filesMovingClients.erase(st.base());	
+			this->_filesMovingClients.erase(st);
+			end = this->_filesMovingClients.end();
 		}
+		else
+			st++;
 	}
 	if (this->_filesMovingClients.size() == 0)
 		this->_filesMoving = false;
