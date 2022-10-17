@@ -50,6 +50,7 @@ class Request{
 		std::string	getFile(void) const;
 		std::string	getBody(void) const;
 		std::string	getQuery() const;
+		bool		getIsBody() const;
 		void		setQuery(std::string &);
 		void		setFile(std::string &);
 		void		setType(std::string &);

@@ -351,6 +351,11 @@ void Request::parseBody(std::string & chunk) {
 	_bodysize -= chunk.size();
 }
 
+bool	Request::getIsBody() const
+{
+	return (this->_isbody);
+}
+
 int Request::parseChunk(std::string & chunk) {
 	std::string line;
 
