@@ -39,11 +39,11 @@ class Cgi {
         if (_argz)
             free(_argz);
     }
-    Cgi(std::string targetFilePath, std::string exec, std::vector<std::string> env, int fd_input): _target(), _exec(), _env(), _fd_input(-1), _argz(), _envp(), _pid()
+    Cgi(std::string targetFilePath, std::string exec, std::vector<std::string> env, int fd_input): _target(), _exec(), _env(), _fd_input(fd_input), _argz(), _envp(), _pid()
     {
         _target = targetFilePath;
         _exec = exec;
-        _fd_input = fd_input;
+        // _fd_input = fd_input;
         _env = env;
         execving();
     }

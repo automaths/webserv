@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/29 12:29:34 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/14 21:38:51 by nsartral         ###   ########.fr       */
+/*   Updated: 2022/10/17 18:44:11 by nsartral         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -182,6 +182,8 @@ bool	Response::foundDirectoryIndex(std::vector<std::string> indexes, std::string
 	return (false);
 }
 
+#include <fstream>
+
 int Response::execCgi(std::string exec)
 {
 	_env.push_back("SERVER_SOFTWARE=Webserv/1.0");
@@ -205,11 +207,14 @@ int Response::execCgi(std::string exec)
 	_env.push_back("REQUEST_METHOD=" + _req->getType());
 	_env.push_back("SCRIPT_FILENAME=" + _cgi_file);
 	_env.push_back("SCRIPT_NAME=" + _cgi_file);
-	_env.push_back("CONTENT_TYPE=" + MimeTypes().convert(_extension));
 	_env.push_back("QUERY_STRING=" + _req->getQuery());
     _env.push_back("PATH_INFO=" + _path_info);
 	_env.push_back("REQUEST_URI=" + _targetFilePath);
     _env.push_back("REDIRECT_STATUS=1");
+	if (_req->getHeaders().find("content-length") != _req->getHeaders().end())
+		_env.push_back("CONTENT_LENGTH=" + _req->getHeaders()["content-length"].front());
+	if (_req->getHeaders().find("content-type") != _req->getHeaders().end())
+		_env.push_back("CONTENT_TYPE=" + _req->getHeaders()["content-type"].front());
 	std::map<std::string, std::list<std::string> > map = _req->getHeaders();
 	std::map<std::string, std::list<std::string> >::iterator tmp = map.begin();
 	std::string	val;
@@ -232,8 +237,19 @@ int Response::execCgi(std::string exec)
 	}
 	std::cout << "THE ENVIRONMENT OF THE CGI" << std::endl;
 	for (std::vector<std::string>::iterator it = _env.begin(); it != _env.end(); ++it)
-		std::cout << *it << std::endl;
+		std::cout << "|" << *it << "|" << std::endl;
+	if (this->_req->getIsBody())
+	{
+		this->_cgi_input = open(this->_req->getBody().data(), O_RDONLY);
+		std::cout << _req->getBody() << std::endl;
+		if (this->_cgi_input < 0)
+		{
+			this->errorResponse(500);
+			return (-1);
+		}
+	}
     Cgi test(_cgi_file, exec, _env, _cgi_input);
+	this->_cgi_input = -1;
 	return test.getResult();
 }
 
