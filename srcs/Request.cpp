@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:32:13 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/17 15:58:55 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/17 16:27:45 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -423,6 +423,7 @@ int Request::parseChunk(std::string & chunk) {
 					parseBody(chunk);
 					if (_bodysize > 0)
 						return (201);
+					_putfile.close();
 					return (200);
 				} try {
 					return (parseHeaders());
