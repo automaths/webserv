@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:32:13 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/17 15:27:08 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/17 15:32:18 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -500,4 +500,8 @@ void Request::setFile(std::string & str) {
 
 void Request::setType(std::string & str) {
 	_type = str;
+}
+
+bool Request::isKeepAlive(void) const {
+	return (_keepalive);
 }
