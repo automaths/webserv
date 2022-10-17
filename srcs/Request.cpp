@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:32:13 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/17 15:50:57 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/17 16:54:50 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,7 @@ Request::Request(const Request & other): _type(other._type), _version(other._ver
 }
 
 Request::~Request(void) {
-	if (_putfile.is_open()) {
+	 if (_putfile.is_open() || (_body != "" && !access(_body.data(), F_OK))) {
 		unlink(_body.data());
 	}
 }
@@ -30,6 +30,9 @@ Request::~Request(void) {
 Request & Request::operator=(const Request & other) {
 	if (this == &other)
 		return (*this);
+	if (_body != "") {
+		unlink(_body.data());
+	}
 	_type = other._type;
 	_version = other._version;
 	_file = other._file;
@@ -347,8 +350,13 @@ void Request::parseBody(std::string & chunk) {
 	}
 	if (!_putfile.is_open())
 		_putfile.open(_body.data(), std::ios::binary);
-	_putfile.write(chunk.data(), chunk.size());
-	_bodysize -= chunk.size();
+	if (chunk.size() > static_cast<unsigned long>(_bodysize)) {
+		_putfile.write(chunk.data(), _bodysize);
+		_bodysize = 0;
+	} else {
+		_putfile.write(chunk.data(), chunk.size());
+		_bodysize -= chunk.size();
+	}
 }
 
 bool	Request::getIsBody() const {
@@ -419,6 +427,7 @@ int Request::parseChunk(std::string & chunk) {
 					parseBody(chunk);
 					if (_bodysize > 0)
 						return (201);
+					_putfile.close();
 					return (200);
 				} try {
 					return (parseHeaders());
