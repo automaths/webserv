@@ -28,6 +28,21 @@ else if (isset($_POST["disconnect"]))
         setcookie("Logged", "false", time() + (86400 * 30));
     include "log.php";
 }
+else if (isset($_FILES["loggedfile"]))
+{
+    if ($_FILES["loggedfile"]["error"] != 0)
+        echo "Error while trying to upload file";
+    else
+        move_uploaded_file($_FILES["loggedfile"]["tmp_name"], "./Downloads/" . $_FILES["loggedfile"]["name"]);
+    if (isset($_COOKIE["Logged"]) && $_COOKIE["Logged"] == "true")
+    {
+        include "upload.php";
+    }
+    else
+    {
+        include "log.php";
+    }
+}
 else
 {
     if (isset($_COOKIE["Logged"]) && $_COOKIE["Logged"] == "true")
@@ -39,13 +54,7 @@ else
         include "log.php";
     }
 }
-// else if (isset($_FILES["loggedfile"]))
-// {
-//     if (!empty($_FILES["loggedfile"]["tmp_name"]))
-//         move_uploaded_file($_FILES["loggedfile"]["tmp_name"], "./www/Downloads/" . $_FILES["loggedfile"]["name"]);
-//     else
-//         move_uploaded_file($_FILES["loggedfile"]["name"], "./www/Downloads/" . $_FILES["loggedfile"]["name"]);
-// }
+
 
 var_dump($_POST);
 var_dump($_FILES);
