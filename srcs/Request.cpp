@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:32:13 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/17 21:10:46 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/18 12:23:22 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -376,8 +376,6 @@ int Request::parseChunk(std::string & chunk) {
 		_putfile.close();
 		return (200);
 	} else {
-		if (chunk.find("\x03") != NPOS)
-			return (1);
 		if (!_type.size()) {
 			do {
 				line = chunk.substr(0, chunk.find("\r\n"));
