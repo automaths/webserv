@@ -16,8 +16,12 @@
         index: |index.html|
         index: |index.htm|
         autoindex: |on|
+        limit_upload: |off|
         root: |/my_images|
         root_in: |/my_root|
+        rewrite_location: |redirection|
+        rewrite: |/lerewrite/ici|
+        upload_pass: |/redirection/maggle|
         cgi: extension |.js| associated to path |/usr/lib/cgi-bin/javascript|
         cgi: extension |.php| associated to path |/usr/lib/cgi-bin/php|
         cgi: extension |.py| associated to path |/usr/lib/cgi-bin/python|
@@ -34,8 +38,12 @@
         default error page |404| associated to path |/one.html|
         index: |index.bloup|
         autoindex: |on|
+        limit_upload: ||
         root: |/my_videos|
         root_in: |/my_root|
+        rewrite_location: |redirection|
+        rewrite: |/serverrewrite/ici|
+        upload_pass: |/serverpath/maggle|
         cgi: extension |.js| associated to path |/usr/lib/cgi-bin/javascript|
         cgi: extension |.php| associated to path |/usr/lib/cgi-bin/php|
         cgi: extension |.py| associated to path |/usr/lib/cgi-bin/python|
@@ -54,8 +62,12 @@
         default error page |700| associated to path |/testoune|
         index: |index.bloup|
         autoindex: |on|
+        limit_upload: ||
         root: |/test|
         root_in: |/my_videos|
+        rewrite_location: |redirection|
+        rewrite: |/serverrewrite/ici|
+        upload_pass: |/serverpath/maggle|
         cgi: extension |.js| associated to path |/usr/lib/cgi-bin/javascript|
         cgi: extension |.php| associated to path |/usr/lib/cgi-bin/php|
         cgi: extension |.py| associated to path |/usr/lib/cgi-bin/python|
@@ -74,8 +86,12 @@
         default error page |700| associated to path |/testoune|
         index: |index.bloup|
         autoindex: |on|
+        limit_upload: ||
         root: |/test/tmp|
         root_in: |/test|
+        rewrite_location: |redirection|
+        rewrite: |/serverrewrite/ici|
+        upload_pass: |/serverpath/maggle|
         cgi: extension |.js| associated to path |/usr/lib/cgi-bin/javascript|
         cgi: extension |.php| associated to path |/usr/lib/cgi-bin/php|
         cgi: extension |.py| associated to path |/usr/lib/cgi-bin/python|
@@ -94,8 +110,12 @@
         default error page |700| associated to path |/testoune|
         index: |index.bloup|
         autoindex: |on|
+        limit_upload: ||
         root: |ouech|
         root_in: |/test/tmp|
+        rewrite_location: |redirection|
+        rewrite: |/serverrewrite/ici|
+        upload_pass: |/serverpath/maggle|
         cgi: extension |.js| associated to path |/usr/lib/cgi-bin/javascript|
         cgi: extension |.php| associated to path |/usr/lib/cgi-bin/php|
         cgi: extension |.py| associated to path |/usr/lib/cgi-bin/python|

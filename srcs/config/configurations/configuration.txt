@@ -6,12 +6,25 @@ server {
         index index.html index.htm;
         allow_method GET POST HEAD;
         allow_method PUT;
+
+        upload_pass /redirection/maggle;
+        rewrite /lerewrite/ici redirection/permanent ;
+
+
+
+        limit_upload on;
+        
     } 
+
     
     listen  127.0.0.1;
     listen  135.0.0.1:7878;
     listen  89;
     
+    rewrite /serverrewrite/ici redirection ;
+    limit_upload on;
+
+    upload_pass /serverpath/maggle;
 
     index index.html index.htm index.php;
 

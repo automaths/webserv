@@ -2,9 +2,9 @@
             -------| THE SERVER SCOPE |-------            
 
     address: |127.0.0.1|
-    port: |80|
+    port: |8080|
     listen: the address is |*| and the port is |89|
-    listen: the address is |127.0.0.1| and the port is |80|
+    listen: the address is |127.0.0.1| and the port is |8080|
     listen: the address is |135.0.0.1:78| and the port is |7878|
     server_name: |cavalazoone.com|
     server_name: |ouaiouaiouai.com|
@@ -20,7 +20,11 @@
     index: |index.htm|
     index: |index.php|
     autoindex: |on|
+    limit_upload: |on|
     root: /my_root
+    rewrite_location: |redirection|
+    rewrite: |/serverrewrite/ici|
+    upload_pass: |/serverpath/maggle|
     cgi: extension |.js| associated to path |/usr/lib/cgi-bin/javascript|
     cgi: extension |.php| associated to path |/usr/lib/cgi-bin/php|
     cgi: extension |.py| associated to path |/usr/lib/cgi-bin/python|
@@ -28,14 +32,18 @@
             -------| THE SERVER SCOPE |-------            
 
     address: |*|
-    port: |80|
+    port: |8080|
     client_body_buffer_size: |200M|
     default error page |402| associated to path |/one.html|
     default error page |403| associated to path |/one.html|
     default error page |404| associated to path |/one.html|
     index: |index.html|
     autoindex: |on|
-    root: 
+    limit_upload: |on|
+    root: ./www
+    rewrite_location: ||
+    rewrite: ||
+    upload_pass: ||
     cgi: extension |.php| associated to path |/usr/lib/cgi-bin/php|
     cgi: extension |.py| associated to path |/usr/lib/cgi-bin/python|
 
@@ -47,16 +55,24 @@
     client_body_buffer_size: |200M|
     default error page |404| associated to path |/inheritance.html|
     autoindex: ||
-    root: 
+    limit_upload: ||
+    root: ./www
+    rewrite_location: ||
+    rewrite: ||
+    upload_pass: ||
 
             -------| THE SERVER SCOPE |-------            
 
     address: |127.0.0.1|
-    port: |80|
-    listen: the address is |127.0.0.1| and the port is |80|
+    port: |8080|
+    listen: the address is |127.0.0.1| and the port is |8080|
     index: |in_index.html|
     autoindex: ||
-    root: 
+    limit_upload: ||
+    root: ./www
+    rewrite_location: ||
+    rewrite: ||
+    upload_pass: ||
 
             -------| THE SERVER SCOPE |-------            
 
@@ -64,7 +80,11 @@
     port: |8000|
     listen: the address is |*| and the port is |8000|
     autoindex: ||
-    root: 
+    limit_upload: ||
+    root: ./www
+    rewrite_location: ||
+    rewrite: ||
+    upload_pass: ||
     cgi: extension |.php| associated to path |/inheritance|
 
             -------| THE SERVER SCOPE |-------            
@@ -73,4 +93,8 @@
     port: |8000|
     listen: the address is |*:8| and the port is |8000|
     autoindex: ||
-    root: 
+    limit_upload: ||
+    root: ./www
+    rewrite_location: ||
+    rewrite: ||
+    upload_pass: ||

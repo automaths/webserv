@@ -3,6 +3,7 @@ http{
 		listen 8079;
 
 		root ./www/default;
+		
 		index index.html index.htm;
 
 		cgi .php /usr/lib/cgi-bin/php .py /usr/bin/python3;
@@ -12,7 +13,6 @@ http{
 		location /Downloads {
 			allow_method POST GET;
 			root ./www/default/bouhbouh;
-			try_files $uri $uri/ =404;
 		}
 
 		location /form {

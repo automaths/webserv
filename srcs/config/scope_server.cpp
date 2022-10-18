@@ -24,10 +24,10 @@ void ServerScope::extract_listen(std::string directive){
         }
         else
         {
-            _port = "80";
+            _port = "8080";
             directive.erase(0, directive.find_first_not_of("\t\v\n\r\f "));
             _address = directive;
-            _listen.insert(std::make_pair(directive, "80"));
+            _listen.insert(std::make_pair(directive, "8080"));
         }
     }
 }
@@ -49,6 +49,29 @@ void ServerScope::extract_server_name(std::string directive) {
         }
         while(directive.find_first_of(" \t\v\n\r\f") == 0)
             directive.erase(0, 1);
+    }
+}
+void ServerScope::extract_upload_pass(std::string directive) {
+    directive.erase(0, directive.find("upload_pass") + 11);
+    directive.erase(0, directive.find_first_not_of("\t\v\n\r\f "));
+    _upload_pass = directive.substr(0, directive.find_first_of("\t\v\n\r\f "));
+}
+void ServerScope::extract_rewrite(std::string directive) {
+    directive.erase(0, directive.find("rewrite") + 7);
+    directive.erase(0, directive.find_first_not_of("\t\v\n\r\f "));
+    _rewrite_location = directive.substr(0, directive.find_first_of("\t\v\n\r\f "));
+    directive.erase(0, _rewrite_location.size());
+    if (directive.find("permanent") == std::string::npos && directive.find("redirection") == std::string::npos)
+    {
+        _rewrite_location.clear();
+        return;        
+    }
+    else
+    {
+        if (directive.find("permanent") != std::string::npos)
+            _rewrite = "permanent";
+        if (directive.find("redirection") != std::string::npos)
+            _rewrite = "redirection";
     }
 }
 void ServerScope::extract_client_body_buffer_size(std::string directive) {
@@ -164,6 +187,13 @@ void ServerScope::extract_autoindex(std::string autoindex_dir) {
         _autoindex = "off";
 }
 
+void ServerScope::extract_limit_upload(std::string limit_upload_dir) {
+    limit_upload_dir.erase(0, limit_upload_dir.find("limit_upload ") + 9);
+    _limit_upload = limit_upload_dir.substr(limit_upload_dir.find_first_not_of("\t\v\n\r\f ", 0), limit_upload_dir.find_first_of("\t\v\n\r\f ", limit_upload_dir.find_first_not_of("\t\v\n\r\f ", 0)));
+    if (_limit_upload.compare("on") != 0)
+        _limit_upload = "off";
+}
+
 void ServerScope::extract_location_blocks() {
     std::string copy = _chunk;
     while (copy.find(';', 0) != std::string::npos || copy.find('}') != std::string::npos)
@@ -241,14 +271,13 @@ void ServerScope::extract_lines() {
 
 void ServerScope::extract_rules(std::string rule)
 {
-    for (unsigned int i = 0; i < 9; ++i)
+    for (unsigned int i = 0; i < 12; ++i)
     {
         if (rule.find(_directive_types[i]) == rule.find_first_not_of("\t\v\n\r\f "))
         {
             if (rule.find_first_of("\t\v\n\r\f ", rule.find(_directive_types[i])) == (rule.find(_directive_types[i]) + _directive_types[i].size()))
                 (this->*exec[i])(rule);
         }
-
     }
 }
 
@@ -272,6 +301,8 @@ void ServerScope::apply_default() {
     if (_address.size() == 0)
     {
         _address = "*";
-        _port = "80";           
+        _port = "8080";           
     }
+    if (_root.size() == 0)
+        _root = "./www";
 }

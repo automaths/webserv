@@ -5,6 +5,36 @@ void LocationScope::extract_client_body_buffer_size(std::string directive) {
     directive.erase(0, directive.find("client_body_buffer_size") + 23);
     _client_body_buffer_size = directive.substr(directive.find_first_not_of("\t\v\n\r\f "), directive.find_first_of("\t\v\n\r\f ", directive.find_first_not_of("\t\v\n\r\f ")));
 }
+void LocationScope::extract_upload_pass(std::string directive) {
+    directive.erase(0, directive.find("upload_pass") + 11);
+    directive.erase(0, directive.find_first_not_of("\t\v\n\r\f "));
+    _upload_pass = directive.substr(0, directive.find_first_of("\t\v\n\r\f "));
+}
+void LocationScope::extract_limit_upload(std::string limit_upload_dir) {
+    limit_upload_dir.erase(0, limit_upload_dir.find("limit_upload ") + 9);
+    _limit_upload = limit_upload_dir.substr(limit_upload_dir.find_first_not_of("\t\v\n\r\f ", 0), limit_upload_dir.find_first_of("\t\v\n\r\f ", limit_upload_dir.find_first_not_of("\t\v\n\r\f ", 0)));
+    if (_limit_upload.compare("on") != 0)
+        _limit_upload = "off";
+}
+void LocationScope::extract_rewrite(std::string directive) {
+    //rewrite redirect/permanent
+    directive.erase(0, directive.find("rewrite") + 7);
+    directive.erase(0, directive.find_first_not_of("\t\v\n\r\f "));
+    _rewrite_location = directive.substr(0, directive.find_first_of("\t\v\n\r\f "));
+    directive.erase(0, _rewrite_location.size());
+    if (directive.find("permanent") == std::string::npos && directive.find("redirection") == std::string::npos)
+    {
+        _rewrite_location.clear();
+        return;        
+    }
+    else
+    {
+        if (directive.find("permanent") != std::string::npos)
+            _rewrite = "permanent";
+        if (directive.find("redirection") != std::string::npos)
+            _rewrite = "redirection";
+    }
+}
 
 void LocationScope::extract_root(std::string directive) {
     _has_root = 1;

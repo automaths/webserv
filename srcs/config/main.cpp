@@ -12,6 +12,7 @@ int main()
     ifs >> buffer.rdbuf();
     if (!ifs.eof())
         return (std::cerr << "File Size Error" << std::endl, 0);
+    std::cout << "coucou" << std::endl;
     std::string configuration_file = buffer.str();
     try 
     {

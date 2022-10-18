@@ -86,7 +86,11 @@ void Configuration::print_resultings() {
         for (std::vector<std::string>::iterator it_three = getIndex.begin(); it_three != getIndex.end(); ++it_three)
             ofs << "    index: |" << *it_three << "|" << std::endl;
         ofs << "    autoindex: |" << it_two->getAutoIndex() << "|" << std::endl;
+        ofs << "    limit_upload: |" << it_two->getLimitUpload() << "|" << std::endl;
         ofs << "    root: " << it_two->getRoot() << std::endl;
+        ofs << "    rewrite_location: |" << it_two->getRewriteLocation() << "|" << std::endl;
+        ofs << "    rewrite: |" << it_two->getRewrite() << "|" << std::endl;
+        ofs << "    upload_pass: |" << it_two->getUploadPass() << "|" << std::endl;
         std::map<std::string, std::string> getCgi = it_two->getCgi();
         for (std::map<std::string, std::string>::iterator it_three = getCgi.begin(); it_three != getCgi.end(); ++it_three)
             ofs << "    cgi: extension |" << it_three->first << "|" << " associated to path |" << it_three->second << "|" << std::endl;
@@ -115,8 +119,12 @@ void Configuration::location_recursivity(std::vector<LocationScope> location_blo
         for (std::vector<std::string>::iterator it_five = getIndex.begin(); it_five != getIndex.end(); ++it_five)
             ofs << "        index: |" << *it_five << "|" << std::endl;
         ofs << "        autoindex: |" << it_three->getAutoIndex() << "|" << std::endl;
+        ofs << "        limit_upload: |" << it_three->getLimitUpload() << "|" << std::endl;
         ofs << "        root: |" << it_three->getRoot() << "|" << std::endl;
         ofs << "        root_in: |" << it_three->getRootIn() << "|" << std::endl;
+        ofs << "        rewrite_location: |" << it_three->getRewriteLocation() << "|" << std::endl;
+        ofs << "        rewrite: |" << it_three->getRewrite() << "|" << std::endl;
+        ofs << "        upload_pass: |" << it_three->getUploadPass() << "|" << std::endl;
         std::map<std::string, std::string> getCgi = it_three->getCgi();
         for (std::map<std::string, std::string>::iterator it_five = getCgi.begin(); it_five != getCgi.end(); ++it_five)
             ofs << "        cgi: extension |" << it_five->first << "|" << " associated to path |" << it_five->second << "|" << std::endl;
@@ -135,3 +143,4 @@ void Configuration::transfer_servers(){
         }
     }
 }
+
