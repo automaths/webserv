@@ -688,6 +688,7 @@ void	Response::makeResponse(Request & req)
 	}
 	else if (isCgiPath())
 	{
+		std::cerr << "CGIIIIIIIII" << std::endl;
 		std::map<std::string, std::string> cgi = _targetServer->getCgi(); 
 		std::string extension;
 		if (_cgi_file.find_last_of(".") != std::string::npos)
