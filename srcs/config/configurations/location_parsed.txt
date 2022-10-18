@@ -1,121 +1,37 @@
 
                ---| THE LOCATION SCOPE |---            
 
-        main_path: |/images/|
-        allow_method: |PUT|
-        allow_method: |GET|
+        main_path: |/Downloads|
         allow_method: |POST|
-        allow_method: |HEAD|
         allow_method: |GET|
-        allow_method: |POST|
-        client_body_buffer_size: |200M|
-        default error page |401| associated to path |/two.html|
-        default error page |402| associated to path |/one.html|
-        default error page |403| associated to path |/one.html|
-        default error page |404| associated to path |/one.html|
+        client_body_buffer_size: ||
+        default error page |403| associated to path |/403.html|
+        default error page |404| associated to path |./www/default/w404.html|
         index: |index.html|
         index: |index.htm|
-        autoindex: |on|
-        limit_upload: |off|
-        root: |/my_images|
-        root_in: |/my_root|
-        rewrite_location: |redirection|
-        rewrite: |/lerewrite/ici|
-        upload_pass: |/redirection/maggle|
-        cgi: extension |.js| associated to path |/usr/lib/cgi-bin/javascript|
-        cgi: extension |.php| associated to path |/usr/lib/cgi-bin/php|
-        cgi: extension |.py| associated to path |/usr/lib/cgi-bin/python|
+        autoindex: ||
+        limit_upload: ||
+        root: |./www/default/bouhbouh|
+        root_in: |./www/default|
+        rewrite_location: ||
+        rewrite: ||
+        upload_pass: ||
+        cgi: extension |.php| associated to path |/usr/lib/cgi-bin/php7.3|
+        cgi: extension |.py| associated to path |/usr/bin/python3|
 
                ---| THE LOCATION SCOPE |---            
 
-        main_path: |/videos|
-        allow_method: |GET|
-        allow_method: |POST|
-        client_body_buffer_size: |200M|
-        default error page |401| associated to path |/two.html|
-        default error page |402| associated to path |/one.html|
-        default error page |403| associated to path |/one.html|
-        default error page |404| associated to path |/one.html|
-        index: |index.bloup|
-        autoindex: |on|
+        main_path: |/form|
+        client_body_buffer_size: ||
+        default error page |403| associated to path |/403.html|
+        default error page |404| associated to path |./www/default/w404.html|
+        index: |index.php|
+        autoindex: ||
         limit_upload: ||
-        root: |/my_videos|
-        root_in: |/my_root|
-        rewrite_location: |redirection|
-        rewrite: |/serverrewrite/ici|
-        upload_pass: |/serverpath/maggle|
-        cgi: extension |.js| associated to path |/usr/lib/cgi-bin/javascript|
-        cgi: extension |.php| associated to path |/usr/lib/cgi-bin/php|
-        cgi: extension |.py| associated to path |/usr/lib/cgi-bin/python|
-
-                    recursion level 2
-
-        main_path: |/videos/coucou|
-        allow_method: |GET|
-        allow_method: |GET|
-        allow_method: |POST|
-        client_body_buffer_size: |200M|
-        default error page |401| associated to path |/two.html|
-        default error page |402| associated to path |/one.html|
-        default error page |403| associated to path |/one.html|
-        default error page |404| associated to path |/one.html|
-        default error page |700| associated to path |/testoune|
-        index: |index.bloup|
-        autoindex: |on|
-        limit_upload: ||
-        root: |/test|
-        root_in: |/my_videos|
-        rewrite_location: |redirection|
-        rewrite: |/serverrewrite/ici|
-        upload_pass: |/serverpath/maggle|
-        cgi: extension |.js| associated to path |/usr/lib/cgi-bin/javascript|
-        cgi: extension |.php| associated to path |/usr/lib/cgi-bin/php|
-        cgi: extension |.py| associated to path |/usr/lib/cgi-bin/python|
-
-                    recursion level 3
-
-        main_path: |videos/coucou/tmp|
-        allow_method: |GET|
-        allow_method: |GET|
-        allow_method: |POST|
-        client_body_buffer_size: |200M|
-        default error page |401| associated to path |/two.html|
-        default error page |402| associated to path |/one.html|
-        default error page |403| associated to path |/one.html|
-        default error page |404| associated to path |/one.html|
-        default error page |700| associated to path |/testoune|
-        index: |index.bloup|
-        autoindex: |on|
-        limit_upload: ||
-        root: |/test/tmp|
-        root_in: |/test|
-        rewrite_location: |redirection|
-        rewrite: |/serverrewrite/ici|
-        upload_pass: |/serverpath/maggle|
-        cgi: extension |.js| associated to path |/usr/lib/cgi-bin/javascript|
-        cgi: extension |.php| associated to path |/usr/lib/cgi-bin/php|
-        cgi: extension |.py| associated to path |/usr/lib/cgi-bin/python|
-
-                    recursion level 4
-
-        main_path: |videos/coucou/tmp/go|
-        allow_method: |GET|
-        allow_method: |GET|
-        allow_method: |POST|
-        client_body_buffer_size: |600M|
-        default error page |401| associated to path |/two.html|
-        default error page |402| associated to path |/one.html|
-        default error page |403| associated to path |/one.html|
-        default error page |404| associated to path |/one.html|
-        default error page |700| associated to path |/testoune|
-        index: |index.bloup|
-        autoindex: |on|
-        limit_upload: ||
-        root: |ouech|
-        root_in: |/test/tmp|
-        rewrite_location: |redirection|
-        rewrite: |/serverrewrite/ici|
-        upload_pass: |/serverpath/maggle|
-        cgi: extension |.js| associated to path |/usr/lib/cgi-bin/javascript|
-        cgi: extension |.php| associated to path |/usr/lib/cgi-bin/php|
-        cgi: extension |.py| associated to path |/usr/lib/cgi-bin/python|
+        root: |./www/form|
+        root_in: |./www/default|
+        rewrite_location: ||
+        rewrite: ||
+        upload_pass: ||
+        cgi: extension |.php| associated to path |/usr/lib/cgi-bin/php7.3|
+        cgi: extension |.py| associated to path |/usr/bin/python3|
