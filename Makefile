@@ -6,13 +6,10 @@
 #    By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/09/27 13:15:29 by tnaton            #+#    #+#              #
-<<<<<<< HEAD
-#    Updated: 2022/10/18 14:43:02 by nsartral         ###   ########.fr        #
-=======
-#    Updated: 2022/10/18 11:33:02 by nsartral         ###   ########.fr        #
->>>>>>> ebdf1f09fc7b01da6b17e2c603779a65682424be
+#    Updated: 2022/10/18 18:32:21 by nsartral         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
+
 
 vpath %.cpp srcs
 vpath %.cpp srcs/config
