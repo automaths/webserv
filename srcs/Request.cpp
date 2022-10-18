@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:32:13 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/18 17:38:21 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/18 20:22:23 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -346,21 +346,31 @@ int Request::moveBody(std::string & path) {
 	return (0);
 }
 
-std::string minus(std::string _bodysize, unsigned long chunksize) {
-	int	tmp = chunksize;
-	int	i = 0;
+std::string minus(std::string _bs, unsigned long chunksize) {
 	std::stringstream ret;
 
-	while (tmp) {
-		tmp /= 10;
-		i++;
+	for (unsigned long i = 0; i < _bs.size(); i++)
+		ret << 0;
+	ret << chunksize;
+	std::string str = ret.str();
+	for (unsigned long i = 0; i < _bs.size(); i++) {
+		if (i < str.size()) {
+			if (str[str.size() - 1 - i] > '9') {
+				str[str.size() - 2 - i] += 1;
+				str[str.size() - 1 - i] = '0';
+			} if (str[str.size() - 1 - i] > _bs[_bs.size() - 1 - i]) {
+				_bs[_bs.size() - 1 - i] = '9' + 1 - (str[str.size() - 1 - i] - _bs[_bs.size() - 1 - i]); 
+				str[str.size() - 2 - i] += 1;
+			} else {
+				_bs[_bs.size() - 1 - i] = '0' + _bs[_bs.size() - 1 - i] - str[str.size() - 1 - i];
+			}
+		}
 	}
-	if (_bodysize.size() > 9) {
-		ret << _bodysize.substr(0, _bodysize.size() - 9) << (ft_atoi(_bodysize.substr(_bodysize.size() - 9)) - static_cast<int>(chunksize));
-	} else {
-		ret << (ft_atoi(_bodysize) - static_cast<int>(chunksize));
-	}
-	return (static_cast<std::string>(ret.str()));
+	while (_bs[0] == '0')
+		_bs = _bs.substr(1);
+	if (!_bs.size())
+		return ("0");
+	return (_bs);
 }
 
 void Request::parseBody(std::string & chunk) {
