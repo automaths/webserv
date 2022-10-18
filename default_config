@@ -16,7 +16,7 @@ http{
 		
 		index index.html index.htm;
 
-		cgi .php /usr/lib/cgi-bin/php7.3 .py /usr/bin/python3;
+		cgi .php /usr/lib/cgi-bin/php .py /usr/bin/python3;
 
 		server_name default;
 

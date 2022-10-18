@@ -16,8 +16,8 @@
 #include <cstdlib>
 #include <csignal>
 #define PORT 8080
-#define READCHUNKSIZE 1048576
-#define WATCHEDEVENTS 100
+#define READCHUNKSIZE 2097152
+#define WATCHEDEVENTS 255
 
 extern volatile std::sig_atomic_t g_code;
 
