@@ -1,113 +1,50 @@
+http{
+	server {
+		listen 8181;
 
-server {
+		root /sgoinfre/goinfre/Perso/tnaton/putty;
 
-    location /images/ {
-        root /my_images;
-        index index.html index.htm;
-        allow_method GET POST HEAD;
-        allow_method PUT;
+		index index.html index.htm;
 
-        upload_pass /redirection/maggle;
-        rewrite /lerewrite/ici redirection/permanent ;
+		server_name putty;
+	}
 
+	server {
+		listen 8079;
 
+		root ./www/default;
+		
+		index index.html index.htm;
 
-        limit_upload on;
-        
-    } 
+		cgi .php /usr/lib/cgi-bin/php7.3 .py /usr/bin/python3;
 
-    
-    listen  127.0.0.1;
-    listen  135.0.0.1:7878;
-    listen  89;
-    
-    rewrite /serverrewrite/ici redirection ;
-    limit_upload on;
+		server_name default;
 
-    upload_pass /serverpath/maggle;
+		location /Downloads {
+			allow_method POST GET;
+			root ./www/default/bouhbouh;
+		}
 
-    index index.html index.htm index.php;
+		location /form {
+			root ./www/form;
+			index index.php;
+			cgi .php /usr/lib/cgi-bin/php;
+		}
 
-    server_name       cavalazoone.com ouaiouaiouai.com coucou.fr;
-    
-    error_page 404 403 402 /one.html;
-    error_page 401 /two.html;
-    
-    client_body_buffer_size 200M;
+		error_page  404     ./www/default/w404.html;
+		error_page  403     /403.html;
+	}
 
-    cgi .php /usr/lib/cgi-bin/php .py /usr/lib/cgi-bin/python;
-    cgi .js /usr/lib/cgi-bin/javascript;
+	server {
+		listen 8080;
 
-    allow_method GET POST;
+		root ./www/basic;
 
-    autoindex on;
+		index index.html index.htm;
 
+		server_name basic;
 
-    #fsdkljgsdf
-
-
-    location /videos {
-        root /my_videos;
-
-        index index.bloup;
-        root coucou;
-        
-        client_body_buffer_size 200M;
-        error_page 404 /test_inherit;
-
-                        root: /test;
-        location /videos/coucou {
-            allow_method GET;
-            error_page 700 /testoune;
-                    root /test;
-
-
-            location videos/coucou/tmp {
-
-                location videos/coucou/tmp/go {
-                    client_body_buffer_size 600M;
-                    root ouech;
-
-                }
-            }
-
-        }
-
-    }
-    root /my_root; #flkdjafasfasdfa
-
+		error_page  404     /404.html;
+		error_page  403     /403.html;
+	}
 }
-
-server {
-
-    cgi .php /usr/lib/cgi-bin/php .py /usr/lib/cgi-bin/python;
-    error_page 404 403 402 /one.html;
-
-    index index.html;
-    autoindex on;
-    client_body_buffer_size 200M;
-
-}
-
-
-    server {
-
-        listen 127.0.0.1:8000;
-        client_body_buffer_size 200M;
-        error_page 404 /inheritance.html;
-                               root: /test;
-    }
-    server {
-
-        listen 127.0.0.1;
-        index in_index.html;
-    }
-    server {
-        listen 8000;
-        cgi .php /inheritance;
-    }
-    server {
-
-        listen *:8000;
-
-    }
