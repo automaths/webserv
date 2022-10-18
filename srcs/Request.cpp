@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:32:13 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/18 12:23:22 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/18 14:50:15 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 #define NOT_OLD _version!="HTTP/1.0"
 #define NOT_NEW _version!="HTTP/1.1"
 
-Request::Request(void): _type(""), _version(""), _file(""), _body(""), _headers(), _isbody(false), _bodysize(-1), _putfile(), _tmpfile(), _query(""), _keepalive(true) {
+Request::Request(void): _type(""), _version(""), _file(""), _body(""), _headers(), _isbody(false), _bodysize("0"), _putfile(), _tmpfile(), _query(""), _keepalive(true) {
 }
 
 Request::Request(const Request & other): _type(other._type), _version(other._version), _file(other._file), _body(other._body), _headers(other._headers), _isbody(other._isbody), _bodysize(other._bodysize), _putfile(), _tmpfile(), _query(other._query), _keepalive(other._keepalive) {
@@ -192,10 +192,10 @@ int Request::checkType(std::string & type) {
 std::string Request::getQuery() const { return _query; }
 
 int ft_atoi(std::string & str) {
-	if (str.size() > 10) {
-		throw (std::exception());
+	if (strcmp("2147483647", str.data()) > 0) {
+		return (atoi(str.c_str()));
 	}
-	return (atoi(str.c_str()));
+	return (2147483647);
 }
 
 int Request::parseHeaders(void) {
@@ -344,18 +344,22 @@ int Request::moveBody(std::string & path) {
 	return (0);
 }
 
+std::string minus(std::string & _bodysize, unsigned long chunksize) {
+
+}
+
 void Request::parseBody(std::string & chunk) {
 	if (_body == "") {
 		_body = checkopen("0");
 	}
 	if (!_putfile.is_open())
 		_putfile.open(_body.data(), std::ios::binary);
-	if (chunk.size() > static_cast<unsigned long>(_bodysize)) {
-		_putfile.write(chunk.data(), _bodysize);
-		_bodysize = 0;
+	if (chunk.size() > static_cast<unsigned long>(ft_atoi(_bodysize))) {
+		_putfile.write(chunk.data(), ft_atoi(_bodysize));
+		_bodysize = "0";
 	} else {
 		_putfile.write(chunk.data(), chunk.size());
-		_bodysize -= chunk.size();
+		_bodysize = minus(_bodysize, chunk.size());
 	}
 	std::cout << "Bodysize left : " << _bodysize << std::endl;
 }
@@ -370,7 +374,7 @@ int Request::parseChunk(std::string & chunk) {
 	std::cerr << "Chunk received: " << reinterpret_cast<unsigned char const *>(chunk.data()) << std::endl;
 	if (_isbody) {
 		parseBody(chunk);
-		if (_bodysize > 0) {
+		if (_bodysize != "0") {
 			return (0);
 		}
 		_putfile.close();
@@ -422,11 +426,11 @@ int Request::parseChunk(std::string & chunk) {
 				} if (_type == POST || _type == PUT) {
 					_isbody = true;
 					if (_headers.find("content-length") != _headers.end()) {
-						_bodysize = ft_atoi(_headers["content-length"].front());
+						_bodysize = _headers["content-length"].front();
 						std::cerr << "Bodysize : " << _bodysize << std::endl;
 					}
 					parseBody(chunk);
-					if (_bodysize > 0)
+					if (_bodysize != "0")
 						return (201);
 					_putfile.close();
 					return (200);
