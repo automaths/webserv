@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:32:13 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/18 14:50:15 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/18 15:30:36 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -191,7 +191,7 @@ int Request::checkType(std::string & type) {
 
 std::string Request::getQuery() const { return _query; }
 
-int ft_atoi(std::string & str) {
+int ft_atoi(std::string str) {
 	if (strcmp("2147483647", str.data()) > 0) {
 		return (atoi(str.c_str()));
 	}
@@ -344,8 +344,21 @@ int Request::moveBody(std::string & path) {
 	return (0);
 }
 
-std::string minus(std::string & _bodysize, unsigned long chunksize) {
+std::string minus(std::string _bodysize, unsigned long chunksize) {
+	int	tmp = chunksize;
+	int	i = 0;
+	std::stringstream ret;
 
+	while (tmp) {
+		tmp /= 10;
+		i++;
+	}
+	if (_bodysize.size() > 9) {
+		ret << _bodysize.substr(0, _bodysize.size() - 9) << (ft_atoi(_bodysize.substr(_bodysize.size() - 9)) - static_cast<int>(chunksize));
+	} else {
+		ret << (ft_atoi(_bodysize) - static_cast<int>(chunksize));
+	}
+	return (static_cast<std::string>(ret.str()));
 }
 
 void Request::parseBody(std::string & chunk) {
@@ -427,7 +440,7 @@ int Request::parseChunk(std::string & chunk) {
 					_isbody = true;
 					if (_headers.find("content-length") != _headers.end()) {
 						_bodysize = _headers["content-length"].front();
-						std::cerr << "Bodysize : " << _bodysize << std::endl;
+						std::cerr << "Content-length in bodysize : " << _bodysize << std::endl;
 					}
 					parseBody(chunk);
 					if (_bodysize != "0")
