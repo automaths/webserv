@@ -367,6 +367,7 @@ bool	Request::getIsBody() const {
 int Request::parseChunk(std::string & chunk) {
 	std::string line;
 
+	std::cerr << "Chunk received: " << reinterpret_cast<unsigned char const *>(chunk.data()) << std::endl;
 	if (_isbody) {
 		parseBody(chunk);
 		if (_bodysize > 0) {

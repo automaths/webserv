@@ -201,6 +201,7 @@ void	Server::readRequest(struct epoll_event & event)
 		{
 			this->_rdBufferCpy.assign(this->_rdBuffer, (this->_rdBuffer + recvret));
 			result = currentClient.addToRequest(this->_rdBufferCpy);
+			std::cerr << "Result form Request parsing: " << result << std::endl;
 		}
 		catch (std::exception const & e)
 		{
