@@ -85,10 +85,8 @@ void LocationScope::extract_cgi(std::string cgi_dir) {
     }
     for (std::vector<std::string>::iterator it = content.begin(); it != content.end(); ++it)
     {
-        if (++it != content.end())
-            _cgi.insert(std::make_pair(*(--it), *(++it)));
-        else
-            --it;
+        if (it + 1 != content.end())
+            _cgi.insert(std::make_pair(*(it), *(++it)));
     }
 }
 
