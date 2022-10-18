@@ -6,7 +6,7 @@
 /*   By: bdetune <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/29 13:30:25 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/11 18:10:15 by bdetune          ###   ########.fr       */
+/*   Updated: 2022/10/18 15:36:09 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,6 +48,10 @@
 
 # define DEFAULT405STATUS "Method Not Allowed"
 
+//413
+# define DEFAULT413BODY "<html>\n<head><title>413 Request Entity Too Large</title></head>\n<body bgcolor=\"white\">\n<center><h1>413 Request Entity Too Large</h1></center>\n<hr>\n<center><div><img src=\"https://http.cat/413\"  alt=\"A beautiful 413 response\"></div></center>\n<hr>\n<center>webserv/1.0</center>\n</body>\n</html>\n"
+
+# define DEFAULT413STATUS "Request Entity Too Large"
 
 //416
 # define DEFAULT416BODY "<html>\n<head><title>416 Request Range Not Satisfiable</title></head>\n<body bgcolor=\"white\">\n<center><h1>416 Request Range Not Satisfiable</h1></center>\n<hr>\n<center><div><img src=\"https://http.cat/416\"  alt=\"A beautiful 416 response\"></div></center>\n<hr>\n<center>webserv/1.0</center>\n</body>\n</html>\n"

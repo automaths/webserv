@@ -1,4 +1,4 @@
-/* ************************************************************************** */
+/* ************************************************************************* */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   Request.hpp                                        :+:      :+:    :+:   */
@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/10/05 17:41:22 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/17 15:51:10 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/18 15:18:19 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <ftw.h>
+#include <cstring>
 
 class Request{
 
@@ -70,7 +71,7 @@ class Request{
 		std::string		_body;
 		std::map<std::string, std::list<std::string> > _headers;
 		bool			_isbody;
-		int				_bodysize;
+		std::string		_bodysize;
 		std::ofstream	_putfile;
 		std::ifstream	_tmpfile; 
 		std::string		_query;
