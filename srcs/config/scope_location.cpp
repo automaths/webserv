@@ -1,6 +1,60 @@
 #include "library.hpp"
 #include "scope_location.hpp"
 
+LocationScope::LocationScope(){}
+LocationScope::~LocationScope(){}
+LocationScope::LocationScope(std::string str){
+    _chunk = str;
+    _has_root = 0;
+    extract_main_path();
+    extract_location_blocks();
+    extract_lines();
+    _directive_types[0] = "error_page";
+    _directive_types[1] = "client_body_buffer_size";
+    _directive_types[2] = "root";
+    _directive_types[3] = "allow_method";
+    _directive_types[4] = "cgi";
+    _directive_types[5] = "index";
+    _directive_types[6] = "autoindex";
+    _directive_types[7] = "limit_upload";
+    _directive_types[8] = "rewrite";
+    _directive_types[9] = "upload_pass";
+    exec[0] = &LocationScope::extract_default_error_pages;
+    exec[1] = &LocationScope::extract_client_body_buffer_size;
+    exec[2] = &LocationScope::extract_root;
+    exec[3] = &LocationScope::extract_allow_method;
+    exec[4] = &LocationScope::extract_cgi;
+    exec[5] = &LocationScope::extract_index;
+    exec[6] = &LocationScope::extract_autoindex;
+    exec[7] = &LocationScope::extract_limit_upload;
+    exec[8] = &LocationScope::extract_rewrite;
+    exec[9] = &LocationScope::extract_upload_pass;
+    extract_directives();
+    for(std::vector<std::string>::iterator it = _location_blocks.begin(); it != _location_blocks.end(); ++it)
+    {
+        _locations.push_back(LocationScope(*it));
+    }
+}
+LocationScope& LocationScope::operator=(LocationScope const &other) {
+    if (this != &other)
+    {
+        _main_path = other._main_path;
+        _locations = other._locations;
+        _index = other._index;
+        _client_body_buffer_size = other._client_body_buffer_size;
+        _autoindex = other._autoindex;
+        _limit_upload = other._limit_upload;
+        _root = other._root;
+        _allow_method = other._allow_method;
+        _cgi = other._cgi;
+        _default_error_pages = other._default_error_pages;
+        _rewrite = other._rewrite;
+        _rewrite_location = other._rewrite_location;
+        _upload_pass = other._upload_pass;
+        _limit_upload = other._limit_upload;
+    }
+    return *this;
+}
 void LocationScope::extract_client_body_buffer_size(std::string directive) {
     directive.erase(0, directive.find("client_body_buffer_size") + 23);
     _client_body_buffer_size = directive.substr(directive.find_first_not_of("\t\v\n\r\f "), directive.find_first_of("\t\v\n\r\f ", directive.find_first_not_of("\t\v\n\r\f ")));
@@ -17,7 +71,6 @@ void LocationScope::extract_limit_upload(std::string limit_upload_dir) {
         _limit_upload = "off";
 }
 void LocationScope::extract_rewrite(std::string directive) {
-    //rewrite redirect/permanent
     directive.erase(0, directive.find("rewrite") + 7);
     directive.erase(0, directive.find_first_not_of("\t\v\n\r\f "));
     _rewrite_location = directive.substr(0, directive.find_first_of("\t\v\n\r\f "));
@@ -35,13 +88,11 @@ void LocationScope::extract_rewrite(std::string directive) {
             _rewrite = "redirection";
     }
 }
-
 void LocationScope::extract_root(std::string directive) {
     _has_root = 1;
     directive.erase(0, directive.find_first_of("root") + 4);
     _root = directive.substr(directive.find_first_not_of("\t\v\n\r\f "), directive.find_first_of("\t\v\n\r\f ", directive.find_first_not_of("\t\v\n\r\f ")));
 }
-
 void LocationScope::extract_allow_method(std::string directive) {
     directive.erase(0, directive.find("allow_method") + 12);
     while (directive.find_first_of(" \t\v\n\r\f") == 0)
@@ -62,7 +113,6 @@ void LocationScope::extract_allow_method(std::string directive) {
             directive.erase(0, 1);
     }
 }
-
 void LocationScope::extract_cgi(std::string cgi_dir) {
     std::vector<std::string> content;
     cgi_dir.erase(0, cgi_dir.find_first_of("cgi") + 3);
@@ -92,7 +142,6 @@ void LocationScope::extract_cgi(std::string cgi_dir) {
         }
     }
 }
-
 void LocationScope::extract_index(std::string index_dir) {
     index_dir.erase(0, index_dir.find("index") + 5);
     while (index_dir.find_first_of(" \t\v\n\r\f") == 0)
@@ -113,7 +162,6 @@ void LocationScope::extract_index(std::string index_dir) {
             index_dir.erase(0, 1);
     }
 }
-
 void LocationScope::extract_default_error_pages(std::string error_page_dir) {
     error_page_dir.erase(0, error_page_dir.find("error_page") + 10);
     while (error_page_dir.find_first_of(" \t\v\n\r\f") == 0)
@@ -140,14 +188,12 @@ void LocationScope::extract_default_error_pages(std::string error_page_dir) {
     for (std::vector<std::string>::iterator it = number.begin(); it != number.end(); ++it)
         _default_error_pages.insert(std::make_pair(*it, path));
 }
-
 void LocationScope::extract_autoindex(std::string autoindex_dir) {
     autoindex_dir.erase(0, autoindex_dir.find("autoindex ") + 9);
     _autoindex = autoindex_dir.substr(autoindex_dir.find_first_not_of("\t\v\n\r\f ", 0), autoindex_dir.find_first_of("\t\v\n\r\f ", autoindex_dir.find_first_not_of("\t\v\n\r\f ", 0)));
     if (_autoindex.compare("on") != 0)
         _autoindex = "off";
 }
-
 void LocationScope::extract_location_blocks() {  
     std::string copy = _chunk;
     while (copy.find(';', 0) != std::string::npos || copy.find('}') != std::string::npos)
@@ -214,7 +260,6 @@ void LocationScope::extract_location_blocks() {
     for (std::vector<std::string>::iterator it = _location_blocks.begin(); it != _location_blocks.end(); ++it)
         _chunk.erase(_chunk.find(*it), it->size());
 }
-
 void LocationScope::extract_lines() {
     while (_chunk.find(';', 0) != std::string::npos)
     {
@@ -222,7 +267,6 @@ void LocationScope::extract_lines() {
         _chunk.erase(0, _chunk.find(';', 0) + 1);
     }
 }
-
 void LocationScope::extract_rules(std::string rule)
 {
     for (unsigned int i = 0; i < 10; ++i)
@@ -234,7 +278,6 @@ void LocationScope::extract_rules(std::string rule)
         }
     }
 }
-
 void LocationScope::extract_main_path()
 {
     _chunk.erase(0, _chunk.find_first_not_of("\t\v\n\r\f ", _chunk.find("location") + 8));
@@ -242,7 +285,6 @@ void LocationScope::extract_main_path()
     _chunk.erase(0, _chunk.find('{') + 1);
     _chunk.erase(_chunk.find_last_of('}'), 1);
 }
-
 void LocationScope::extract_directives() {
     while (_directives.size() != 0)
     {
@@ -250,12 +292,10 @@ void LocationScope::extract_directives() {
         _directives.pop_back();
     }
 }
-
 void LocationScope::apply_default() {
     if(_autoindex.size() == 0)
         _autoindex = "off";
 }
-
 void LocationScope::print_result() {
     std::ofstream ofs;
     ofs.open("./configurations/parsed.txt", std::ios_base::app);
