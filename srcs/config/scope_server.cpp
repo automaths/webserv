@@ -1,6 +1,68 @@
 #include "library.hpp"
 #include "scope_server.hpp"
 
+ServerScope::ServerScope(){}
+ServerScope::~ServerScope(){}
+ServerScope::ServerScope(std::string str){
+    _chunk = str;
+    clean_comments_header();
+    extract_location_blocks();
+    extract_lines();
+    _directive_types[0] = "listen";
+    _directive_types[1] = "server_name";
+    _directive_types[2] = "error_page";
+    _directive_types[3] = "client_body_buffer_size";
+    _directive_types[4] = "root";
+    _directive_types[5] = "allow_method";
+    _directive_types[6] = "cgi";
+    _directive_types[7] = "index";
+    _directive_types[8] = "autoindex";
+    _directive_types[9] = "limit_upload";
+    _directive_types[10] = "rewrite";
+    _directive_types[11] = "upload_pass";
+    exec[0] = &ServerScope::extract_listen;
+    exec[1] = &ServerScope::extract_server_name;
+    exec[2] = &ServerScope::extract_default_error_pages;
+    exec[3] = &ServerScope::extract_client_body_buffer_size;
+    exec[4] = &ServerScope::extract_root;
+    exec[5] = &ServerScope::extract_allow_method;
+    exec[6] = &ServerScope::extract_cgi;
+    exec[7] = &ServerScope::extract_index;
+    exec[8] = &ServerScope::extract_autoindex;
+    exec[9] = &ServerScope::extract_limit_upload;
+    exec[10] = &ServerScope::extract_rewrite;
+    exec[11] = &ServerScope::extract_upload_pass;
+    extract_directives();
+    apply_default();
+    for (std::vector<std::string>::iterator it = _location_blocks.begin(); it != _location_blocks.end(); ++it)
+    {
+        _locations.push_back(LocationScope(*it));
+    }
+}
+ServerScope& ServerScope::operator=(ServerScope const &other) {
+    if (this != &other)
+    {
+        _locations = other._locations;
+        _address = other._address;
+        _listen = other._listen;
+        _port = other._port;
+        _server_names = other._server_names;
+        _index = other._index;
+        _client_body_buffer_size = other._client_body_buffer_size;
+        _autoindex = other._autoindex;
+        _root = other._root;
+        _rewrite = other._rewrite;
+        _rewrite_location = other._rewrite_location;
+        _allow_method = other._allow_method;
+        _cgi = other._cgi;
+        _default_error_pages = other._default_error_pages;
+        _in_root = other._in_root;
+        _upload_pass = other._upload_pass;
+        _limit_upload = other._limit_upload;
+
+    }
+    return *this;
+}
 void ServerScope::extract_listen(std::string directive){
     directive.erase(0, directive.find("listen") + 6);
     if (directive.find(':') != std::string::npos)
@@ -31,8 +93,6 @@ void ServerScope::extract_listen(std::string directive){
             _listen.insert(std::make_pair(directive.substr(0, directive.find_last_not_of("\t\v\n\r\f ") + 1), "8080"));
         }
     }
-    // _port.erase(0, _port.find_first_not_of("\t\v\n\r\f "));
-    // _port = _port.substr(0, _port.find_last_not_of("\t\v\n\r\f ") + 1);
 }
 void ServerScope::extract_server_name(std::string directive) {
     directive.erase(0, directive.find("server_name") + 11);
@@ -105,7 +165,6 @@ void ServerScope::extract_allow_method(std::string directive) {
             directive.erase(0, 1);
     }
 }
-
 void ServerScope::extract_cgi(std::string cgi_dir) {
     std::vector<std::string> content;
     cgi_dir.erase(0, cgi_dir.find_first_of("cgi") + 3);
@@ -135,7 +194,6 @@ void ServerScope::extract_cgi(std::string cgi_dir) {
         }
     }
 }
-
 void ServerScope::extract_index(std::string index_dir) {
     index_dir.erase(0, index_dir.find("index") + 5);
     while (index_dir.find_first_of(" \t\v\n\r\f") == 0)
@@ -156,7 +214,6 @@ void ServerScope::extract_index(std::string index_dir) {
             index_dir.erase(0, 1);
     }
 }
-
 void ServerScope::extract_default_error_pages(std::string error_page_dir) {
     error_page_dir.erase(0, error_page_dir.find("error_page") + 10);
     while (error_page_dir.find_first_of(" \t\v\n\r\f") == 0)
@@ -183,21 +240,18 @@ void ServerScope::extract_default_error_pages(std::string error_page_dir) {
     for (std::vector<std::string>::iterator it = number.begin(); it != number.end(); ++it)
         _default_error_pages.insert(std::make_pair(*it, path));
 }
-
 void ServerScope::extract_autoindex(std::string autoindex_dir) {
     autoindex_dir.erase(0, autoindex_dir.find("autoindex ") + 9);
     _autoindex = autoindex_dir.substr(autoindex_dir.find_first_not_of("\t\v\n\r\f ", 0), autoindex_dir.find_first_of("\t\v\n\r\f ", autoindex_dir.find_first_not_of("\t\v\n\r\f ", 0)));
     if (_autoindex.compare("on") != 0)
         _autoindex = "off";
 }
-
 void ServerScope::extract_limit_upload(std::string limit_upload_dir) {
     limit_upload_dir.erase(0, limit_upload_dir.find("limit_upload ") + 9);
     _limit_upload = limit_upload_dir.substr(limit_upload_dir.find_first_not_of("\t\v\n\r\f ", 0), limit_upload_dir.find_first_of("\t\v\n\r\f ", limit_upload_dir.find_first_not_of("\t\v\n\r\f ", 0)));
     if (_limit_upload.compare("on") != 0)
         _limit_upload = "off";
 }
-
 void ServerScope::extract_location_blocks() {
     std::string copy = _chunk;
     while (copy.find(';', 0) != std::string::npos || copy.find('}') != std::string::npos)
@@ -264,7 +318,6 @@ void ServerScope::extract_location_blocks() {
     for (std::vector<std::string>::iterator it = _location_blocks.begin(); it != _location_blocks.end(); ++it)
         _chunk.erase(_chunk.find(*it), it->size());
 }
-
 void ServerScope::extract_lines() {
     while (_chunk.find(';', 0) != std::string::npos)
     {
@@ -272,7 +325,6 @@ void ServerScope::extract_lines() {
         _chunk.erase(0, _chunk.find(';', 0) + 1);
     }
 }
-
 void ServerScope::extract_rules(std::string rule)
 {
     for (unsigned int i = 0; i < 12; ++i)
@@ -284,7 +336,6 @@ void ServerScope::extract_rules(std::string rule)
         }
     }
 }
-
 void ServerScope::clean_comments_header()
 {
     _chunk.erase(0, _chunk.find_first_of('{', 0) + 1);
@@ -292,7 +343,6 @@ void ServerScope::clean_comments_header()
     while (_chunk.find('#', 0) != std::string::npos)
         _chunk.erase(_chunk.find('#', 0), _chunk.find_first_of('\n', _chunk.find('#', 0)) - _chunk.find('#', 0));
 }
-
 void ServerScope::extract_directives() {
     while (_directives.size() != 0)
     {
@@ -300,7 +350,6 @@ void ServerScope::extract_directives() {
         _directives.pop_back();
     }
 }
-
 void ServerScope::apply_default() {
     if (_address.size() == 0)
     {

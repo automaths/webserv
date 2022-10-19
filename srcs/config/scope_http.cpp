@@ -3,16 +3,51 @@
 #include "scope_location.hpp"
 #include "scope_http.hpp"
 
+HttpScope::HttpScope(){}
+HttpScope::~HttpScope(){}
+HttpScope::HttpScope(std::string str) {
+    _block = str;
+    clean_http_header();
+    extract_server_blocks();
+    extract_lines();
+    _directive_types[0] = "error_page";
+    _directive_types[1] = "client_body_buffer_size";
+    _directive_types[2] = "root";
+    _directive_types[3] = "cgi";
+    _directive_types[4] = "index";
+    _directive_types[5] = "autoindex";
+    exec[0] = &HttpScope::extract_default_error_pages;
+    exec[1] = &HttpScope::extract_client_body_buffer_size;
+    exec[2] = &HttpScope::extract_root;
+    exec[3] = &HttpScope::extract_cgi;
+    exec[4] = &HttpScope::extract_index;
+    exec[5] = &HttpScope::extract_autoindex;
+    extract_directives();
+    apply_default();
+    for (std::vector<std::string>::iterator it = _server_blocks.begin(); it != _server_blocks.end(); ++it)
+        _servers.push_back(ServerScope(*it));
+}
+HttpScope& HttpScope::operator=(HttpScope const &other){
+    if (this != &other)
+    {
+        _servers = other._servers;
+        _client_body_buffer_size = other._client_body_buffer_size;
+        _default_error_pages = other._default_error_pages;
+        _root = other._root;
+        _index = other._index;
+        _autoindex = other._autoindex;
+        _cgi = other._cgi;
+    }
+    return *this;
+}
 void HttpScope::extract_client_body_buffer_size(std::string directive) {
     directive.erase(0, directive.find("client_body_buffer_size") + 23);
     _client_body_buffer_size = directive.substr(directive.find_first_not_of("\t\v\n\r\f "), directive.find_first_of("\t\v\n\r\f ", directive.find_first_not_of("\t\v\n\r\f ")));
 }
-
 void HttpScope::extract_root(std::string directive) {
     directive.erase(0, directive.find_first_of("root") + 4);
     _root = directive.substr(directive.find_first_not_of("\t\v\n\r\f "), directive.find_first_of("\t\v\n\r\f ", directive.find_first_not_of("\t\v\n\r\f ")));
 }
-
 void HttpScope::extract_cgi(std::string cgi_dir) {
     std::vector<std::string> content;
     cgi_dir.erase(0, cgi_dir.find_first_of("cgi") + 3);
@@ -41,7 +76,6 @@ void HttpScope::extract_cgi(std::string cgi_dir) {
             --it;
     }
 }
-
 void HttpScope::extract_index(std::string index_dir) {
     index_dir.erase(0, index_dir.find("index") + 5);
     while (index_dir.find_first_of(" \t\v\n\r\f") == 0)
@@ -62,7 +96,6 @@ void HttpScope::extract_index(std::string index_dir) {
             index_dir.erase(0, 1);
     }
 }
-
 void HttpScope::extract_default_error_pages(std::string error_page_dir) {
     error_page_dir.erase(0, error_page_dir.find("error_page") + 10);
     while (error_page_dir.find_first_of(" \t\v\n\r\f") == 0)
@@ -218,22 +251,3 @@ void HttpScope::apply_default() {
     if(_autoindex.size() == 0)
         _autoindex = "off";
 }
-// void HttpScope::print_result() {
-//     std::ofstream ofs;
-//     ofs.open("./configurations/parsed.txt", std::ios_base::app);
-//     ofs << " \n|||||||||||||||||||||||||||||||\n" << std::endl;
-//     ofs << "SCOPE: HTTP\n" << std::endl;
-//     for (std::vector<std::string>::iterator it = _index.begin(); it != _index.end(); ++it)
-//         ofs << "index: " << *it << std::endl;
-//     for (std::map<std::string, std::string>::iterator it = _default_error_pages.begin(); it != _default_error_pages.end(); ++it)
-//         ofs << "error page " << it->first << " associated path " << it->second << std::endl;
-//     ofs << "body max: " << _client_body_buffer_size << std::endl;
-//     ofs << "root: " << _root << std::endl;
-//     ofs << "allowed method: ";
-//     for (std::map<std::string, std::string>::iterator it = _cgi.begin(); it != _cgi.end(); ++it)
-//         ofs << "cgi: " << it->first << " associated to path " << it->second << std::endl;
-//     ofs << std::endl;
-//     ofs << "autoindex: " << _autoindex << std::endl;
-//     // for (std::vector<std::string>::iterator it = _server_blocks.begin(); it != _server_blocks.end(); ++it)
-//     //     ofs << "server block: " << *it << std::endl;
-// }

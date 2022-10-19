@@ -8,43 +8,10 @@ class HttpScope {
 
     public:
 
-    HttpScope(){}
-    ~HttpScope(){}
-    HttpScope(std::string str) {
-        _block = str;
-        clean_http_header();
-        extract_server_blocks();
-        extract_lines();
-        _directive_types[0] = "error_page";
-        _directive_types[1] = "client_body_buffer_size";
-        _directive_types[2] = "root";
-        _directive_types[3] = "cgi";
-        _directive_types[4] = "index";
-        _directive_types[5] = "autoindex";
-        exec[0] = &HttpScope::extract_default_error_pages;
-        exec[1] = &HttpScope::extract_client_body_buffer_size;
-        exec[2] = &HttpScope::extract_root;
-        exec[3] = &HttpScope::extract_cgi;
-        exec[4] = &HttpScope::extract_index;
-        exec[5] = &HttpScope::extract_autoindex;
-        extract_directives();
-        apply_default();
-        for (std::vector<std::string>::iterator it = _server_blocks.begin(); it != _server_blocks.end(); ++it)
-            _servers.push_back(ServerScope(*it));
-    }
-    HttpScope& operator=(HttpScope const &other){
-        if (this != &other)
-        {
-            _servers = other._servers;
-            _client_body_buffer_size = other._client_body_buffer_size;
-            _default_error_pages = other._default_error_pages;
-            _root = other._root;
-            _index = other._index;
-            _autoindex = other._autoindex;
-            _cgi = other._cgi;
-        }
-        return *this;
-    }
+    HttpScope();
+    ~HttpScope();
+    HttpScope(std::string str);
+    HttpScope&                                          operator=(HttpScope const &other);
     void                                                clean_http_header();
     void                                                apply_default();
     void                                                print_result();
