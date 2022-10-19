@@ -13,7 +13,7 @@ void Configuration::check_brackets(){
     }
     if (n != 0)
         throw BracketsException();
-};
+}
 std::string Configuration::chunking() {
     std::string::iterator it = _file.begin();
     while (*it != '{')
