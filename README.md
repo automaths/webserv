@@ -8,7 +8,7 @@ The goal of this project is to implement a webserver using C++.
 make && ./webserv [+ configuration file path]
 ```
 
-##### The implemented configuration file directives follow the nginx standard: 
+#### Implemented configuration file directives (follows the nginx standard): 
   - listen: address:port <br/>
       -> ex: " 127.0.0.1:8080; "
   - server_name <br/>
@@ -30,7 +30,7 @@ make && ./webserv [+ configuration file path]
 			  cgi .php /usr/lib/cgi-bin/php;<br/>
 		    } "
  
-##### Other implemented directives: 
+#### Other implemented directives: 
   - error_page: set a page returned on given error response from server<br/>
       -> ex: " error_page 404 ./404_template.html 403 ./403_template.html; "
   - cgi [cgi + extension + path]: set path to cgi depending on chosen extensions<br/>
@@ -38,7 +38,7 @@ make && ./webserv [+ configuration file path]
   - limit_upload: limit uploads on server<br/>
       -> ex: " limit_upload; "
       
- ##### Inheritance:
+ #### Inheritance:
   All directives in the configuration files use inheritance, meaning that the directive will also apply to the sublocations of the configuration file
  
  **An example can be found in default_config**
