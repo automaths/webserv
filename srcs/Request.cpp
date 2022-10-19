@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:32:13 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/19 20:32:20 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/19 21:33:00 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,10 +17,10 @@
 
 extern volatile std::sig_atomic_t g_code;
 
-Request::Request(void): _type(""), _version(""), _file(""), _body(""), _headers(), _isbody(false), _bodysize("0"), _putfile(), _tmpfile(), _query(""), _keepalive(true), _ischunked(false) {
+Request::Request(void): _type(""), _version(""), _file(""), _body(""), _headers(), _isbody(false), _bodysize("0"), _putfile(), _tmpfile(), _query(""), _keepalive(true), _ischunked(false), _isfirst(true) {
 }
 
-Request::Request(const Request & other): _type(other._type), _version(other._version), _file(other._file), _body(other._body), _headers(other._headers), _isbody(other._isbody), _bodysize(other._bodysize), _putfile(), _tmpfile(), _query(other._query), _keepalive(other._keepalive), _ischunked(other._ischunked) {
+Request::Request(const Request & other): _type(other._type), _version(other._version), _file(other._file), _body(other._body), _headers(other._headers), _isbody(other._isbody), _bodysize(other._bodysize), _putfile(), _tmpfile(), _query(other._query), _keepalive(other._keepalive), _ischunked(other._ischunked), _isfirst(other._isfirst) {
 }
 
 Request::~Request(void) {
@@ -45,6 +45,7 @@ Request & Request::operator=(const Request & other) {
 	_query = other._query;
 	_keepalive = other._keepalive;
 	_ischunked = other._ischunked;
+	_isfirst = other._isfirst;
 	return (*this);
 }
 
@@ -384,38 +385,40 @@ std::string minus(std::string _bs, unsigned long chunksize) {
 void Request::parseBodyChunked(std::string & chunk) {
 
 	while (chunk.size()) {
-		std::cerr << "Chunk in parseBodyChunked : " << chunk << std::endl;
 		if (_bodysize == "chunked") {
-			if (chunk.size() > 1 && chunk[0] == '\r' && chunk[1] == '\n')
-				chunk.erase(0, 2);
-			if (!chunk.size())
-				break;
 			std::stringstream	hex;
 			std::stringstream	dec;
 			int					tmp;
+			std::string			test;
 
 			tmp = chunk.find("\r\n");
 			hex << std::hex << chunk.substr(0, tmp);
 			chunk.erase(0, tmp + 2);
+			test = hex.str();
 			hex >> tmp;
 			dec << std::dec << tmp;
 			_bodysize = dec.str();
-			std::cerr << "New _bodysize : " << _bodysize << std::endl;
+			for (std::string::const_iterator it = test.begin(); it != test.end(); it++) {
+				std::cerr << *it << std::endl;
+				if (static_cast<std::string>("0123456789abcdfABCDEF").find(*it) == NPOS) {
+					std::cerr << "wtf" << std::endl;
+					_bodysize = "Hexa";
+					return ;
+				}
+			}
 			if (_bodysize == "0")
 				return ;
 		} if (chunk.size() > static_cast<unsigned long>(ft_atoi(_bodysize))) {
-			std::cerr << "Chunk : " << chunk << std::endl << "Chunksize : " << chunk.size() << std::endl << "Bodysize : " << _bodysize << std::endl;
 			_putfile.write(chunk.data(), ft_atoi(_bodysize));
 			chunk.erase(0, ft_atoi(_bodysize));
 			_bodysize = "chunked";
 		} else {
 			_putfile.write(chunk.data(), chunk.size());
 			_bodysize = minus(_bodysize, chunk.size());
-			std::cerr << "Chunksize : " << chunk.size() << std::endl;
-			std::cerr << "Bodysize after minus : " << _bodysize << std::endl;
 			chunk = "";
 			if (_bodysize == "0")
 				_bodysize = "chunked";
+			std::cerr << "bodysize : " << _bodysize << std::endl;
 		}
 	}
 }
@@ -457,7 +460,10 @@ int Request::parseChunk(std::string & chunk) {
 		parseBody(chunk);
 		if (_bodysize == "Error") {
 			return (507);
-		} if (_bodysize != "0") {
+		} else if (_bodysize == "Hexa") {
+			std::cerr << "wtf" << std::endl;
+			return (400);
+		} else if (_bodysize != "0") {
 			return (0);
 		}
 		_putfile.close();
