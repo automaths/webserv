@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/10/05 17:41:22 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/18 15:18:19 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/19 15:13:23 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,6 +30,7 @@
 #include <sys/stat.h>
 #include <ftw.h>
 #include <cstring>
+#include <csignal>
 
 class Request{
 
@@ -40,7 +41,7 @@ class Request{
 		~Request(void);
 		Request & operator=(const Request &);
 
-		int			moveBody(std::string &);
+		int			moveBody(std::string &, char *, unsigned long);
 		void		parseUri(std::string);
 		void		parseBody(std::string &);
 		int			parseHeaders(void);

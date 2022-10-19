@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/28 13:45:50 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/17 13:30:12 by bdetune          ###   ########.fr       */
+/*   Updated: 2022/10/19 15:11:49 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -454,7 +454,7 @@ void	Server::moveFiles(void)
 
 	while (st != end)
 	{
-		finished = (*st)->getRequest().moveBody((*st)->getResponse().getTargetFile());
+		finished = (*st)->getRequest().moveBody((*st)->getResponse().getTargetFile(), this->_rdBuffer, READCHUNKSIZE);
 		if (finished)
 		{
 			std::cerr << "Finished moving file" << std::endl;
