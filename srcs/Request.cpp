@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:32:13 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/19 20:16:01 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/19 20:32:20 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -386,6 +386,10 @@ void Request::parseBodyChunked(std::string & chunk) {
 	while (chunk.size()) {
 		std::cerr << "Chunk in parseBodyChunked : " << chunk << std::endl;
 		if (_bodysize == "chunked") {
+			if (chunk.size() > 1 && chunk[0] == '\r' && chunk[1] == '\n')
+				chunk.erase(0, 2);
+			if (!chunk.size())
+				break;
 			std::stringstream	hex;
 			std::stringstream	dec;
 			int					tmp;
@@ -406,10 +410,10 @@ void Request::parseBodyChunked(std::string & chunk) {
 			_bodysize = "chunked";
 		} else {
 			_putfile.write(chunk.data(), chunk.size());
-			chunk = "";
 			_bodysize = minus(_bodysize, chunk.size());
 			std::cerr << "Chunksize : " << chunk.size() << std::endl;
 			std::cerr << "Bodysize after minus : " << _bodysize << std::endl;
+			chunk = "";
 			if (_bodysize == "0")
 				_bodysize = "chunked";
 		}
@@ -494,7 +498,6 @@ int Request::parseChunk(std::string & chunk) {
 			line = chunk.substr(0, chunk.find("\r\n"));
 			chunk.erase(0, (line.length() + 2));
 			if (line == "") {
-				std::cerr << _headers.size() << std::endl;
 				if (_headers.find("connection") != _headers.end()) {
 					if (_headers["connection"].front() == "close") {
 						_keepalive = false;
@@ -551,6 +554,8 @@ int Request::parseChunk(std::string & chunk) {
 				val = line.substr(line.find_first_not_of(" ,"), line.find_last_not_of(" ,") - line.find_first_not_of(" ,") + 1);
 			else
 				val = "";
+			std::cerr << "Key : " << key << std::endl;
+			std::cerr << "Val : " << val << std::endl;
 			if (key.find(" ") != NPOS) {
 				return (400);
 			} if (key == "host") {
