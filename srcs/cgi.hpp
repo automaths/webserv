@@ -62,4 +62,5 @@ class Cgi {
 
     class PipeException : public std::exception {virtual const char* what() const throw(){return ("An error occured while creating the pipe during the cgi processing");}};
     class ForkException : public std::exception {virtual const char* what() const throw(){return ("An error occured while creating the fork during the cgi processing");}};
+    class ExecveException : public std::exception {virtual const char* what() const throw(){return ("An error occured while running execve during the cgi processing");}};
 };

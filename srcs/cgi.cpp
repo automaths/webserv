@@ -1,4 +1,7 @@
 #include "cgi.hpp"
+#include <csignal>
+
+extern volatile std::sig_atomic_t g_code;
 
 void Cgi::execving() {
 
@@ -12,7 +15,7 @@ void Cgi::execving() {
     _pid = fork();
     if (_pid == -1)
     {
-        freeing();
+        freeing();  
         throw ForkException();
     }
     if (_pid == 0)
@@ -64,7 +67,11 @@ void Cgi::forking() {
     close(_fd[1]);
 	close(_fd[0]);
     if (execve(_argz[0], _argz, _envp) == -1)
-        exit(1);
+    {
+        freeing();
+        g_code = 1;
+        throw ExecveException();
+    }
 }
 
 void Cgi::print_inputs() {

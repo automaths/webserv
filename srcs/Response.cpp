@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/29 12:29:34 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/19 15:13:34 by nsartral         ###   ########.fr       */
+/*   Updated: 2022/10/19 15:37:28 by nsartral         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,11 +17,8 @@
 #include <istream>
 #include <iostream>
 #include <unistd.h>
-#include <csignal>
 
-extern volatile std::sig_atomic_t g_code;
-
-Response::Response(void): _env(), _header(""), _headerSize(0), _body(""), _bodySize(0), _targetFile(), _targetFilePath(""), _headerSent(false), _chunked(false), _over(false), _fileConsumed(false), _close(false), _req(NULL), _targetServer(NULL), _targetLocation(NULL), _responseType(0), _cgi_file(""), _path_info(""), _is_cgi(false), _cgi_fd(-1), _cgi_input(-1), _root(""), _extension(""), _first_read(true)
+Response::Response(void): _env(), _header(""), _headerSize(0), _body(""), _bodySize(0), _targetFile(), _targetFilePath(""), _headerSent(false), _chunked(false), _over(false), _fileConsumed(false), _close(false), _req(NULL), _targetServer(NULL), _targetLocation(NULL), _responseType(0), _cgi_file(""), _path_info(""), _is_cgi(false), _cgi_fd(-1), _cgi_input(-1), _root(""), _extension("")
 {
 	return ;
 }
@@ -35,7 +32,7 @@ void	Response::closeCgiFd(void)
 	}
 }
 
-Response::Response(Request & req, std::vector<ServerScope> & matches, int error): _env(), _header(""), _headerSize(0), _body(""), _bodySize(0), _targetFile(), _targetFilePath(""), _headerSent(false), _chunked(false), _over(false), _fileConsumed(false), _close(false), _req(&req), _targetServer(NULL), _targetLocation(NULL), _responseType(0), _cgi_file(""), _path_info(""), _is_cgi(false), _cgi_fd(-1), _cgi_input(-1), _root(""), _extension(""), _first_read(true)
+Response::Response(Request & req, std::vector<ServerScope> & matches, int error): _env(), _header(""), _headerSize(0), _body(""), _bodySize(0), _targetFile(), _targetFilePath(""), _headerSent(false), _chunked(false), _over(false), _fileConsumed(false), _close(false), _req(&req), _targetServer(NULL), _targetLocation(NULL), _responseType(0), _cgi_file(""), _path_info(""), _is_cgi(false), _cgi_fd(-1), _cgi_input(-1), _root(""), _extension("")
 {
 	std::map<std::string, std::list<std::string> >				headerMap = req.getHeaders();
 	std::map<std::string, std::list<std::string> >::iterator	host;
@@ -241,9 +238,9 @@ int Response::execCgi(std::string exec)
 		_env.push_back("HTTP_" + temp + "=" + val);
 		tmp++;
 	}
-	std::cout << "THE ENVIRONMENT OF THE CGI" << std::endl;
-	for (std::vector<std::string>::iterator it = _env.begin(); it != _env.end(); ++it)
-		std::cout << "|" << *it << "|" << std::endl;
+	// std::cout << "THE ENVIRONMENT OF THE CGI" << std::endl;
+	// for (std::vector<std::string>::iterator it = _env.begin(); it != _env.end(); ++it)
+	// 	std::cout << "|" << *it << "|" << std::endl;
 	if (this->_req->getIsBody())
 	{
 		this->_cgi_input = open(this->_req->getBody().data(), O_RDONLY);
@@ -262,7 +259,6 @@ int Response::execCgi(std::string exec)
 	}
 	catch (std::exception const & src)
 	{
-		this->_cgi_input = -1;
 		this->errorResponse(500);
 	}
 	return (-1);
@@ -308,8 +304,6 @@ bool Response::cgiResponse(int fd)
 	char buffer[1048576];
 	memset(buffer, 0, 1048576);
 	size = read(fd, &buffer, 1048576);
-	if (size == 0 && _first_read == true)
-		g_code = 1;
 	if (size == 0)
 	{
 		_over = true;
@@ -318,7 +312,6 @@ bool Response::cgiResponse(int fd)
 		_bodySize = 5;
 		return false;
 	}
-	_first_read = false;
 	if (_headerSent)
 	{
 		std::stringstream hexsize;
@@ -751,7 +744,7 @@ void	Response::makeResponse(Request & req)
 	}
 }
 
-Response::Response(Response const & src): _env(src._env), _header(src._header), _headerSize(src._headerSize), _body(src._body), _bodySize(src._bodySize), _headerSent(src._headerSent), _chunked(src._chunked), _over(src._over), _fileConsumed(src._fileConsumed), _close(src._close), _req(src._req), _targetServer(src._targetServer), _targetLocation(src._targetLocation), _responseType(src._responseType), _is_cgi(src._is_cgi), _cgi_fd(src._cgi_fd), _cgi_input(-1), _root(""), _extension(""), _first_read(true)
+Response::Response(Response const & src): _env(src._env), _header(src._header), _headerSize(src._headerSize), _body(src._body), _bodySize(src._bodySize), _headerSent(src._headerSent), _chunked(src._chunked), _over(src._over), _fileConsumed(src._fileConsumed), _close(src._close), _req(src._req), _targetServer(src._targetServer), _targetLocation(src._targetLocation), _responseType(src._responseType), _is_cgi(src._is_cgi), _cgi_fd(src._cgi_fd), _cgi_input(-1), _root(""), _extension("")
 {
 	return ;
 }
@@ -799,7 +792,6 @@ Response &	Response::operator=(Response const & rhs)
 	this->_cgi_input = rhs._cgi_input;
 	this->_root = rhs._root;
 	this->_extension = rhs._extension;
-	this->_first_read = rhs._first_read;
 	return (*this);
 }
 

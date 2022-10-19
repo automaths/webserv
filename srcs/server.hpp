@@ -31,7 +31,6 @@ class Server {
     void initing(std::vector<ServerScope> & virtual_servers);
     void execute(void);
 
-
     private:
     
 	bool										_filesMoving;
