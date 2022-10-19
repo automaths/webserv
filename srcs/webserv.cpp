@@ -13,7 +13,8 @@ volatile std::sig_atomic_t	g_code = 0;
 
 void	interrupt(int signal)
 {
-	g_code = signal;
+	static_cast<void>(signal);
+	g_code = 2;
 }
 
 int main(int ac, char **av)

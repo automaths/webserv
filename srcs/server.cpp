@@ -74,7 +74,7 @@ void Server::initing(std::vector<ServerScope> & virtual_servers)
 			throw BindException();
 		if (bind(_server_fd, (struct sockaddr *)&_address, sizeof(_address)) < 0)
 			throw BindException();
-		if (listen(_server_fd, 1000) < 0) // opening the socket to the port
+		if (listen(_server_fd, CONNECTIONQUEUE) < 0) // opening the socket to the port
 			throw ListenException();
 		this->_listen_sockets.insert(std::pair<int, int>(_server_fd, (*first).first));
 	}
@@ -187,31 +187,31 @@ void	Server::readToWrite(struct epoll_event & event, Client & currentClient, Req
 void	Server::readRequest(struct epoll_event & event)
 {
 	int			result;
-	ssize_t		recvret = 0;
+	ssize_t		recvret;
 	Client &	currentClient = this->_client_sockets[event.data.fd];
 	Request &	currentRequest = this->_client_sockets[event.data.fd].getRequest();
 	Response &	currentResponse = this->_client_sockets[event.data.fd].getResponse();
 
-	recvret = recv(event.data.fd, static_cast<void *>(this->_rdBuffer), READCHUNKSIZE, MSG_DONTWAIT);
-	if (recvret == -1 || recvret == 0)
-		this->closeClientSocket(event);
-	else
+	if ((recvret = recv(event.data.fd, static_cast<void *>(this->_rdBuffer), READCHUNKSIZE, MSG_DONTWAIT)) <= 0)
 	{
-		try
-		{
-			this->_rdBufferCpy.assign(this->_rdBuffer, (this->_rdBuffer + recvret));
-			result = currentClient.addToRequest(this->_rdBufferCpy);
-			std::cerr << "Result form Request parsing: " << result << std::endl;
-		}
-		catch (std::exception const & e)
-		{
+		this->closeClientSocket(event);
+		return ;
+	}
+	this->_rdBufferCpy.assign(this->_rdBuffer, (this->_rdBuffer + recvret));
+	result = currentClient.addToRequest(this->_rdBufferCpy);
+	switch (result)
+	{
+		case 0:
+			break ;
+		case 1 :
 			this->closeClientSocket(event);
-			return ;
-		}
-		if (result == 201)
-		{
+			break ;
+		case 200 :
+			this->readToWrite(event, currentClient, currentRequest, currentResponse);
+			break ;
+		case 201 :
 			if (currentResponse.serverSet())
-				return ;
+				break ;
 			currentResponse = Response(currentRequest, this->_virtual_servers[currentClient.getPortNumber()]);
 			if (!currentResponse.precheck(currentRequest))
 			{
@@ -219,21 +219,13 @@ void	Server::readRequest(struct epoll_event & event)
 				if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_MOD, event.data.fd, &event) == -1)
 					this->closeClientSocket(event);
 			}
-		}
-		else if (result == 200)
-			this->readToWrite(event, currentClient, currentRequest, currentResponse);
-		else if (result)
-		{
-			if (result == 1)
-			{
-				this->closeClientSocket(event);
-				return ;
-			}
+			break ;
+		default :
 			currentResponse = Response(currentRequest, this->_virtual_servers[currentClient.getPortNumber()], result);
 			event.events = EPOLLOUT;
 			if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_MOD, event.data.fd, &event) == -1)
 				this->closeClientSocket(event);
-		}
+			break ;
 	}
 }
 
@@ -306,6 +298,8 @@ void	Server::sendBody(struct epoll_event & event, Client & currentClient)
 
 void	Server::closeClientSocket(struct epoll_event & event)
 {
+	if (this->_client_sockets[event.data.fd].getResponse().isCgi())
+		this->_cgi_pipes.erase(this->_client_sockets[event.data.fd].getResponse().getCgiFd());
 	epoll_ctl(this->_epoll_fd, EPOLL_CTL_DEL, event.data.fd, &event);
 	close(event.data.fd);
 	this->_client_sockets.erase(event.data.fd);
@@ -366,7 +360,6 @@ void	Server::readPipe(struct epoll_event & event)
 		this->_cgi_pipes.erase(event.data.fd);
 		if (!currentResponse.precheck(currentClient.getRequest()))
 		{
-			std::cerr << "Well that did not work" << std::endl;
 			currentClient.getEvent().events = EPOLLOUT;
 			currentClient.getEvent().data.fd = currentClient.getSocketFD();
 			if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_ADD, currentClient.getSocketFD(), &(currentClient.getEvent())) == -1)
@@ -411,31 +404,43 @@ void Server::execute(void)
 	}
 	while (true)
 	{
-		timeout = this->_filesMoving ? 0 : 1000;
+		timeout = this->_filesMoving ? 1 : 1000;
 		ready = epoll_wait(this->_epoll_fd, this->_watchedEvents, WATCHEDEVENTS, timeout);
 		if (ready == -1 || g_code)
 			return ;
 		for (int i = 0; i < ready; i++)
 		{
 			if (this->_listen_sockets.find(this->_watchedEvents[i].data.fd) != this->_listen_sockets.end())
-				this->acceptIncomingConnection(this->_watchedEvents[i]);
+				try
+				{
+					this->acceptIncomingConnection(this->_watchedEvents[i]);
+				}
+				catch(const std::exception& e)
+				{
+					continue ;
+				}	
 			else if (this->_cgi_pipes.find(this->_watchedEvents[i].data.fd) != this->_cgi_pipes.end())
 				this->readPipe(this->_watchedEvents[i]);
 			else if (this->_client_sockets.find(this->_watchedEvents[i].data.fd) != this->_client_sockets.end())
 			{
-				switch (this->_watchedEvents[i].events)
+				try
 				{
-					case EPOLLOUT:
-						this->sendResponse(this->_watchedEvents[i]);
-						break;
-					case EPOLLIN:
-						this->readRequest(this->_watchedEvents[i]);
-						break;
-					default:
-						if (this->_client_sockets[this->_watchedEvents[i].data.fd].getResponse().isCgi())
-							this->_cgi_pipes.erase(this->_client_sockets[this->_watchedEvents[i].data.fd].getResponse().getCgiFd());
-						this->closeClientSocket(this->_watchedEvents[i]);
-						break;
+					switch (this->_watchedEvents[i].events)
+					{
+						case EPOLLOUT:
+							this->sendResponse(this->_watchedEvents[i]);
+							break;
+						case EPOLLIN:
+							this->readRequest(this->_watchedEvents[i]);
+							break;
+						default:
+							this->closeClientSocket(this->_watchedEvents[i]);
+							break;
+					}
+				}
+				catch(const std::exception& e)
+				{
+					this->closeClientSocket(this->_watchedEvents[i]);
 				}
 			}
         }

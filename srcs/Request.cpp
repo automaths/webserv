@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:32:13 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/19 15:13:13 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/19 19:41:20 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,10 +17,10 @@
 
 extern volatile std::sig_atomic_t g_code;
 
-Request::Request(void): _type(""), _version(""), _file(""), _body(""), _headers(), _isbody(false), _bodysize("0"), _putfile(), _tmpfile(), _query(""), _keepalive(true) {
+Request::Request(void): _type(""), _version(""), _file(""), _body(""), _headers(), _isbody(false), _bodysize("0"), _putfile(), _tmpfile(), _query(""), _keepalive(true), _ischunked(false) {
 }
 
-Request::Request(const Request & other): _type(other._type), _version(other._version), _file(other._file), _body(other._body), _headers(other._headers), _isbody(other._isbody), _bodysize(other._bodysize), _putfile(), _tmpfile(), _query(other._query), _keepalive(other._keepalive) {
+Request::Request(const Request & other): _type(other._type), _version(other._version), _file(other._file), _body(other._body), _headers(other._headers), _isbody(other._isbody), _bodysize(other._bodysize), _putfile(), _tmpfile(), _query(other._query), _keepalive(other._keepalive), _ischunked(other._ischunked) {
 }
 
 Request::~Request(void) {
@@ -44,6 +44,7 @@ Request & Request::operator=(const Request & other) {
 	_bodysize = other._bodysize;
 	_query = other._query;
 	_keepalive = other._keepalive;
+	_ischunked = other._ischunked;
 	return (*this);
 }
 
@@ -247,6 +248,17 @@ int Request::parseHeaders(void) {
 			_headers.erase("range");
 		}
 	}
+	map = _headers.begin();
+	while (map != _headers.end()) {
+		std::list<std::string>::const_iterator val = map->second.begin();
+		std::cerr << "Value : " << map->first << " | Keys : ";
+		while (val != map->second.end()) {
+			std::cerr << *val << " ,";
+			val++;
+		}
+		std::cerr << std::endl;
+		map++;
+	}
 	return (200);
 }
 
@@ -380,25 +392,58 @@ std::string minus(std::string _bs, unsigned long chunksize) {
 	return (_bs);
 }
 
+void Request::parseBodyChunked(std::string & chunk) {
+
+	while (chunk.size()) {
+		if (_bodysize == "chunked") {
+			std::stringstream	hex;
+			std::stringstream	dec;
+			int					tmp;
+
+			tmp = chunk.find("\r\n");
+			hex << std::hex << chunk.substr(0, tmp);
+			chunk.erase(0, tmp);
+			hex >> tmp;
+			dec << std::dec << tmp;
+			_bodysize = dec.str();
+			if (_bodysize == "0")
+				return ;
+		} if (chunk.size() > static_cast<unsigned long>(ft_atoi(_bodysize))) {
+			_putfile.write(chunk.data(), ft_atoi(_bodysize));
+			chunk.erase(0, ft_atoi(_bodysize));
+			_bodysize = "chunked";
+		} else {
+			_putfile.write(chunk.data(), chunk.size());
+			_bodysize = minus(_bodysize, chunk.size());
+			if (_bodysize == "0")
+				_bodysize = "chunked";
+		}
+	}
+}
+
 void Request::parseBody(std::string & chunk) {
 	if (_body == "") {
 		_body = checkopen("0");
 	}
 	if (!_putfile.is_open())
 		_putfile.open(_body.data(), std::ios::binary);
-	if (chunk.size() > static_cast<unsigned long>(ft_atoi(_bodysize))) {
-		_putfile.write(chunk.data(), ft_atoi(_bodysize));
-		_bodysize = "0";
+	if (!_ischunked) {
+		if (chunk.size() > static_cast<unsigned long>(ft_atoi(_bodysize))) {
+			_putfile.write(chunk.data(), ft_atoi(_bodysize));
+			_bodysize = "0";
+		} else {
+			_putfile.write(chunk.data(), chunk.size());
+			_bodysize = minus(_bodysize, chunk.size());
+		}
+		std::cout << "Bodysize left : " << _bodysize << std::endl;
 	} else {
-		_putfile.write(chunk.data(), chunk.size());
-		_bodysize = minus(_bodysize, chunk.size());
+		parseBodyChunked(chunk);
 	}
 	if (_putfile.fail()) {
 		_putfile.close();
 		unlink(_body.data());
 		_bodysize = "Error";
 	}
-	std::cout << "Bodysize left : " << _bodysize << std::endl;
 }
 
 bool	Request::getIsBody() const {
@@ -408,7 +453,7 @@ bool	Request::getIsBody() const {
 int Request::parseChunk(std::string & chunk) {
 	std::string line;
 
-	//std::cerr << "Chunk received: " << std::endl << std::endl << reinterpret_cast<unsigned char const *>(chunk.data()) << std::endl;
+	std::cerr << "Chunk received: " << std::endl << std::endl << reinterpret_cast<unsigned char const *>(chunk.data()) << std::endl;
 	if (_isbody) {
 		parseBody(chunk);
 		if (_bodysize == "Error") {
@@ -454,6 +499,14 @@ int Request::parseChunk(std::string & chunk) {
 			line = chunk.substr(0, chunk.find("\r\n"));
 			chunk.erase(0, (line.length() + 2));
 			if (line == "") {
+				try {
+					if (parseHeaders() == 416)
+						return (416);
+				} catch (std::exception & e) {
+					std::cerr << "Erreur dans le parsing du header :" << e.what() << std::endl;
+					return (200);
+				}
+
 				if (_headers.find("connection") != _headers.end()) {
 					if (_headers["connection"].front() == "close") {
 						_keepalive = false;
@@ -464,9 +517,16 @@ int Request::parseChunk(std::string & chunk) {
 					return (400);
 				} if (_type == POST || _type == PUT) {
 					_isbody = true;
-					if (_headers.find("tranfer-encoding") != _headers.end()) {
-
-					} if (_bodysize != "chunked" && _headers.find("content-length") != _headers.end()) {
+					if (_headers.find("transfer-encoding") != _headers.end()) {
+						_bodysize = "chunked";
+						for (std::list<std::string>::const_iterator	it = _headers["transfer-encoding"].begin(); it != _headers["transfer-encoding"].end(); it++) {
+							std::cerr << tolower(*it) << std::endl;
+							if (tolower(*it) == "chunked") {
+								_ischunked = true;
+								break;
+							}
+						}
+					} if (!_ischunked && _headers.find("content-length") != _headers.end()) {
 						if (_headers["content-length"].size() > 1) {
 							_bodysize = "0";
 						} else {
@@ -486,11 +546,6 @@ int Request::parseChunk(std::string & chunk) {
 					} if (_bodysize != "0")
 						return (201);
 					_putfile.close();
-					return (200);
-				} try {
-					return (parseHeaders());
-				} catch (std::exception & e) {
-					std::cerr << "Erreur dans le parsing du header :" << e.what() << std::endl;
 					return (200);
 				}
 			}

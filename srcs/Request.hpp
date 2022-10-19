@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/10/05 17:41:22 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/19 15:13:23 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/19 18:55:18 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,6 +44,7 @@ class Request{
 		int			moveBody(std::string &, char *, unsigned long);
 		void		parseUri(std::string);
 		void		parseBody(std::string &);
+		void		parseBodyChunked(std::string &);
 		int			parseHeaders(void);
 		int			parseChunk(std::string &);
 		int			checkType(std::string &);
@@ -77,6 +78,7 @@ class Request{
 		std::ifstream	_tmpfile; 
 		std::string		_query;
 		bool			_keepalive;
+		bool			_ischunked;
 };
 
 int rm(const char *, const struct stat *, int, struct FTW*);
