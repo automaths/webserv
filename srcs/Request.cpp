@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:32:13 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/19 20:11:20 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/19 20:16:01 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -494,15 +494,7 @@ int Request::parseChunk(std::string & chunk) {
 			line = chunk.substr(0, chunk.find("\r\n"));
 			chunk.erase(0, (line.length() + 2));
 			if (line == "") {
-				if (!_headers.size()) {
-					try {
-						if (parseHeaders() == 416)
-							return (416);
-					} catch (std::exception & e) {
-						std::cerr << "Erreur dans le parsing du header :" << e.what() << std::endl;
-						return (200);
-					}
-				}
+				std::cerr << _headers.size() << std::endl;
 				if (_headers.find("connection") != _headers.end()) {
 					if (_headers["connection"].front() == "close") {
 						_keepalive = false;
@@ -542,6 +534,12 @@ int Request::parseChunk(std::string & chunk) {
 					} if (_bodysize != "0")
 						return (201);
 					_putfile.close();
+					return (200);
+				}
+				try {
+					return(parseHeaders());
+				} catch (std::exception & e) {
+					std::cerr << "Erreur dans le parsing du header :" << e.what() << std::endl;
 					return (200);
 				}
 			}
