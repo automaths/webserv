@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:32:13 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/19 19:41:20 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/19 20:16:01 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -248,17 +248,6 @@ int Request::parseHeaders(void) {
 			_headers.erase("range");
 		}
 	}
-	map = _headers.begin();
-	while (map != _headers.end()) {
-		std::list<std::string>::const_iterator val = map->second.begin();
-		std::cerr << "Value : " << map->first << " | Keys : ";
-		while (val != map->second.end()) {
-			std::cerr << *val << " ,";
-			val++;
-		}
-		std::cerr << std::endl;
-		map++;
-	}
 	return (200);
 }
 
@@ -395,6 +384,7 @@ std::string minus(std::string _bs, unsigned long chunksize) {
 void Request::parseBodyChunked(std::string & chunk) {
 
 	while (chunk.size()) {
+		std::cerr << "Chunk in parseBodyChunked : " << chunk << std::endl;
 		if (_bodysize == "chunked") {
 			std::stringstream	hex;
 			std::stringstream	dec;
@@ -402,19 +392,24 @@ void Request::parseBodyChunked(std::string & chunk) {
 
 			tmp = chunk.find("\r\n");
 			hex << std::hex << chunk.substr(0, tmp);
-			chunk.erase(0, tmp);
+			chunk.erase(0, tmp + 2);
 			hex >> tmp;
 			dec << std::dec << tmp;
 			_bodysize = dec.str();
+			std::cerr << "New _bodysize : " << _bodysize << std::endl;
 			if (_bodysize == "0")
 				return ;
 		} if (chunk.size() > static_cast<unsigned long>(ft_atoi(_bodysize))) {
+			std::cerr << "Chunk : " << chunk << std::endl << "Chunksize : " << chunk.size() << std::endl << "Bodysize : " << _bodysize << std::endl;
 			_putfile.write(chunk.data(), ft_atoi(_bodysize));
 			chunk.erase(0, ft_atoi(_bodysize));
 			_bodysize = "chunked";
 		} else {
 			_putfile.write(chunk.data(), chunk.size());
+			chunk = "";
 			_bodysize = minus(_bodysize, chunk.size());
+			std::cerr << "Chunksize : " << chunk.size() << std::endl;
+			std::cerr << "Bodysize after minus : " << _bodysize << std::endl;
 			if (_bodysize == "0")
 				_bodysize = "chunked";
 		}
@@ -499,14 +494,7 @@ int Request::parseChunk(std::string & chunk) {
 			line = chunk.substr(0, chunk.find("\r\n"));
 			chunk.erase(0, (line.length() + 2));
 			if (line == "") {
-				try {
-					if (parseHeaders() == 416)
-						return (416);
-				} catch (std::exception & e) {
-					std::cerr << "Erreur dans le parsing du header :" << e.what() << std::endl;
-					return (200);
-				}
-
+				std::cerr << _headers.size() << std::endl;
 				if (_headers.find("connection") != _headers.end()) {
 					if (_headers["connection"].front() == "close") {
 						_keepalive = false;
@@ -546,6 +534,12 @@ int Request::parseChunk(std::string & chunk) {
 					} if (_bodysize != "0")
 						return (201);
 					_putfile.close();
+					return (200);
+				}
+				try {
+					return(parseHeaders());
+				} catch (std::exception & e) {
+					std::cerr << "Erreur dans le parsing du header :" << e.what() << std::endl;
 					return (200);
 				}
 			}

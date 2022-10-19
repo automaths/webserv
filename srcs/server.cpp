@@ -156,7 +156,6 @@ void	Server::readToWrite(struct epoll_event & event, Client & currentClient, Req
 		}
 		this->_filesMoving = true;
 		this->_filesMovingClients.push_back(&currentClient);
-		return ;
 	}
 	else if (currentResponse.isCgi())
 	{
@@ -170,11 +169,7 @@ void	Server::readToWrite(struct epoll_event & event, Client & currentClient, Req
 		this->_tmpEv.events = EPOLLIN;
 		this->_tmpEv.data.fd = currentResponse.getCgiFd();
 		if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_ADD, this->_tmpEv.data.fd, &(this->_tmpEv)) == -1)
-		{
-			this->_cgi_pipes.erase(currentResponse.getCgiFd());
 			this->closeClientSocket(event);
-			return ;
-		}
 	}
 	else
 	{
@@ -231,29 +226,20 @@ void	Server::readRequest(struct epoll_event & event)
 
 bool	Server::sendHeader(struct epoll_event & event, Client & currentClient)
 {
-	ssize_t	sendret = 0;
+	ssize_t	sendret;
 
-	sendret = send(event.data.fd, currentClient.getResponse().getHeader().data(), currentClient.getResponse().getHeaderSize(), MSG_NOSIGNAL | MSG_DONTWAIT);
-	if (sendret == -1)
-	{
-		if (currentClient.getResponse().isCgi())
-			this->_cgi_pipes.erase(currentClient.getResponse().getCgiFd());
-		this->closeClientSocket(event);
-		return (false) ;
-	}
+	if ((sendret = send(event.data.fd, currentClient.getResponse().getHeader().data(), currentClient.getResponse().getHeaderSize(), MSG_NOSIGNAL | MSG_DONTWAIT)) <= 0)
+		return (this->closeClientSocket(event), false) ;
 	return (currentClient.getResponse().headerBytesSent(sendret));
 }
 
 void	Server::sendBody(struct epoll_event & event, Client & currentClient)
 {
 	Response &	currentResponse = currentClient.getResponse();
-	ssize_t	sendret = 0;
+	ssize_t	sendret;
 
-	sendret = send(event.data.fd, currentResponse.getBody().data(), currentResponse.getBodySize(), MSG_NOSIGNAL | MSG_DONTWAIT);
-	if (sendret == -1)
+	if ((sendret = send(event.data.fd, currentResponse.getBody().data(), currentResponse.getBodySize(), MSG_NOSIGNAL | MSG_DONTWAIT)) <= 0)
 	{
-		if (currentResponse.isCgi())
-			this->_cgi_pipes.erase(currentResponse.getCgiFd());
 		this->closeClientSocket(event);
 		return ;
 	}
@@ -309,32 +295,32 @@ void	Server::sendResponse(struct epoll_event & event)
 {
 	Client &	currentClient = this->_client_sockets[event.data.fd];
 
-	if (!currentClient.getResponse().headerIsSent())
+	if (currentClient.getResponse().headerIsSent())
 	{
-		if (this->sendHeader(event, currentClient))
+		this->sendBody(event, currentClient);
+		return ;
+	}
+	if (this->sendHeader(event, currentClient))
+	{
+		if (!currentClient.getResponse().getBodySize())
 		{
-			if (!currentClient.getResponse().getBodySize())
+			if (currentClient.getResponse().isCgi())
 			{
-				if (currentClient.getResponse().isCgi())
-				{
-					this->_cgi_pipes.erase(currentClient.getResponse().getCgiFd());
-					currentClient.getResponse().closeCgiFd();
-				}
-				if (currentClient.getResponse().getClose())
+				this->_cgi_pipes.erase(currentClient.getResponse().getCgiFd());
+				currentClient.getResponse().closeCgiFd();
+			}
+			if (currentClient.getResponse().getClose())
+				this->closeClientSocket(event);
+			else
+			{
+				currentClient.resetRequest();
+				currentClient.resetResponse();
+				event.events = EPOLLIN;
+				if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_MOD, event.data.fd, &event))
 					this->closeClientSocket(event);
-				else
-				{
-					currentClient.resetRequest();
-					currentClient.resetResponse();
-					event.events = EPOLLIN;
-					if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_MOD, event.data.fd, &event))
-						this->closeClientSocket(event);
-				}
 			}
 		}
 	}
-	else
-		this->sendBody(event, currentClient);
 }
 
 void	Server::readPipe(struct epoll_event & event)
@@ -398,10 +384,7 @@ void Server::execute(void)
 
 
 	if (!this->epollSockets())
-	{
-		delete [] this->_watchedEvents;
 		throw EpollCreateException();
-	}
 	while (true)
 	{
 		timeout = this->_filesMoving ? 1 : 1000;
@@ -447,7 +430,6 @@ void Server::execute(void)
 		if (this->_filesMoving)
 			this->moveFiles();
 		this->closeTimedoutConnections();
-		// std::cout << "The number of clients is: " << this->_client_sockets.size() << std::endl;
     }
 }
 
@@ -462,7 +444,6 @@ void	Server::moveFiles(void)
 		finished = (*st)->getRequest().moveBody((*st)->getResponse().getTargetFile(), this->_rdBuffer, READCHUNKSIZE);
 		if (finished)
 		{
-			std::cerr << "Finished moving file" << std::endl;
 			(*st)->getResponse().errorResponse(finished);
 			(*st)->getEvent().events = EPOLLOUT;
 			(*st)->getEvent().data.fd = (*st)->getSocketFD();
