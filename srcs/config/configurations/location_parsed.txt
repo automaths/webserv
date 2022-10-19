@@ -12,11 +12,11 @@
         autoindex: ||
         limit_upload: ||
         root: |./www/default/bouhbouh|
-        root_in: |./www/default|
+        root_in: |./www/default |
         rewrite_location: ||
         rewrite: ||
         upload_pass: ||
-        cgi: extension |.php| associated to path |/usr/lib/cgi-bin/php7.3|
+        cgi: extension |.php| associated to path |/usr/lib/cgi-bin/php|
         cgi: extension |.py| associated to path |/usr/bin/python3|
 
                ---| THE LOCATION SCOPE |---            
@@ -29,9 +29,9 @@
         autoindex: ||
         limit_upload: ||
         root: |./www/form|
-        root_in: |./www/default|
+        root_in: |./www/default |
         rewrite_location: ||
         rewrite: ||
         upload_pass: ||
-        cgi: extension |.php| associated to path |/usr/lib/cgi-bin/php7.3|
+        cgi: extension |.php| associated to path |/usr/lib/cgi-bin/php|
         cgi: extension |.py| associated to path |/usr/bin/python3|

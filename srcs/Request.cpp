@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:32:13 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/18 17:38:21 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/19 15:13:13 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,8 @@
 #define NOT_OLD _version!="HTTP/1.0"
 #define NOT_NEW _version!="HTTP/1.1"
 
+extern volatile std::sig_atomic_t g_code;
+
 Request::Request(void): _type(""), _version(""), _file(""), _body(""), _headers(), _isbody(false), _bodysize("0"), _putfile(), _tmpfile(), _query(""), _keepalive(true) {
 }
 
@@ -22,7 +24,7 @@ Request::Request(const Request & other): _type(other._type), _version(other._ver
 }
 
 Request::~Request(void) {
-	 if (_putfile.is_open() || (_body != "" && !access(_body.data(), F_OK))) {
+	 if (g_code != 1 && (_putfile.is_open() || (_body != "" && !access(_body.data(), F_OK)))) {
 		unlink(_body.data());
 	}
 }
@@ -325,8 +327,7 @@ int Request::createPath(std::string & path) {
 	return (200);
 }
 
-int Request::moveBody(std::string & path) {
-	char	buff[1048576];
+int Request::moveBody(std::string & path, char *buff, unsigned long sizebuff) {
 	int		code = 200;
 
 	if (!_putfile.is_open()) {
@@ -335,8 +336,14 @@ int Request::moveBody(std::string & path) {
 		_putfile.open(path.data(), std::ios::binary | std::ios::trunc);
 		_tmpfile.open(_body.data(), std::ios::binary);
 	}
-	_tmpfile.read(buff, 1048576);
+	_tmpfile.read(buff, sizebuff);
 	_putfile.write(buff, _tmpfile.gcount());
+	if (_putfile.fail()) {
+		_tmpfile.close();
+		_putfile.close();
+		unlink(path.data());
+		return (507);
+	}
 	if (_tmpfile.eof()) {
 		_tmpfile.close();
 		_putfile.close();
@@ -346,21 +353,31 @@ int Request::moveBody(std::string & path) {
 	return (0);
 }
 
-std::string minus(std::string _bodysize, unsigned long chunksize) {
-	int	tmp = chunksize;
-	int	i = 0;
+std::string minus(std::string _bs, unsigned long chunksize) {
 	std::stringstream ret;
 
-	while (tmp) {
-		tmp /= 10;
-		i++;
+	for (unsigned long i = 0; i < _bs.size(); i++)
+		ret << 0;
+	ret << chunksize;
+	std::string str = ret.str();
+	for (unsigned long i = 0; i < _bs.size(); i++) {
+		if (i < str.size()) {
+			if (str[str.size() - 1 - i] > '9') {
+				str[str.size() - 2 - i] += 1;
+				str[str.size() - 1 - i] = '0';
+			} if (str[str.size() - 1 - i] > _bs[_bs.size() - 1 - i]) {
+				_bs[_bs.size() - 1 - i] = '9' + 1 - (str[str.size() - 1 - i] - _bs[_bs.size() - 1 - i]); 
+				str[str.size() - 2 - i] += 1;
+			} else {
+				_bs[_bs.size() - 1 - i] = '0' + _bs[_bs.size() - 1 - i] - str[str.size() - 1 - i];
+			}
+		}
 	}
-	if (_bodysize.size() > 9) {
-		ret << _bodysize.substr(0, _bodysize.size() - 9) << (ft_atoi(_bodysize.substr(_bodysize.size() - 9)) - static_cast<int>(chunksize));
-	} else {
-		ret << (ft_atoi(_bodysize) - static_cast<int>(chunksize));
-	}
-	return (static_cast<std::string>(ret.str()));
+	while (_bs[0] == '0')
+		_bs = _bs.substr(1);
+	if (!_bs.size())
+		return ("0");
+	return (_bs);
 }
 
 void Request::parseBody(std::string & chunk) {
@@ -376,6 +393,11 @@ void Request::parseBody(std::string & chunk) {
 		_putfile.write(chunk.data(), chunk.size());
 		_bodysize = minus(_bodysize, chunk.size());
 	}
+	if (_putfile.fail()) {
+		_putfile.close();
+		unlink(_body.data());
+		_bodysize = "Error";
+	}
 	std::cout << "Bodysize left : " << _bodysize << std::endl;
 }
 
@@ -389,7 +411,9 @@ int Request::parseChunk(std::string & chunk) {
 	//std::cerr << "Chunk received: " << std::endl << std::endl << reinterpret_cast<unsigned char const *>(chunk.data()) << std::endl;
 	if (_isbody) {
 		parseBody(chunk);
-		if (_bodysize != "0") {
+		if (_bodysize == "Error") {
+			return (507);
+		} if (_bodysize != "0") {
 			return (0);
 		}
 		_putfile.close();
@@ -440,12 +464,26 @@ int Request::parseChunk(std::string & chunk) {
 					return (400);
 				} if (_type == POST || _type == PUT) {
 					_isbody = true;
-					if (_headers.find("content-length") != _headers.end()) {
-						_bodysize = _headers["content-length"].front();
-						std::cerr << "Content-length in bodysize : " << _bodysize << std::endl;
+					if (_headers.find("tranfer-encoding") != _headers.end()) {
+
+					} if (_bodysize != "chunked" && _headers.find("content-length") != _headers.end()) {
+						if (_headers["content-length"].size() > 1) {
+							_bodysize = "0";
+						} else {
+							_bodysize = _headers["content-length"].front();
+							std::cerr << "Content-length in bodysize : " << _bodysize << std::endl;
+							for (std::string::const_iterator it = _bodysize.begin(); it != _bodysize.end(); it++) {
+								if (!std::isdigit(*it)) {
+									_bodysize = "0";
+									break ;
+								}
+							}
+						}
 					}
 					parseBody(chunk);
-					if (_bodysize != "0")
+					if (_bodysize == "Error") {
+						return (507);
+					} if (_bodysize != "0")
 						return (201);
 					_putfile.close();
 					return (200);

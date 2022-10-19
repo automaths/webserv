@@ -26,11 +26,11 @@
     index: |index.htm|
     autoindex: ||
     limit_upload: ||
-    root: ./www/default
+    root: ./www/default 
     rewrite_location: ||
     rewrite: ||
     upload_pass: ||
-    cgi: extension |.php| associated to path |/usr/lib/cgi-bin/php7.3|
+    cgi: extension |.php| associated to path |/usr/lib/cgi-bin/php|
     cgi: extension |.py| associated to path |/usr/bin/python3|
 
             -------| THE SERVER SCOPE |-------            

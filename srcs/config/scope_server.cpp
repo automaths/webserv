@@ -3,33 +3,36 @@
 
 void ServerScope::extract_listen(std::string directive){
     directive.erase(0, directive.find("listen") + 6);
-    if (directive.find_first_of(':') != std::string::npos)
+    if (directive.find(':') != std::string::npos)
     {
-        std::string tmp = directive.substr(directive.find_first_not_of("\t\v\n\r\f "), directive.find_first_of(':') + 1);
-        _address = tmp;
+        directive.erase(0, directive.find_first_not_of("\t\v\n\r\f "));
+        _address = directive.substr(0, directive.find(':'));
+        if (_address.size() != 0)
+            _address.erase(_address.size(), 1);
         directive.erase(0, directive.find_first_of(':') + 1);
         directive.erase(0, directive.find_first_not_of("\t\v\n\r\f "));
-        _port = directive;
-        _listen.insert(std::make_pair(tmp, directive));
-
+        _port = directive.substr(0, directive.find_last_not_of("\t\v\n\r\f ") + 1);
+        _listen.insert(std::make_pair(_address, directive.substr(0, directive.find_last_not_of("\t\v\n\r\f ") + 1)));
     }
     else
     {
         if (directive.find_first_not_of("\t\v\n\r\f 0123456789;") == std::string::npos)
         {
             directive.erase(0, directive.find_first_not_of("\t\v\n\r\f "));
-            _port = directive;
+            _port = directive.substr(0, directive.find_last_not_of("\t\v\n\r\f ") + 1);
             _address = "*";
-            _listen.insert(std::make_pair("*", directive));
+            _listen.insert(std::make_pair("*", directive.substr(0, directive.find_last_not_of("\t\v\n\r\f ") + 1)));
         }
         else
         {
             _port = "8080";
             directive.erase(0, directive.find_first_not_of("\t\v\n\r\f "));
-            _address = directive;
-            _listen.insert(std::make_pair(directive, "8080"));
+            _address = directive.substr(0, directive.find_last_not_of("\t\v\n\r\f ") + 1);
+            _listen.insert(std::make_pair(directive.substr(0, directive.find_last_not_of("\t\v\n\r\f ") + 1), "8080"));
         }
     }
+    // _port.erase(0, _port.find_first_not_of("\t\v\n\r\f "));
+    // _port = _port.substr(0, _port.find_last_not_of("\t\v\n\r\f ") + 1);
 }
 void ServerScope::extract_server_name(std::string directive) {
     directive.erase(0, directive.find("server_name") + 11);

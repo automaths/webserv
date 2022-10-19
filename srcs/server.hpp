@@ -16,8 +16,9 @@
 #include <cstdlib>
 #include <csignal>
 #define PORT 8080
+#define CONNECTIONQUEUE 1024
 #define READCHUNKSIZE 2097152
-#define WATCHEDEVENTS 255
+#define WATCHEDEVENTS 256
 
 extern volatile std::sig_atomic_t g_code;
 
@@ -31,7 +32,6 @@ class Server {
     void initing(std::vector<ServerScope> & virtual_servers);
     void execute(void);
 
-
     private:
     
 	bool										_filesMoving;
@@ -42,7 +42,6 @@ class Server {
 	std::map<int, int>							_listen_sockets;	//Listening sockets: <fd, port>
 	std::map<int, Client>						_client_sockets;	//Accepted connections sockets: <fd, Client>
 	std::vector<Client *>						_filesMovingClients;
-//	std::set<int>								_reserve_fds;		//Switch between fd to read response from and socket fd to send back data
 	std::map<int, int>							_cgi_pipes;			//Cgi pipes
     struct sockaddr_in							_address;			// Address to bind to a socket
 	struct epoll_event*							_watchedEvents;

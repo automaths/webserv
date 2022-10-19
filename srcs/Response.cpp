@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/29 12:29:34 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/18 12:16:20 by nsartral         ###   ########.fr       */
+/*   Updated: 2022/10/19 15:39:04 by nsartral         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -238,9 +238,9 @@ int Response::execCgi(std::string exec)
 		_env.push_back("HTTP_" + temp + "=" + val);
 		tmp++;
 	}
-	std::cout << "THE ENVIRONMENT OF THE CGI" << std::endl;
-	for (std::vector<std::string>::iterator it = _env.begin(); it != _env.end(); ++it)
-		std::cout << "|" << *it << "|" << std::endl;
+	// std::cout << "THE ENVIRONMENT OF THE CGI" << std::endl;
+	// for (std::vector<std::string>::iterator it = _env.begin(); it != _env.end(); ++it)
+	// 	std::cout << "|" << *it << "|" << std::endl;
 	if (this->_req->getIsBody())
 	{
 		this->_cgi_input = open(this->_req->getBody().data(), O_RDONLY);
@@ -251,9 +251,17 @@ int Response::execCgi(std::string exec)
 			return (-1);
 		}
 	}
-    Cgi test(_cgi_file, exec, _env, _cgi_input);
-	this->_cgi_input = -1;
-	return test.getResult();
+	try
+	{
+    	Cgi test(_cgi_file, exec, _env, _cgi_input);
+		this->_cgi_input = -1;
+		return test.getResult();
+	}
+	catch (std::exception const & src)
+	{
+		this->errorResponse(500);
+	}
+	return (-1);
 }
 
 bool Response::internalRedirect(std::string redirect)
@@ -280,10 +288,6 @@ bool Response::internalRedirect(std::string redirect)
 	else
 		fullPath += _req->getFile();
 	_targetFilePath = fullPath;
-
-	// while (fullPath.find_first_of("\t\n\v\r\f ") != std::string::npos)
-	// 	fullPath.erase(fullPath.find_first_of("\t\v\n\r\f ", 1));
-
 	if (access(fullPath.data(), F_OK) == 0)
 	{
 		std::cout << "THE ACCESS WORKS" << std::endl;
@@ -592,8 +596,6 @@ bool	Response::isCgiPath()
 	else
 		_root = _targetServer->getRoot();
 	std::string uri = _targetFilePath;
-	// std::cout << "The root is: " << root << std::endl;
-	// std::cout << "The uri is: " << std::endl;
     std::string tmp;
 	std::string copy = uri;
     while (copy.find('/') != std::string::npos)
@@ -623,10 +625,6 @@ bool	Response::isCgiPath()
 		}
     }
 	_path_info = uri.substr(_cgi_file.size(), uri.size() - _cgi_file.size());
-	// if (point == true)
-	// 	_cgi_file = "." + _cgi_file;
-    // std::cout << "The file is: " << _cgi_file << std::endl;
-    // std::cout << "The path_info is: " << _path_info << std::endl;
 	std::map<std::string, std::string> cgi = _targetServer->getCgi(); 
 	if (_cgi_file.find_last_of(".") != std::string::npos)
 		_extension = _cgi_file.substr(_cgi_file.find_last_of("."));
@@ -638,7 +636,6 @@ bool	Response::isCgiPath()
 			return (true);
 		}
 	}
-	// std::cout << "No execution of cgi" << std::endl;
 	return (false);
 }
 
@@ -651,8 +648,7 @@ void	Response::makeResponse(Request & req)
 	this->_close = !req.isKeepAlive();
 	if (req.getType() == std::string("PUT"))
 	{
-		if ((ret = req.moveBody(this->_targetFilePath)))
-			this->errorResponse(ret);
+		return ;
 	}
 	else if (req.getType() == std::string("DELETE"))
 	{
@@ -887,6 +883,10 @@ void	Response::errorResponse(int error)
 		case 505:
 			status << " 505 " << DEFAULT505STATUS;
 			body = DEFAULT505BODY;
+			break ;
+		case 507:
+			status << " 507 " << DEFAULT507STATUS;
+			body = DEFAULT507BODY;
 			break ;
 		default:
 			status << " 500 " << DEFAULT500STATUS;

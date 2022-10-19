@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/28 13:45:50 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/17 13:30:12 by bdetune          ###   ########.fr       */
+/*   Updated: 2022/10/19 15:11:49 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,7 +74,7 @@ void Server::initing(std::vector<ServerScope> & virtual_servers)
 			throw BindException();
 		if (bind(_server_fd, (struct sockaddr *)&_address, sizeof(_address)) < 0)
 			throw BindException();
-		if (listen(_server_fd, 1000) < 0) // opening the socket to the port
+		if (listen(_server_fd, CONNECTIONQUEUE) < 0) // opening the socket to the port
 			throw ListenException();
 		this->_listen_sockets.insert(std::pair<int, int>(_server_fd, (*first).first));
 	}
@@ -201,7 +201,6 @@ void	Server::readRequest(struct epoll_event & event)
 		{
 			this->_rdBufferCpy.assign(this->_rdBuffer, (this->_rdBuffer + recvret));
 			result = currentClient.addToRequest(this->_rdBufferCpy);
-			std::cerr << "Result form Request parsing: " << result << std::endl;
 		}
 		catch (std::exception const & e)
 		{
@@ -411,7 +410,7 @@ void Server::execute(void)
 	}
 	while (true)
 	{
-		timeout = this->_filesMoving ? 0 : 1000;
+		timeout = this->_filesMoving ? 1 : 1000;
 		ready = epoll_wait(this->_epoll_fd, this->_watchedEvents, WATCHEDEVENTS, timeout);
 		if (ready == -1 || g_code)
 			return ;
@@ -454,7 +453,7 @@ void	Server::moveFiles(void)
 
 	while (st != end)
 	{
-		finished = (*st)->getRequest().moveBody((*st)->getResponse().getTargetFile());
+		finished = (*st)->getRequest().moveBody((*st)->getResponse().getTargetFile(), this->_rdBuffer, READCHUNKSIZE);
 		if (finished)
 		{
 			std::cerr << "Finished moving file" << std::endl;
