@@ -4,24 +4,24 @@ http{
 
 		root /sgoinfre/goinfre/Perso/tnaton/putty;
 
-		index index.html index.htm;
+		index index.html index.htm     ;
 
-		server_name putty;
+		server_name putty      ;
 	}
 
 	server {
 		listen 8079;
 
-		root ./www/default;
+		root ./www/default       ;
 		
 		index index.html index.htm;
 
-		cgi .php /usr/lib/cgi-bin/php7.3 .py /usr/bin/python3;
+		cgi .php /usr/lib/cgi-bin/php .py /usr/bin/python3       ;
 
 		server_name default;
 
 		location /Downloads {
-			allow_method POST GET;
+			allow_method POST GET        ;
 			root ./www/default/bouhbouh;
 		}
 
@@ -31,8 +31,8 @@ http{
 			cgi .php /usr/lib/cgi-bin/php;
 		}
 
-		error_page  404     ./www/default/w404.html;
-		error_page  403     /403.html;
+		error_page  404     ./www/default/w404.html       ;
+		error_page  403     /403.html       ;
 	}
 
 	server {
