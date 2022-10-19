@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/29 12:26:22 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/14 19:16:19 by nsartral         ###   ########.fr       */
+/*   Updated: 2022/10/19 14:57:39 by nsartral         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -95,6 +95,7 @@ class Response
 		int				_cgi_input;
 		std::string 	_root;
 		std::string 	_extension;
+		bool			_first_read;
 		// bool			_internal_redirect;
 		// std::string		_redirection;
 
