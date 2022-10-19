@@ -19,6 +19,8 @@ make && ./webserv [+ configuration file path]
       -> ex: " autoindex on; "
   - root <br/>
       -> ex: " root ./www/default; "
+  - client_body_buffer_size <br/>
+      -> ex: "client_body_buffer_size 200M;"
   - rewrite (temporary or permanent redirection) <br/>
       -> ex: " rewrite /path_to_rewrite redirect; " or " rewrite /path_to_rewrite permanent; "
   - upload_pass <br/>
@@ -33,6 +35,8 @@ make && ./webserv [+ configuration file path]
 #### Other implemented directives: 
   - error_page: set a page returned on given error response from server<br/>
       -> ex: " error_page 404 ./404_template.html 403 ./403_template.html; "
+  - allow_method: allow only the stated method for http requests<br/>
+      -> ex: "allow_method GET POST;"
   - cgi [cgi + extension + path]: set path to cgi depending on chosen extensions<br/>
       -> ex: " cgi .php /usr/lib/cgi-bin/php .py /usr/lib/cgi-bin/flask; "
   - limit_upload: limit uploads on server<br/>
