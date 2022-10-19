@@ -804,7 +804,8 @@ void	Response::errorResponse(int error)
 	std::string			mime;
 
 	this->_responseType = 1;
-	this->_close = true;
+	if (error >= 300)
+		this->_close = true;
 	code << error;
 	this->_targetFilePath.clear();
 	if (this->_targetLocation && this->_targetLocation->getDefaultErrorPage().find(code.str()) != this->_targetLocation->getDefaultErrorPage().end())
@@ -833,14 +834,6 @@ void	Response::errorResponse(int error)
 				}	
 			}
 		}
-		// else
-		// {
-		// 	if (error != 404)
-		// 	{
-		// 		this->errorResponse(404);
-		// 		return ;
-		// 	}
-		// }
 	}
 	switch (error)
 	{
@@ -855,6 +848,14 @@ void	Response::errorResponse(int error)
 		case 206:
 			status << " 206 " << DEFAULT201STATUS;
 			body = DEFAULT206BODY;
+			break ;
+		case 307:
+			status << " 307 " << DEFAULT307STATUS;
+			body = DEFAULT307BODY;
+			break ;
+		case 308:
+			status << " 308 " << DEFAULT308STATUS;
+			body = DEFAULT308BODY;
 			break ;
 		case 400:
 			status << " 400 " << DEFAULT400STATUS;
@@ -897,7 +898,7 @@ void	Response::errorResponse(int error)
 	header << setBaseHeader();
 	header << "Content-type: text/html\r\n";
 	header << "Content-Length: " << body.size() << "\r\n";
-	header << "Connection: close\r\n";
+	header << "Connection: " << (this->_close ? "close" : "keep-alive") << "\r\n";
 	header << "\r\n";
 	this->_header = header.str();
 	this->_headerSize = this->_header.size();
@@ -911,7 +912,8 @@ void	Response::createFileErrorHeader(int errorCode, std::string mime)
 	std::stringstream	status;
 	std::string			body;
 
-	this->_close = true;
+	if (errorCode >= 300)
+		this->_close = true;
 	switch (errorCode)
 	{
 		case 200:
@@ -923,6 +925,12 @@ void	Response::createFileErrorHeader(int errorCode, std::string mime)
 		case 206:
 			status << " 206 " << DEFAULT201STATUS;
 			break ;
+		case 307:
+			status << " 307 " << DEFAULT307STATUS;
+			break ;
+		case 308:
+			status << " 308 " << DEFAULT308STATUS;
+			break ;	
 		case 400:
 			status << " 400 " << DEFAULT400STATUS;
 			break ;
@@ -952,7 +960,7 @@ void	Response::createFileErrorHeader(int errorCode, std::string mime)
 	header << setBaseHeader();
 	header << "Content-type: " << mime << "\r\n";
 	this->_chunked ? (header << "Transfer-Encoding: chunked\r\n") : (header << "Content-Length: " << this->_bodySize << "\r\n");
-	header << "Connection: close\r\n";
+	header << "Connection: " << (this->_close ? "close" : "keep-alive") << "\r\n";
 	header << "\r\n";
 	this->_header = header.str();
 	this->_headerSize = this->_header.size();
