@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:32:13 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/18 20:22:23 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/19 12:14:51 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -337,6 +337,12 @@ int Request::moveBody(std::string & path) {
 	}
 	_tmpfile.read(buff, 1048576);
 	_putfile.write(buff, _tmpfile.gcount());
+	if (_putfile.fail()) {
+		_tmpfile.close();
+		_putfile.close();
+		unlink(path.data());
+		return (507);
+	}
 	if (_tmpfile.eof()) {
 		_tmpfile.close();
 		_putfile.close();
@@ -386,6 +392,11 @@ void Request::parseBody(std::string & chunk) {
 		_putfile.write(chunk.data(), chunk.size());
 		_bodysize = minus(_bodysize, chunk.size());
 	}
+	if (_putfile.fail()) {
+		_putfile.close();
+		unlink(_body.data());
+		_bodysize = "Error";
+	}
 	std::cout << "Bodysize left : " << _bodysize << std::endl;
 }
 
@@ -399,7 +410,9 @@ int Request::parseChunk(std::string & chunk) {
 	//std::cerr << "Chunk received: " << std::endl << std::endl << reinterpret_cast<unsigned char const *>(chunk.data()) << std::endl;
 	if (_isbody) {
 		parseBody(chunk);
-		if (_bodysize != "0") {
+		if (_bodysize == "Error") {
+			return (507);
+		} if (_bodysize != "0") {
 			return (0);
 		}
 		_putfile.close();
@@ -455,7 +468,9 @@ int Request::parseChunk(std::string & chunk) {
 						std::cerr << "Content-length in bodysize : " << _bodysize << std::endl;
 					}
 					parseBody(chunk);
-					if (_bodysize != "0")
+					if (_bodysize == "Error") {
+						return (507);
+					} if (_bodysize != "0")
 						return (201);
 					_putfile.close();
 					return (200);
