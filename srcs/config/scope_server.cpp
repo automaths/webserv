@@ -241,8 +241,10 @@ void ServerScope::extract_default_error_pages(std::string error_page_dir) {
         _default_error_pages.insert(std::make_pair(*it, path));
 }
 void ServerScope::extract_autoindex(std::string autoindex_dir) {
-    autoindex_dir.erase(0, autoindex_dir.find("autoindex ") + 9);
+    autoindex_dir.erase(0, autoindex_dir.find("autoindex") + 9);
     _autoindex = autoindex_dir.substr(autoindex_dir.find_first_not_of("\t\v\n\r\f ", 0), autoindex_dir.find_first_of("\t\v\n\r\f ", autoindex_dir.find_first_not_of("\t\v\n\r\f ", 0)));
+    if (_autoindex.size() != 0)
+        _autoindex = _autoindex.substr(0, _autoindex.find_last_not_of("\t\v\n\r\f ") + 1);
     if (_autoindex.compare("on") != 0)
         _autoindex = "off";
 }

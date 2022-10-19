@@ -7,8 +7,8 @@
     server_name: |putty|
     index: |index.html|
     index: |index.htm|
-    autoindex: ||
-    limit_upload: ||
+    autoindex: |on|
+    limit_upload: |on|
     root: /sgoinfre/goinfre/Perso/tnaton/putty
     rewrite_location: ||
     rewrite: ||
