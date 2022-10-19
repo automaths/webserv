@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/29 12:29:34 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/19 12:11:49 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/19 15:17:51 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -651,8 +651,7 @@ void	Response::makeResponse(Request & req)
 	this->_close = !req.isKeepAlive();
 	if (req.getType() == std::string("PUT"))
 	{
-		if ((ret = req.moveBody(this->_targetFilePath)))
-			this->errorResponse(ret);
+		return ;
 	}
 	else if (req.getType() == std::string("DELETE"))
 	{
