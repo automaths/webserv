@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/29 12:29:34 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/19 12:11:49 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/19 14:38:29 by nsartral         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -251,9 +251,18 @@ int Response::execCgi(std::string exec)
 			return (-1);
 		}
 	}
-    Cgi test(_cgi_file, exec, _env, _cgi_input);
-	this->_cgi_input = -1;
-	return test.getResult();
+	try
+	{
+    	Cgi test(_cgi_file, exec, _env, _cgi_input);
+		this->_cgi_input = -1;
+		return test.getResult();
+	}
+	catch (std::exception const & src)
+	{
+		this->_cgi_input = -1;
+		this->errorResponse(500);
+	}
+	return (-1);
 }
 
 bool Response::internalRedirect(std::string redirect)
@@ -592,8 +601,6 @@ bool	Response::isCgiPath()
 	else
 		_root = _targetServer->getRoot();
 	std::string uri = _targetFilePath;
-	// std::cout << "The root is: " << root << std::endl;
-	// std::cout << "The uri is: " << std::endl;
     std::string tmp;
 	std::string copy = uri;
     while (copy.find('/') != std::string::npos)
@@ -623,10 +630,6 @@ bool	Response::isCgiPath()
 		}
     }
 	_path_info = uri.substr(_cgi_file.size(), uri.size() - _cgi_file.size());
-	// if (point == true)
-	// 	_cgi_file = "." + _cgi_file;
-    // std::cout << "The file is: " << _cgi_file << std::endl;
-    // std::cout << "The path_info is: " << _path_info << std::endl;
 	std::map<std::string, std::string> cgi = _targetServer->getCgi(); 
 	if (_cgi_file.find_last_of(".") != std::string::npos)
 		_extension = _cgi_file.substr(_cgi_file.find_last_of("."));
@@ -638,7 +641,6 @@ bool	Response::isCgiPath()
 			return (true);
 		}
 	}
-	// std::cout << "No execution of cgi" << std::endl;
 	return (false);
 }
 
