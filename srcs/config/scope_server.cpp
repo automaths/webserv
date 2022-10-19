@@ -122,12 +122,12 @@ void ServerScope::extract_upload_pass(std::string directive) {
 void ServerScope::extract_rewrite(std::string directive) {
     directive.erase(0, directive.find("rewrite") + 7);
     directive.erase(0, directive.find_first_not_of("\t\v\n\r\f "));
-    _rewrite_location = directive.substr(0, directive.find_first_of("\t\v\n\r\f "));
+    _rewrite_location = directive.substr(0, directive.find_first_of("\t\v\n\r\f ;"));
     directive.erase(0, _rewrite_location.size());
     if (directive.find("permanent") == std::string::npos && directive.find("redirection") == std::string::npos)
     {
         _rewrite_location.clear();
-        return;        
+        return;
     }
     else
     {
