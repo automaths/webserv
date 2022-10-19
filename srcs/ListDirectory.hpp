@@ -28,8 +28,8 @@ class ListDirectory {
 
     public:
 
-    ListDirectory(){}
-    ~ListDirectory(){}
+    ListDirectory();
+    ~ListDirectory();
     ListDirectory(std::string directory, std::string uri);
     std::string listing();
 

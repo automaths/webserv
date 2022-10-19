@@ -3,6 +3,17 @@
 
 extern volatile std::sig_atomic_t g_code;
 
+    Cgi::Cgi(){}
+    Cgi::~Cgi(){
+        freeing();
+    }
+    Cgi::Cgi(std::string targetFilePath, std::string exec, std::vector<std::string> env, int fd_input): _target(), _exec(), _env(), _fd_input(fd_input), _argz(), _envp(), _pid()
+    {
+        _target = targetFilePath;
+        _exec = exec;
+        _env = env;
+        execving();
+    }
 void Cgi::execving() {
 
     converting_argz();
@@ -29,7 +40,9 @@ void Cgi::execving() {
         }
 	}
 }
-
+int Cgi::getResult(){
+    return (_fd[0]); 
+}
 void Cgi::freeing(){
         if (_envp)
             free(_envp);
@@ -38,14 +51,12 @@ void Cgi::freeing(){
         if (_argz)
             free(_argz);
 }
-
 void Cgi::converting_argz(){
     _argz = (char **)malloc(sizeof(char *) * 3);
     _argz[0] = strdup(_exec.c_str());
     _argz[1] = (char*)_target.c_str();
     _argz[2] = NULL;
 }
-
 void Cgi::converting_env(){
     int i = 0;
     _envp = (char **)malloc(sizeof(char *) * (_env.size() + 1));
@@ -53,7 +64,6 @@ void Cgi::converting_env(){
         _envp[i++] = (char *)it->c_str(); 
     _envp[_env.size()] = NULL;
 }
-
 void Cgi::forking() {
     if (_fd_input != -1)
     {
@@ -73,7 +83,6 @@ void Cgi::forking() {
         throw ExecveException();
     }
 }
-
 void Cgi::print_inputs() {
     int i = 0;
     std::cout << "the path is: " << _argz[0] << std::endl;

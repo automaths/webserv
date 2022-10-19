@@ -30,35 +30,27 @@ class Cgi {
 
     public:
 
-    Cgi(){}
-    ~Cgi(){
-        freeing();
-    }
-    Cgi(std::string targetFilePath, std::string exec, std::vector<std::string> env, int fd_input): _target(), _exec(), _env(), _fd_input(fd_input), _argz(), _envp(), _pid()
-    {
-        _target = targetFilePath;
-        _exec = exec;
-        _env = env;
-        execving();
-    }
-    void execving();
-    void converting_argz();
-    void converting_env();
-    void forking();
-    void print_inputs();
-    void freeing();
-    int getResult() { return (_fd[0]); }
+    Cgi();
+    ~Cgi();
+    Cgi(std::string targetFilePath, std::string exec, std::vector<std::string> env, int fd_input);
+    void                            execving();
+    void                            converting_argz();
+    void                            converting_env();
+    void                            forking();
+    void                            print_inputs();
+    void                            freeing();
+    int                             getResult();
 
     private:
 
-    std::string                 _target;
-    std::string                 _exec;
-    std::vector<std::string>    _env;
-    int                         _fd_input;
-    char **                     _argz;
-    char **                     _envp;
-    int                         _pid;
-	int	                        _fd[2];
+    std::string                     _target;
+    std::string                     _exec;
+    std::vector<std::string>        _env;
+    int                             _fd_input;
+    char **                         _argz;
+    char **                         _envp;
+    int                             _pid;
+	int	                            _fd[2];
 
     class PipeException : public std::exception {virtual const char* what() const throw(){return ("An error occured while creating the pipe during the cgi processing");}};
     class ForkException : public std::exception {virtual const char* what() const throw(){return ("An error occured while creating the fork during the cgi processing");}};
