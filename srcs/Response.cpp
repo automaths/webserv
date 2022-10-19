@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/29 12:29:34 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/18 12:16:20 by nsartral         ###   ########.fr       */
+/*   Updated: 2022/10/19 12:11:49 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -886,6 +886,10 @@ void	Response::errorResponse(int error)
 		case 505:
 			status << " 505 " << DEFAULT505STATUS;
 			body = DEFAULT505BODY;
+			break ;
+		case 507:
+			status << " 507 " << DEFAULT507STATUS;
+			body = DEFAULT507BODY;
 			break ;
 		default:
 			status << " 500 " << DEFAULT500STATUS;

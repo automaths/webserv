@@ -6,7 +6,7 @@
 /*   By: bdetune <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/29 13:30:25 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/18 15:36:09 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/19 12:10:56 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,5 +74,11 @@
 # define DEFAULT505BODY "<html>\n<head><title>505 HTTP Version Not Supported</title></head>\n<body bgcolor=\"white\">\n<center><h1>505 HTTP Version Not Supported</h1></center>\n<hr>\n<center><div><img src=\"https://httpcats.com/505.jpg\"  alt=\"A beautiful 505 response\"></div></center>\n<hr>\n<center>webserv/1.0</center>\n</body>\n</html>\n"
 
 # define DEFAULT505STATUS "HTTP Version Not Supported"
+
+//507
+# define DEFAULT507BODY "<html>\n<head><title>507 Insufficient Storage</title></head>\n<body bgcolor=\"white\">\n<center><h1>507 Insufficient Storage</h1></center>\n<hr>\n<center><div><img src=\"https://httpcats.com/507.jpg\"  alt=\"A beautiful 507 response\"></div></center>\n<hr>\n<center>webserv/1.0</center>\n</body>\n</html>\n"
+
+# define DEFAULT507STATUS "Insufficient Storage"
+
 
 #endif
