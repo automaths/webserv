@@ -21,8 +21,8 @@ make && ./webserv [+ configuration file path]
       -> ex: " root ./www/default; "
   - client_body_buffer_size <br/>
       -> ex: "client_body_buffer_size 200M;"
-  - rewrite (temporary or permanent redirection) <br/>
-      -> ex: " rewrite /path_to_rewrite redirect; " or " rewrite /path_to_rewrite permanent; "
+  - rewrite (redirection for temporary or permanent for permanent redirection) <br/>
+      -> ex: " rewrite /path_to_rewrite redirection; " or " rewrite /path_to_rewrite permanent; "
   - upload_pass <br/>
       -> ex: " upload_pass /tmp/path_to_upload; "
   - location <br/>
