@@ -29,6 +29,7 @@
 # include "Request.hpp"
 # include "MimeTypes.hpp"
 # include <vector>
+# include "utils.hpp"
 # include "ListDirectory.hpp"
 
 class Response

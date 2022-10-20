@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:32:13 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/20 19:40:27 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/20 20:08:42 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,10 +17,10 @@
 
 extern volatile std::sig_atomic_t g_code;
 
-Request::Request(void): _type(""), _version(""), _file(""), _body(""), _headers(), _isbody(false), _bodysize("0"), _putfile(), _tmpfile(), _query(""), _keepalive(true), _ischunked(false), _isfirst(true), _bufsize("\0"), _uri(NULL) {
+Request::Request(void): _type(""), _version(""), _file(""), _body(""), _headers(), _isbody(false), _bodysize("0"), _putfile(), _tmpfile(), _query(""), _maxBodySize(""), _keepalive(true), _ischunked(false), _isfirst(true), _bufsize("\0"), _uri(NULL) {
 }
 
-Request::Request(const Request & other): _type(other._type), _version(other._version), _file(other._file), _body(other._body), _headers(other._headers), _isbody(other._isbody), _bodysize(other._bodysize), _putfile(), _tmpfile(), _query(other._query), _keepalive(other._keepalive), _ischunked(other._ischunked), _isfirst(other._isfirst) {
+Request::Request(const Request & other): _type(other._type), _version(other._version), _file(other._file), _body(other._body), _headers(other._headers), _isbody(other._isbody), _bodysize(other._bodysize), _putfile(), _tmpfile(), _query(other._query), _maxBodySize(other._maxBodySize), _keepalive(other._keepalive), _ischunked(other._ischunked), _isfirst(other._isfirst) {
 	strcpy(_bufsize, other._bufsize);
 	if (other._uri) {
 		_uri = new char[8192];
@@ -51,6 +51,7 @@ Request & Request::operator=(const Request & other) {
 	_isbody = other._isbody;
 	_bodysize = other._bodysize;
 	_query = other._query;
+	_maxBodySize = other._maxBodySize;
 	_keepalive = other._keepalive;
 	_ischunked = other._ischunked;
 	_isfirst = other._isfirst;
@@ -59,6 +60,16 @@ Request & Request::operator=(const Request & other) {
 		delete[] _uri;
 	_uri = other._uri;
 	return (*this);
+}
+
+std::string	Request::getBodySize(void) const
+{
+	return (this->_bodysize);
+}
+
+void	Request::setMaxBodySize(std::string & maxBodySize)
+{
+	this->_maxBodySize = maxBodySize;
 }
 
 std::string tolower(std::string str) {
@@ -523,16 +534,24 @@ int Request::parseChunk(std::string & chunk) {
 	} else {
 		if (!_type.size()) {
 			do {
-				line = chunk.substr(0, chunk.find("\r\n"));
-				if (line == chunk) {
-					if (chunk.size() > 8192) {
+				if (_uri) {
+					chunk = chunk + _uri;
+					_uri = NULL;
+				}
+				if (chunk.find("\r\n") == NPOS) {
+					if (ft_strlen(_uri) + chunk.size() > 8192) {
 						return (414);
 					} else { 
 						if (!_uri) {
-							this->_uri = new char[8192];
+							_uri = new char[8192];
 						}
+						strcpy(_uri, chunk.data());
+						return (0);
 					}
+				} else if (ft_strlen(_uri) + chunk.find("\r\n") > 8192) {
+					return (414);
 				}
+				line = chunk.substr(0, chunk.find("\r\n"));
 				chunk.erase(0, (line.length() + 2));
 				if (line != "") {
 					if (checkType(line)) {

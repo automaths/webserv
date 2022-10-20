@@ -12,6 +12,8 @@ http{
 	server {
 		listen 8079;
 
+		client_body_buffer_size	1024K;
+
 		root ./www/default;
 		
 		index index.html index.htm;
