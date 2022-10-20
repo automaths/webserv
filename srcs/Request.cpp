@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:32:13 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/19 21:33:00 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/20 13:15:08 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,10 +17,11 @@
 
 extern volatile std::sig_atomic_t g_code;
 
-Request::Request(void): _type(""), _version(""), _file(""), _body(""), _headers(), _isbody(false), _bodysize("0"), _putfile(), _tmpfile(), _query(""), _keepalive(true), _ischunked(false), _isfirst(true) {
+Request::Request(void): _type(""), _version(""), _file(""), _body(""), _headers(), _isbody(false), _bodysize("0"), _putfile(), _tmpfile(), _query(""), _keepalive(true), _ischunked(false), _isfirst(true), _bufsize("\0") {
 }
 
 Request::Request(const Request & other): _type(other._type), _version(other._version), _file(other._file), _body(other._body), _headers(other._headers), _isbody(other._isbody), _bodysize(other._bodysize), _putfile(), _tmpfile(), _query(other._query), _keepalive(other._keepalive), _ischunked(other._ischunked), _isfirst(other._isfirst) {
+	strcpy(_bufsize, other._bufsize);
 }
 
 Request::~Request(void) {
@@ -46,6 +47,7 @@ Request & Request::operator=(const Request & other) {
 	_keepalive = other._keepalive;
 	_ischunked = other._ischunked;
 	_isfirst = other._isfirst;
+	strcpy(_bufsize, other._bufsize);
 	return (*this);
 }
 
@@ -382,17 +384,38 @@ std::string minus(std::string _bs, unsigned long chunksize) {
 	return (_bs);
 }
 
+int ft_strlen(char *str) {
+	int i = 0;
+
+	if (!str)
+		return 0;
+	while (str[i])
+		i++;
+	return (i);
+}
+
 void Request::parseBodyChunked(std::string & chunk) {
 
 	while (chunk.size()) {
 		if (_bodysize == "chunked") {
 			std::stringstream	hex;
 			std::stringstream	dec;
-			int					tmp;
+			unsigned long		tmp;
 			std::string			test;
 
+			chunk.erase(0, chunk.find_first_not_of('0'));
+			if (ft_strlen(_bufsize))
+				chunk = _bufsize + chunk;
 			tmp = chunk.find("\r\n");
-			hex << std::hex << chunk.substr(0, tmp);
+			if (tmp == NPOS || tmp > 7) {
+				if (chunk.size() > 7) {
+					std::cerr << "Big" << std::endl;
+					_bodysize = "Error";
+				}
+				strcpy(_bufsize, chunk.data());
+				return ;
+			}
+			hex << std::hex << 0 << chunk.substr(0, tmp);
 			chunk.erase(0, tmp + 2);
 			test = hex.str();
 			hex >> tmp;
@@ -401,7 +424,6 @@ void Request::parseBodyChunked(std::string & chunk) {
 			for (std::string::const_iterator it = test.begin(); it != test.end(); it++) {
 				std::cerr << *it << std::endl;
 				if (static_cast<std::string>("0123456789abcdfABCDEF").find(*it) == NPOS) {
-					std::cerr << "wtf" << std::endl;
 					_bodysize = "Hexa";
 					return ;
 				}
@@ -441,7 +463,7 @@ void Request::parseBody(std::string & chunk) {
 	} else {
 		parseBodyChunked(chunk);
 	}
-	if (_putfile.fail()) {
+	if (_putfile.bad()) {
 		_putfile.close();
 		unlink(_body.data());
 		_bodysize = "Error";
@@ -461,8 +483,9 @@ int Request::parseChunk(std::string & chunk) {
 		if (_bodysize == "Error") {
 			return (507);
 		} else if (_bodysize == "Hexa") {
-			std::cerr << "wtf" << std::endl;
 			return (400);
+		} else if (_bodysize == "Big") {
+			return (413);
 		} else if (_bodysize != "0") {
 			return (0);
 		}

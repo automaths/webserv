@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/29 12:29:34 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/19 15:39:04 by nsartral         ###   ########.fr       */
+/*   Updated: 2022/10/20 13:02:48 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -770,6 +770,7 @@ Response &	Response::operator=(Response const & rhs)
 	if (this->_targetFile.is_open())
 		this->_targetFile.close();
 	this->closeCgiFd();
+	this->_env.clear();
 	this->_env = rhs._env;
 	this->_header = rhs._header;
 	this->_headerSize = rhs._headerSize;
