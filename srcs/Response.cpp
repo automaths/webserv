@@ -18,7 +18,7 @@
 #include <iostream>
 #include <unistd.h>
 
-Response::Response(void): _env(), _header(""), _headerSize(0), _body(""), _bodySize(0), _targetFile(), _targetFilePath(""), _headerSent(false), _chunked(false), _over(false), _fileConsumed(false), _close(false), _req(NULL), _targetServer(NULL), _targetLocation(NULL), _responseType(0), _cgi_file(""), _path_info(""), _is_cgi(false), _cgi_fd(-1), _cgi_input(-1), _root(""), _extension("")
+Response::Response(void): _env(), _header(""), _headerSize(0), _body(""), _bodySize(0), _targetFile(), _targetFilePath(""), _redirection(""), _headerSent(false), _chunked(false), _over(false), _fileConsumed(false), _close(false), _req(NULL), _targetServer(NULL), _targetLocation(NULL), _responseType(0), _cgi_file(""), _path_info(""), _is_cgi(false), _cgi_fd(-1), _cgi_input(-1), _root(""), _extension("")
 {
 	return ;
 }
@@ -32,7 +32,7 @@ void	Response::closeCgiFd(void)
 	}
 }
 
-Response::Response(Request & req, std::vector<ServerScope> & matches, int error): _env(), _header(""), _headerSize(0), _body(""), _bodySize(0), _targetFile(), _targetFilePath(""), _headerSent(false), _chunked(false), _over(false), _fileConsumed(false), _close(false), _req(&req), _targetServer(NULL), _targetLocation(NULL), _responseType(0), _cgi_file(""), _path_info(""), _is_cgi(false), _cgi_fd(-1), _cgi_input(-1), _root(""), _extension("")
+Response::Response(Request & req, std::vector<ServerScope> & matches, int error): _env(), _header(""), _headerSize(0), _body(""), _bodySize(0), _targetFile(), _targetFilePath(""), _redirection(""), _headerSent(false), _chunked(false), _over(false), _fileConsumed(false), _close(false), _req(&req), _targetServer(NULL), _targetLocation(NULL), _responseType(0), _cgi_file(""), _path_info(""), _is_cgi(false), _cgi_fd(-1), _cgi_input(-1), _root(""), _extension("")
 {
 	std::map<std::string, std::list<std::string> >				headerMap = req.getHeaders();
 	std::map<std::string, std::list<std::string> >::iterator	host;
@@ -514,16 +514,40 @@ bool	Response::precheck(Request & req)
 	fullPath = this->_targetLocation ? this->_targetLocation->getRoot() : this->_targetServer->getRoot();
 	if (this->_targetLocation)
 	{
+		std::cerr << "autoindex: |" << this->_targetLocation->getAutoIndex() << "|" << std::endl;
+		std::cerr << "Location: " << this->_targetLocation->getMainPath() << std::endl;
+		std::cerr << "Rewrite: " << this->_targetLocation->getRewrite() << std::endl;
+		std::cerr << "Rewrite Location: " << this->_targetLocation->getRewriteLocation() << std::endl;
 		std::string	partial_root = req.getFile();
 		partial_root.erase(0, this->_targetLocation->getMainPath().size());
+		if (this->_targetLocation->getRewrite().size())
+		{
+			this->_redirection = this->_targetLocation->getRewrite() + partial_root;
+			std::cerr << "Found path: " << this->_redirection << std::endl;
+			this->_targetLocation->getRewriteLocation() == std::string("redirection") ? this->errorResponse(307) : this->errorResponse(308);
+			return (false); 
+		}
 		fullPath += partial_root;
 	}
 	else
+	{
+		std::cerr << "autoindex: |" << this->_targetServer->getAutoIndex() << "|" << std::endl;
+		std::cerr << "Rewrite: " << this->_targetServer->getRewrite() << std::endl;
+		std::cerr << "Rewrite Location: " << this->_targetServer->getRewriteLocation() << std::endl;
+		if (this->_targetServer->getRewrite().size())
+		{
+			this->_redirection = this->_targetServer->getRewrite() + req.getFile();
+			this->_targetServer->getRewriteLocation() == std::string("redirection") ? this->errorResponse(307) : this->errorResponse(308);
+			return (false); 
+		}
 		fullPath += req.getFile();
+	}
 	while (fullPath.find_first_of("\t\n\v\r\f ") != std::string::npos)
 		fullPath.erase(fullPath.find_first_of("\t\v\n\r\f ", 1));
 	this->_targetFilePath = fullPath;
 //	std::cerr << "Fully qualified path: ***" << fullPath << "***" << std::endl;
+
+	if (req.getHeaders().find(std::string("content-length")) != req.getHeaders().find(std::string("content-length")))
 	if (req.getType() == std::string("PUT"))
 		return (true);
 	if (!pathIsValid(this->_targetFilePath, &buf))
@@ -551,7 +575,9 @@ bool	Response::precheck(Request & req)
 			this->_responseType = 2;
 			return (true);
 		}
-		else if (req.getType() == std::string("GET") && access(this->_targetFilePath.data(), R_OK) == 0)
+		else if (((this->_targetLocation && this->_targetLocation->getAutoIndex() == std::string("on")) 
+		|| (!this->_targetLocation && this->_targetServer->getAutoIndex() == std::string("on")))
+		&& req.getType() == std::string("GET") && access(this->_targetFilePath.data(), R_OK) == 0)
 		{
 			this->_responseType = 3;
 			return (true);
@@ -744,7 +770,7 @@ void	Response::makeResponse(Request & req)
 	}
 }
 
-Response::Response(Response const & src): _env(src._env), _header(src._header), _headerSize(src._headerSize), _body(src._body), _bodySize(src._bodySize), _headerSent(src._headerSent), _chunked(src._chunked), _over(src._over), _fileConsumed(src._fileConsumed), _close(src._close), _req(src._req), _targetServer(src._targetServer), _targetLocation(src._targetLocation), _responseType(src._responseType), _is_cgi(src._is_cgi), _cgi_fd(src._cgi_fd), _cgi_input(-1), _root(""), _extension("")
+Response::Response(Response const & src): _env(src._env), _header(src._header), _headerSize(src._headerSize), _body(src._body), _bodySize(src._bodySize), _targetFilePath(src._targetFilePath), _redirection(src._redirection), _headerSent(src._headerSent), _chunked(src._chunked), _over(src._over), _fileConsumed(src._fileConsumed), _close(src._close), _req(src._req), _targetServer(src._targetServer), _targetLocation(src._targetLocation), _responseType(src._responseType), _is_cgi(src._is_cgi), _cgi_fd(src._cgi_fd), _cgi_input(-1), _root(""), _extension("")
 {
 	return ;
 }
@@ -777,6 +803,7 @@ Response &	Response::operator=(Response const & rhs)
 	this->_body = rhs._body;
 	this->_bodySize = rhs._bodySize;
 	this->_targetFilePath = rhs._targetFilePath;
+	this->_redirection = rhs._redirection;
 	this->_headerSent = rhs._headerSent;
 	this->_chunked = rhs._chunked;
 	this->_over = rhs._over;
@@ -852,11 +879,11 @@ void	Response::errorResponse(int error)
 			break ;
 		case 307:
 			status << " 307 " << DEFAULT307STATUS;
-			body = DEFAULT307BODY;
+			body = std::string(DEFAULT307BODY) + "<a href=\"" + this->_redirection + "\">" + this->_redirection + "</a>" + std::string(DEFAULT307BODY2);
 			break ;
 		case 308:
 			status << " 308 " << DEFAULT308STATUS;
-			body = DEFAULT308BODY;
+			body = std::string(DEFAULT308BODY) + "<a href=\"" + this->_redirection + "\">" + this->_redirection + "</a>" + std::string(DEFAULT308BODY2);
 			break ;
 		case 400:
 			status << " 400 " << DEFAULT400STATUS;
@@ -896,6 +923,8 @@ void	Response::errorResponse(int error)
 			break;
 	}
 	header << "HTTP/1.1" << status.str() << "\r\n";
+	if (error == 307 || error == 308)
+		header << "Location: " << this->_redirection << "\r\n";
 	header << setBaseHeader();
 	header << "Content-type: text/html\r\n";
 	header << "Content-Length: " << body.size() << "\r\n";
@@ -958,6 +987,8 @@ void	Response::createFileErrorHeader(int errorCode, std::string mime)
 			break;
 	}
 	header << "HTTP/1.1" << status.str() << "\r\n";
+	if (errorCode == 307 || errorCode == 308)
+		header << "Location: " << this->_redirection << "\r\n";
 	header << setBaseHeader();
 	header << "Content-type: " << mime << "\r\n";
 	this->_chunked ? (header << "Transfer-Encoding: chunked\r\n") : (header << "Content-Length: " << this->_bodySize << "\r\n");
