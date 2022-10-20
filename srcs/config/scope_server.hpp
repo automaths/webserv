@@ -57,8 +57,8 @@ class ServerScope {
     std::map<std::string, std::string>&                 getDefaultErrorPage() { return _default_error_pages; }
     std::map<std::string, std::string>&                 getListen() { return _listen; }
     void                                                setRootIn(std::string arg) { _in_root = arg; }
-    std::string&                                        getRewrite() {return _rewrite; }
-    std::string&                                        getRewriteLocation() { return _rewrite_location; }
+    std::string&                                        getRewrite() {return _rewrite_location; }
+    std::string&                                        getRewriteLocation() { return _rewrite; }
     std::string&                                        getUploadPass() { return _upload_pass; }
     void                                                setUploadPass(std::string arg) { _upload_pass = arg; } 
     void                                                setRewrite(std::string arg) { _rewrite = arg; }
