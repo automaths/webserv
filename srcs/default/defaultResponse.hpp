@@ -26,12 +26,14 @@
 //307
 # define DEFAULT307STATUS "Temporary Redirect"
 
-# define DEFAULT307BODY "<html>\n<head><title>307 Temporary Redirect</title></head>\n<body bgcolor=\"white\">\n<center><h1>307 Temporary Redirect</h1></center>\n<hr>\n<center><div><img src=\"https://http.cat/307\"  alt=\"A beautiful 307 response\"></div></center>\n<hr>\n<center>webserv/1.0</center>\n</body>\n</html>\n"
+# define DEFAULT307BODY "<html>\n<head><title>307 Temporary Redirect</title></head>\n<body bgcolor=\"white\">\n<center><h1>307 Temporary Redirect</h1></center>\n<hr>\n<center><div><p>Ressource has moved to : "
+# define DEFAULT307BODY2 "</p></div>\n<div><img src=\"https://http.cat/307\"  alt=\"A beautiful 307 response\"></div></center>\n<hr>\n<center>webserv/1.0</center>\n</body>\n</html>\n"
 
 //308
 # define DEFAULT308STATUS "Permanent Redirect"
 
-# define DEFAULT308BODY "<html>\n<head><title>308 Permanent Redirect</title></head>\n<body bgcolor=\"white\">\n<center><h1>308 Permanent Redirect</h1></center>\n<hr>\n<center><div><img src=\"https://http.cat/308\"  alt=\"A beautiful 308 response\"></div></center>\n<hr>\n<center>webserv/1.0</center>\n</body>\n</html>\n"
+# define DEFAULT308BODY "<html>\n<head><title>308 Permanent Redirect</title></head>\n<body bgcolor=\"white\">\n<center><h1>308 Permanent Redirect</h1></center>\n<hr>\n<center><div><p>Ressource has permanently moved to : "
+# define DEFAULT308BODY2 "</p></div>\n<div><img src=\"https://http.cat/308\"  alt=\"A beautiful 308 response\"></div></center>\n<hr>\n<center>webserv/1.0</center>\n</body>\n</html>\n"
 
 //400
 # define DEFAULT400BODY "<html>\n<head><title>400 Bad Request</title></head>\n<body bgcolor=\"white\">\n<center><h1>400 Bad Request</h1></center>\n<hr>\n<center><div><img src=\"https://http.cat/400\"  alt=\"A beautiful 400 response\"></div></center>\n<hr>\n<center>webserv/1.0</center>\n</body>\n</html>\n"

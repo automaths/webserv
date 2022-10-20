@@ -16,6 +16,8 @@ http{
 		
 		index index.html index.htm;
 
+		autoindex on;
+
 		cgi .php /usr/lib/cgi-bin/php .py /usr/bin/python3;
 
 		server_name default;
@@ -29,6 +31,14 @@ http{
 			root ./www/form;
 			index index.php;
 			cgi .php /usr/lib/cgi-bin/php;
+		}
+
+		location /redirect {
+			rewrite /form redirection ;
+		}
+
+		location /permanentredirect{
+			rewrite http://127.0.0.1:8080 permanent ;
 		}
 
 		error_page  404     ./www/default/w404.html;

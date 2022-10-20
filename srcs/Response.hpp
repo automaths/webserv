@@ -77,6 +77,7 @@ class Response
 		std::size_t		_bodySize;
 		std::ifstream	_targetFile;
 		std::string		_targetFilePath;
+		std::string		_redirection;
 		bool			_headerSent;
 		bool			_chunked;
 		bool			_over;
@@ -96,7 +97,7 @@ class Response
 		std::string 	_root;
 		std::string 	_extension;
 		// bool			_internal_redirect;
-		// std::string		_redirection;
+
 
 		bool			getServer(std::string const & host, std::vector<ServerScope> & matches);
 
