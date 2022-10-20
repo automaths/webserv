@@ -547,7 +547,7 @@ bool	Response::precheck(Request & req)
 	this->_targetFilePath = fullPath;
 //	std::cerr << "Fully qualified path: ***" << fullPath << "***" << std::endl;
 
-	if (req.getHeaders().find(std::string("content-length")) != req.getHeaders().find(std::string("content-length")))
+	// if (req.getHeaders().find(std::string("content-length")) != req.getHeaders().find(std::string("content-length")))
 	if (req.getType() == std::string("PUT"))
 		return (true);
 	if (!pathIsValid(this->_targetFilePath, &buf))
@@ -863,6 +863,7 @@ void	Response::errorResponse(int error)
 			}
 		}
 	}
+	std::cerr << "Error code" << error << std::endl;
 	switch (error)
 	{
 		case 200:

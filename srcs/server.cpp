@@ -194,6 +194,7 @@ void	Server::readRequest(struct epoll_event & event)
 	}
 	this->_rdBufferCpy.assign(this->_rdBuffer, (this->_rdBuffer + recvret));
 	result = currentClient.addToRequest(this->_rdBufferCpy);
+	std::cerr << "Result : " << result << std::endl;
 	switch (result)
 	{
 		case 0:
@@ -216,7 +217,10 @@ void	Server::readRequest(struct epoll_event & event)
 			}
 			break ;
 		default :
-			currentResponse = Response(currentRequest, this->_virtual_servers[currentClient.getPortNumber()], result);
+			if (!currentResponse.serverSet())
+				currentResponse = Response(currentRequest, this->_virtual_servers[currentClient.getPortNumber()], result);
+			else
+				currentResponse.errorResponse(result);
 			event.events = EPOLLOUT;
 			if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_MOD, event.data.fd, &event) == -1)
 				this->closeClientSocket(event);
