@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:32:13 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/20 17:30:54 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/20 20:08:42 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,17 +17,24 @@
 
 extern volatile std::sig_atomic_t g_code;
 
-Request::Request(void): _type(""), _version(""), _file(""), _body(""), _headers(), _isbody(false), _bodysize("0"), _putfile(), _tmpfile(), _query(""), _maxBodySize(""), _keepalive(true), _ischunked(false), _isfirst(true), _bufsize("\0") {
+Request::Request(void): _type(""), _version(""), _file(""), _body(""), _headers(), _isbody(false), _bodysize("0"), _putfile(), _tmpfile(), _query(""), _maxBodySize(""), _keepalive(true), _ischunked(false), _isfirst(true), _bufsize("\0"), _uri(NULL) {
 }
 
 Request::Request(const Request & other): _type(other._type), _version(other._version), _file(other._file), _body(other._body), _headers(other._headers), _isbody(other._isbody), _bodysize(other._bodysize), _putfile(), _tmpfile(), _query(other._query), _maxBodySize(other._maxBodySize), _keepalive(other._keepalive), _ischunked(other._ischunked), _isfirst(other._isfirst) {
 	strcpy(_bufsize, other._bufsize);
+	if (other._uri) {
+		_uri = new char[8192];
+		strcpy(_uri, other._uri);
+	} else 
+		_uri = NULL;
 }
 
 Request::~Request(void) {
 	 if (g_code != 1 && (_putfile.is_open() || (_body != "" && !access(_body.data(), F_OK)))) {
 		unlink(_body.data());
 	}
+	 if (_uri)
+		 delete[] _uri;
 }
 
 Request & Request::operator=(const Request & other) {
@@ -49,6 +56,9 @@ Request & Request::operator=(const Request & other) {
 	_ischunked = other._ischunked;
 	_isfirst = other._isfirst;
 	strcpy(_bufsize, other._bufsize);
+	if (_uri)
+		delete[] _uri;
+	_uri = other._uri;
 	return (*this);
 }
 
@@ -507,7 +517,7 @@ bool	Request::getIsBody() const {
 int Request::parseChunk(std::string & chunk) {
 	std::string line;
 
-	std::cerr << "Chunk received: " << std::endl << std::endl << reinterpret_cast<unsigned char const *>(chunk.data()) << std::endl;
+	std::cerr << "Chunk received: " << std::endl << std::endl << ">" << reinterpret_cast<unsigned char const *>(chunk.data()) << "<" << std::endl;
 	if (_isbody) {
 		parseBody(chunk);
 		if (_bodysize == "Error") {
@@ -524,6 +534,23 @@ int Request::parseChunk(std::string & chunk) {
 	} else {
 		if (!_type.size()) {
 			do {
+				if (_uri) {
+					chunk = chunk + _uri;
+					_uri = NULL;
+				}
+				if (chunk.find("\r\n") == NPOS) {
+					if (ft_strlen(_uri) + chunk.size() > 8192) {
+						return (414);
+					} else { 
+						if (!_uri) {
+							_uri = new char[8192];
+						}
+						strcpy(_uri, chunk.data());
+						return (0);
+					}
+				} else if (ft_strlen(_uri) + chunk.find("\r\n") > 8192) {
+					return (414);
+				}
 				line = chunk.substr(0, chunk.find("\r\n"));
 				chunk.erase(0, (line.length() + 2));
 				if (line != "") {
