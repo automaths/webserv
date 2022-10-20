@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:32:13 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/20 16:11:56 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/20 17:19:25 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -397,6 +397,18 @@ int ft_strlen(char *str) {
 void Request::parseBodyChunked(std::string & chunk) {
 
 	while (chunk.size()) {
+		std::cerr << "chunk in parsing : >" << chunk << "<" << std::endl;
+		std::cerr << "Shall i wait for a \\r\\n : " << (!_isfirst ? "yes" : "no") << std::endl;
+		if (!_isfirst) {
+			if (chunk.size() < 2 || chunk[0] != '\r' || chunk[1] != '\n') {
+				_bodysize = "Hexa";
+				return ;
+			}
+			_isfirst = true;
+			chunk.erase(0, 2);
+			if (!chunk.size())
+				return ;
+		}
 		if (_bodysize == "chunked") {
 			std::stringstream	hex;
 			std::stringstream	dec;
@@ -423,7 +435,6 @@ void Request::parseBodyChunked(std::string & chunk) {
 			dec << std::dec << tmp;
 			_bodysize = dec.str();
 			for (std::string::const_iterator it = test.begin(); it != test.end(); it++) {
-				std::cerr << *it << std::endl;
 				if (static_cast<std::string>("0123456789abcdfABCDEF").find(*it) == NPOS) {
 					_bodysize = "Hexa";
 					return ;
@@ -435,14 +446,17 @@ void Request::parseBodyChunked(std::string & chunk) {
 			_putfile.write(chunk.data(), ft_atoi(_bodysize));
 			chunk.erase(0, ft_atoi(_bodysize));
 			_bodysize = "chunked";
+			_isfirst = false;
 		} else {
 			_putfile.write(chunk.data(), chunk.size());
 			_bodysize = minus(_bodysize, chunk.size());
-			chunk = "";
-			if (_bodysize == "0")
+			if (_bodysize == "0") {
 				_bodysize = "chunked";
-			std::cerr << "bodysize : " << _bodysize << std::endl;
+				_isfirst = false;
+			}
+			chunk = "";
 		}
+		std::cerr << "bodysize : " << _bodysize << std::endl;
 	}
 }
 
