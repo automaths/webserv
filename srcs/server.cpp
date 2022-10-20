@@ -147,17 +147,7 @@ void	Server::readToWrite(struct epoll_event & event, Client & currentClient, Req
 		}
 	}
 	currentResponse.makeResponse(currentRequest);
-	if (currentRequest.getType() == std::string("PUT") && !currentResponse.getBodySize())
-	{
-		if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_DEL, event.data.fd, &event) == -1)
-		{
-			this->closeClientSocket(event);
-			return ;
-		}
-		this->_filesMoving = true;
-		this->_filesMovingClients.push_back(&currentClient);
-	}
-	else if (currentResponse.isCgi())
+	if (currentResponse.isCgi())
 	{
 		std::memset(&(this->_tmpEv), '\0', sizeof(struct epoll_event));
 		if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_DEL, event.data.fd, &event) == -1)
@@ -170,6 +160,16 @@ void	Server::readToWrite(struct epoll_event & event, Client & currentClient, Req
 		this->_tmpEv.data.fd = currentResponse.getCgiFd();
 		if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_ADD, this->_tmpEv.data.fd, &(this->_tmpEv)) == -1)
 			this->closeClientSocket(event);
+	}
+	else if (currentRequest.getType() == std::string("PUT") && !currentResponse.getBodySize())
+	{
+		if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_DEL, event.data.fd, &event) == -1)
+		{
+			this->closeClientSocket(event);
+			return ;
+		}
+		this->_filesMoving = true;
+		this->_filesMovingClients.push_back(&currentClient);
 	}
 	else
 	{

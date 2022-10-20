@@ -182,8 +182,6 @@ bool	Response::foundDirectoryIndex(std::vector<std::string> indexes, std::string
 	return (false);
 }
 
-#include <fstream>
-
 int Response::execCgi(std::string exec)
 {
 	_env.push_back("SERVER_SOFTWARE=Webserv/1.0");
@@ -550,12 +548,23 @@ bool	Response::precheck(Request & req)
 	maxBodySize = this->_targetLocation ? this->_targetLocation->getClientBodyBufferMax() : this->_targetServer->getClientBodyBufferMax();
 	if (maxBodySize.size())
 	{
-		if (req.getBodySize() != "0" && isSuperiorStringNumbers((req.getHeaders())[std::string("content-length")].front(), maxBodySize))
-			return (this->errorResponse(413), false);
+		if (req.getHeaders().find(std::string("content-length")) != req.getHeaders().end())
+		{
+			if (isSuperiorStringNumbers((req.getHeaders())[std::string("content-length")].front(), maxBodySize))
+				return (this->errorResponse(413), false);
+		}
 		req.setMaxBodySize(maxBodySize);
 	}
 	if (req.getType() == std::string("PUT"))
+	{
+		_cgi_file.clear();
+		_path_info.clear();
+		_is_cgi = false;
+		_cgi_fd = -1;
+		_cgi_input = -1;
+		isCgiPath();
 		return (true);
+	}
 	if (!pathIsValid(this->_targetFilePath, &buf))
 	{
 		_cgi_file.clear();
@@ -678,7 +687,35 @@ void	Response::makeResponse(Request & req)
 	int					ret;
 	
 	this->_close = !req.isKeepAlive();
-	if (req.getType() == std::string("PUT"))
+	if (isCgiPath())
+	{
+		std::cerr << "CGIIIIIIIII" << std::endl;
+		std::map<std::string, std::string> cgi = _targetServer->getCgi(); 
+		std::string extension;
+		if (_cgi_file.find_last_of(".") != std::string::npos)
+			extension = _cgi_file.substr(_cgi_file.find_last_of("."));
+		for (std::map<std::string, std::string>::iterator it = cgi.begin(); it != cgi.end(); ++it)
+		{
+			if (!extension.compare(it->first))
+			{
+				std::cout << "extension " << extension << " match the config extension " << it->first << " associated to path " << it->second << std::endl;
+				std::cout << "Execution of the cgi" << std::endl;
+				try
+				{
+					_cgi_fd = execCgi(it->second);
+				}
+				catch (std::exception const & e)
+				{
+					_is_cgi = 0;
+					this->errorResponse(500);
+					return ;
+				}
+				std::cout << "the cgi_fd is: " << _cgi_fd << std::endl;
+				return ;
+			}
+		}
+	}
+	else if (req.getType() == std::string("PUT"))
 	{
 		return ;
 	}
@@ -712,34 +749,6 @@ void	Response::makeResponse(Request & req)
 		catch (std::exception const & src)
 		{
 			this->errorResponse(500);
-		}
-	}
-	else if (isCgiPath())
-	{
-		std::cerr << "CGIIIIIIIII" << std::endl;
-		std::map<std::string, std::string> cgi = _targetServer->getCgi(); 
-		std::string extension;
-		if (_cgi_file.find_last_of(".") != std::string::npos)
-			extension = _cgi_file.substr(_cgi_file.find_last_of("."));
-		for (std::map<std::string, std::string>::iterator it = cgi.begin(); it != cgi.end(); ++it)
-		{
-			if (!extension.compare(it->first))
-			{
-				std::cout << "extension " << extension << " match the config extension " << it->first << " associated to path " << it->second << std::endl;
-				std::cout << "Execution of the cgi" << std::endl;
-				try
-				{
-					_cgi_fd = execCgi(it->second);
-				}
-				catch (std::exception const & e)
-				{
-					_is_cgi = 0;
-					this->errorResponse(500);
-					return ;
-				}
-				std::cout << "the cgi_fd is: " << _cgi_fd << std::endl;
-				return ;
-			}
 		}
 	}
 	else
