@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:32:13 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/20 17:19:25 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/20 17:30:54 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -419,6 +419,10 @@ void Request::parseBodyChunked(std::string & chunk) {
 			if (ft_strlen(_bufsize))
 				chunk = _bufsize + chunk;
 			tmp = chunk.find("\r\n");
+			if (!chunk.substr(0, tmp).size()) {
+				_bodysize = "Hexa";
+				return ;
+			}
 			if (tmp == NPOS || tmp > 7) {
 				if (chunk.size() > 7) {
 					std::cerr << "Big" << std::endl;
