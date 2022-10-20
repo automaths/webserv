@@ -410,7 +410,8 @@ void Request::parseBodyChunked(std::string & chunk) {
 			if (tmp == NPOS || tmp > 7) {
 				if (chunk.size() > 7) {
 					std::cerr << "Big" << std::endl;
-					_bodysize = "Error";
+					_bodysize = "Big";
+					return ;
 				}
 				strcpy(_bufsize, chunk.data());
 				return ;

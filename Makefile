@@ -6,7 +6,7 @@
 #    By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/09/27 13:15:29 by tnaton            #+#    #+#              #
-#    Updated: 2022/10/19 20:08:29 by nsartral         ###   ########.fr        #
+#    Updated: 2022/10/20 15:56:04 by bdetune          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -24,7 +24,7 @@ SRCS = webserv.cpp Request.cpp Response.cpp Client.cpp server.cpp scope_configur
 
 INC = server.hpp Request.hpp Client.hpp Response.hpp scope_configuration.hpp scope_http.hpp scope_server.hpp scope_location.hpp MimeTypes.hpp
 
-CXXFLAGS = -Wall -Wextra -Werror -Wpedantic -g -std=c++98
+CXXFLAGS = -Wall -Wextra -Werror -o3 -Wpedantic -g -std=c++98
 
 CXX = c++
 

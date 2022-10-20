@@ -18,7 +18,7 @@
 #include <iostream>
 #include <unistd.h>
 
-Response::Response(void): _env(), _header(""), _headerSize(0), _body(""), _bodySize(0), _targetFile(), _targetFilePath(""), _redirection(""), _headerSent(false), _chunked(false), _over(false), _fileConsumed(false), _close(false), _req(NULL), _targetServer(NULL), _targetLocation(NULL), _responseType(0), _cgi_file(""), _path_info(""), _is_cgi(false), _cgi_fd(-1), _cgi_input(-1), _root(""), _extension("")
+Response::Response(void): _env(), _header(), _headerSize(0), _body(), _bodySize(0), _targetFile(), _targetFilePath(), _redirection(), _headerSent(false), _chunked(false), _over(false), _fileConsumed(false), _close(false), _req(NULL), _targetServer(NULL), _targetLocation(NULL), _responseType(0), _cgi_file(), _path_info(), _is_cgi(false), _cgi_fd(-1), _cgi_input(-1), _root(), _extension()
 {
 	return ;
 }
@@ -32,7 +32,7 @@ void	Response::closeCgiFd(void)
 	}
 }
 
-Response::Response(Request & req, std::vector<ServerScope> & matches, int error): _env(), _header(""), _headerSize(0), _body(""), _bodySize(0), _targetFile(), _targetFilePath(""), _redirection(""), _headerSent(false), _chunked(false), _over(false), _fileConsumed(false), _close(false), _req(&req), _targetServer(NULL), _targetLocation(NULL), _responseType(0), _cgi_file(""), _path_info(""), _is_cgi(false), _cgi_fd(-1), _cgi_input(-1), _root(""), _extension("")
+Response::Response(Request & req, std::vector<ServerScope> & matches, int error): _env(), _header(), _headerSize(0), _body(), _bodySize(0), _targetFile(), _targetFilePath(), _redirection(), _headerSent(false), _chunked(false), _over(false), _fileConsumed(false), _close(false), _req(&req), _targetServer(NULL), _targetLocation(NULL), _responseType(0), _cgi_file(), _path_info(), _is_cgi(false), _cgi_fd(-1), _cgi_input(-1), _root(), _extension()
 {
 	std::map<std::string, std::list<std::string> >				headerMap = req.getHeaders();
 	std::map<std::string, std::list<std::string> >::iterator	host;
@@ -906,6 +906,10 @@ void	Response::errorResponse(int error)
 			status << " 405 " << DEFAULT405STATUS;
 			body = DEFAULT405BODY;
 			break;
+		case 413:
+			status << " 413 " << DEFAULT413STATUS;
+			body = DEFAULT413BODY;
+			break;
 		case 416:
 			status << " 416 " << DEFAULT416STATUS;
 			body = DEFAULT416BODY;
@@ -976,6 +980,9 @@ void	Response::createFileErrorHeader(int errorCode, std::string mime)
 			break;
 		case 405:
 			status << " 405 " << DEFAULT405STATUS;
+			break;
+		case 413:
+			status << " 413 " << DEFAULT413STATUS;
 			break;
 		case 416:
 			status << " 416 " << DEFAULT416STATUS;
