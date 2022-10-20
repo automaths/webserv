@@ -10,9 +10,9 @@
     autoindex: |on|
     limit_upload: |on|
     root: /sgoinfre/goinfre/Perso/tnaton/putty
-    rewrite_location: ||
-    rewrite: ||
-    upload_pass: ||
+    rewrite_location: |/gagagougou|
+    rewrite: |permanent|
+    upload_pass: |/tmp|
 
             -------| THE SERVER SCOPE |-------            
 

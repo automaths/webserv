@@ -9,6 +9,10 @@ http{
 		autoindex on   ;
 
 		server_name putty      ;
+		
+		upload_pass /tmp; 
+		
+		rewrite /gagagougou permanent  ;
 	}
 
 	server {
