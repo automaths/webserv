@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:32:13 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/20 20:08:42 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/20 21:27:40 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -421,7 +421,7 @@ void Request::parseBodyChunked(std::string & chunk) {
 		std::cerr << "chunk in parsing : >" << chunk << "<" << std::endl;
 		std::cerr << "Shall i wait for a \\r\\n : " << (!_isfirst ? "yes" : "no") << std::endl;
 		if (!_isfirst) {
-			if (chunk.size() < 2 || chunk[0] != '\r' || chunk[1] != '\n') {
+			if (chunk.size() < 2 || (chunk != "\r\n" && chunk != "0\r\n")) {
 				_bodysize = "Hexa";
 				return ;
 			}
@@ -436,7 +436,9 @@ void Request::parseBodyChunked(std::string & chunk) {
 			unsigned long		tmp;
 			std::string			test;
 
-			chunk.erase(0, chunk.find_first_not_of('0'));
+			if (chunk != "0\r\n") {
+				chunk.erase(0, chunk.find_first_not_of('0'));
+			}
 			if (ft_strlen(_bufsize))
 				chunk = _bufsize + chunk;
 			tmp = chunk.find("\r\n");
@@ -561,6 +563,7 @@ int Request::parseChunk(std::string & chunk) {
 					} else if (!(_type == GET || _type == POST || _type == PUT || _type == DELETE)) {
 						return (501);
 					} else if (_version == "") {
+						std::cerr << "test " << std::endl;
 						_keepalive = false;
 						_type = GET;
 						return (200);
@@ -582,6 +585,23 @@ int Request::parseChunk(std::string & chunk) {
 		std::string val;
 
 		do {
+			if (_uri) {
+				chunk = chunk + _uri;
+				_uri = NULL;
+			}
+			if (chunk.find("\r\n") == NPOS) {
+				if (ft_strlen(_uri) + chunk.size() > 8192) {
+					return (413);
+				} else { 
+					if (!_uri) {
+						_uri = new char[8192];
+					}
+					strcpy(_uri, chunk.data());
+					return (0);
+				}
+			} else if (ft_strlen(_uri) + chunk.find("\r\n") > 8192) {
+				return (413);
+			}
 			line = chunk.substr(0, chunk.find("\r\n"));
 			chunk.erase(0, (line.length() + 2));
 			if (line == "") {

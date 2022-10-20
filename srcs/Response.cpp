@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/29 12:29:34 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/20 13:02:48 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/20 21:30:24 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -456,7 +456,7 @@ void	Response::create200Header(std::string extension)
 	header << setBaseHeader();
 	header << "Content-type: " << extension << "\r\n";
 	this->_chunked ? (header << "Transfer-Encoding: chunked\r\n") : (header << "Content-Length: " << this->_bodySize << "\r\n");
-	header << "Connection: keep-alive\r\n";
+	this->_close ? header << "Connection: keep-alive\r\n" : header << "Connection: close\r\n";
 	header << "\r\n";
 	this->_header = header.str();
 	this->_headerSize = this->_header.size();
@@ -506,7 +506,10 @@ bool	Response::precheck(Request & req)
 	if (!this->_req)
 		this->_req = &req;
 	if (this->_responseType == 1)
+	{
+		this->_close = true;
 		return (false) ;
+	}
 	this->findLocation(this->_targetServer->getLocations(), req.getFile());
 	if ((this->_targetLocation && !allowedMethod(this->_targetLocation->getAllowMethod(), req.getType())) || (!this->_targetLocation && !allowedMethod(this->_targetServer->getAllowMethod(), req.getType())))
 		return (false);
@@ -847,7 +850,7 @@ void	Response::errorResponse(int error)
 	std::string			mime;
 
 	this->_responseType = 1;
-	if (error >= 300)
+	if (error >= 300 || !this->_req->isKeepAlive())
 		this->_close = true;
 	code << error;
 	this->_targetFilePath.clear();
