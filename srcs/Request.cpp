@@ -17,10 +17,10 @@
 
 extern volatile std::sig_atomic_t g_code;
 
-Request::Request(void): _type(""), _version(""), _file(""), _body(""), _headers(), _isbody(false), _bodysize("0"), _putfile(), _tmpfile(), _query(""), _keepalive(true), _ischunked(false), _isfirst(true), _bufsize("\0") {
+Request::Request(void): _type(""), _version(""), _file(""), _body(""), _headers(), _isbody(false), _bodysize("0"), _putfile(), _tmpfile(), _query(""), _maxBodySize(""), _keepalive(true), _ischunked(false), _isfirst(true), _bufsize("\0") {
 }
 
-Request::Request(const Request & other): _type(other._type), _version(other._version), _file(other._file), _body(other._body), _headers(other._headers), _isbody(other._isbody), _bodysize(other._bodysize), _putfile(), _tmpfile(), _query(other._query), _keepalive(other._keepalive), _ischunked(other._ischunked), _isfirst(other._isfirst) {
+Request::Request(const Request & other): _type(other._type), _version(other._version), _file(other._file), _body(other._body), _headers(other._headers), _isbody(other._isbody), _bodysize(other._bodysize), _putfile(), _tmpfile(), _query(other._query), _maxBodySize(other._maxBodySize), _keepalive(other._keepalive), _ischunked(other._ischunked), _isfirst(other._isfirst) {
 	strcpy(_bufsize, other._bufsize);
 }
 
@@ -44,11 +44,22 @@ Request & Request::operator=(const Request & other) {
 	_isbody = other._isbody;
 	_bodysize = other._bodysize;
 	_query = other._query;
+	_maxBodySize = other._maxBodySize;
 	_keepalive = other._keepalive;
 	_ischunked = other._ischunked;
 	_isfirst = other._isfirst;
 	strcpy(_bufsize, other._bufsize);
 	return (*this);
+}
+
+std::string	Request::getBodySize(void) const
+{
+	return (this->_bodysize);
+}
+
+void	Request::setMaxBodySize(std::string & maxBodySize)
+{
+	this->_maxBodySize = maxBodySize;
 }
 
 std::string tolower(std::string str) {

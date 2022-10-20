@@ -31,6 +31,7 @@
 #include <ftw.h>
 #include <cstring>
 #include <csignal>
+#include "utils.hpp"
 
 class Request{
 
@@ -53,11 +54,13 @@ class Request{
 		std::string	getFile(void) const;
 		std::string	getBody(void) const;
 		std::string	getQuery(void) const;
+		std::string	getBodySize(void) const;
 		bool		getIsBody(void) const;
 		bool		isKeepAlive(void) const;
 		void		setQuery(std::string &);
 		void		setFile(std::string &);
 		void		setType(std::string &);
+		void		setMaxBodySize(std::string & maxBodySize);
 		std::map<std::string, std::list<std::string> > &	getHeaders(void);
 		std::vector<std::pair<int, int> >				getRange(int);
 		bool nuke(std::string &);
@@ -77,6 +80,7 @@ class Request{
 		std::ofstream	_putfile;
 		std::ifstream	_tmpfile;
 		std::string		_query;
+		std::string		_maxBodySize;
 		bool			_keepalive;
 		bool			_ischunked;
 		bool			_isfirst;

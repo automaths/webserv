@@ -20,9 +20,9 @@ NAME = webserv
 
 OBJDIR := objs
 
-SRCS = webserv.cpp Request.cpp Response.cpp Client.cpp server.cpp scope_configuration.cpp scope_http.cpp scope_server.cpp scope_location.cpp ListDirectory.cpp cgi.cpp MimeTypes.cpp
+SRCS = webserv.cpp Request.cpp Response.cpp Client.cpp server.cpp scope_configuration.cpp scope_http.cpp scope_server.cpp scope_location.cpp ListDirectory.cpp cgi.cpp MimeTypes.cpp utils.cpp
 
-INC = server.hpp Request.hpp Client.hpp Response.hpp scope_configuration.hpp scope_http.hpp scope_server.hpp scope_location.hpp MimeTypes.hpp
+INC = server.hpp Request.hpp Client.hpp Response.hpp scope_configuration.hpp scope_http.hpp scope_server.hpp scope_location.hpp MimeTypes.hpp utils.hpp
 
 CXXFLAGS = -Wall -Wextra -Werror -o3 -Wpedantic -g -std=c++98
 

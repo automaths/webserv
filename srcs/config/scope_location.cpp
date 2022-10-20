@@ -51,13 +51,32 @@ LocationScope& LocationScope::operator=(LocationScope const &other) {
         _rewrite = other._rewrite;
         _rewrite_location = other._rewrite_location;
         _upload_pass = other._upload_pass;
-        _limit_upload = other._limit_upload;
     }
     return *this;
 }
 void LocationScope::extract_client_body_buffer_size(std::string directive) {
+    char    multiplier;
+
     directive.erase(0, directive.find("client_body_buffer_size") + 23);
     _client_body_buffer_size = directive.substr(directive.find_first_not_of("\t\v\n\r\f "), directive.find_first_of("\t\v\n\r\f ", directive.find_first_not_of("\t\v\n\r\f ")));
+    multiplier = _client_body_buffer_size[_client_body_buffer_size.size() - 1];
+    switch (multiplier)
+    {
+        case 'K' :
+            _client_body_buffer_size.erase((_client_body_buffer_size.end() - 1));
+            _client_body_buffer_size = multiplyStringNumbers(_client_body_buffer_size, std::string("1024"));
+            break ;
+        case 'M' :
+            _client_body_buffer_size.erase((_client_body_buffer_size.end() - 1));
+            _client_body_buffer_size = multiplyStringNumbers(_client_body_buffer_size, std::string("1048576"));
+            break ;
+        case 'G' :
+            _client_body_buffer_size.erase((_client_body_buffer_size.end() - 1));
+            _client_body_buffer_size = multiplyStringNumbers(_client_body_buffer_size, std::string("1073741824"));
+            break ;
+        default :
+            break ;
+    }
 }
 void LocationScope::extract_upload_pass(std::string directive) {
     directive.erase(0, directive.find("upload_pass") + 11);

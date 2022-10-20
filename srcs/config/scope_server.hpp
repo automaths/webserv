@@ -2,6 +2,7 @@
 
 #include "library.hpp"
 #include "scope_location.hpp"
+#include "../utils.hpp"
 
 class ServerScope {
 

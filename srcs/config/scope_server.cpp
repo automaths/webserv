@@ -138,8 +138,28 @@ void ServerScope::extract_rewrite(std::string directive) {
     }
 }
 void ServerScope::extract_client_body_buffer_size(std::string directive) {
+    char    multiplier;
+
     directive.erase(0, directive.find("client_body_buffer_size") + 23);
     _client_body_buffer_size = directive.substr(directive.find_first_not_of("\t\v\n\r\f "), directive.find_first_of("\t\v\n\r\f ", directive.find_first_not_of("\t\v\n\r\f ")));
+    multiplier = _client_body_buffer_size[_client_body_buffer_size.size() - 1];
+    switch (multiplier)
+    {
+        case 'K' :
+            _client_body_buffer_size.erase((_client_body_buffer_size.end() - 1));
+            _client_body_buffer_size = multiplyStringNumbers(_client_body_buffer_size, std::string("1024"));
+            break ;
+        case 'M' :
+            _client_body_buffer_size.erase((_client_body_buffer_size.end() - 1));
+            _client_body_buffer_size = multiplyStringNumbers(_client_body_buffer_size, std::string("1048576"));
+            break ;
+        case 'G' :
+            _client_body_buffer_size.erase((_client_body_buffer_size.end() - 1));
+            _client_body_buffer_size = multiplyStringNumbers(_client_body_buffer_size, std::string("1073741824"));
+            break ;
+        default :
+            break ;
+    }
 }
 void ServerScope::extract_root(std::string directive) {
     directive.erase(0, directive.find_first_of("root") + 4);

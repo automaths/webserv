@@ -502,6 +502,7 @@ bool	Response::precheck(Request & req)
 {
 	std::vector<std::string>	indexes;
 	std::string					fullPath;
+	std::string					maxBodySize;
 	struct stat					buf;
 
 	if (!this->_req)
@@ -546,8 +547,13 @@ bool	Response::precheck(Request & req)
 		fullPath.erase(fullPath.find_first_of("\t\v\n\r\f ", 1));
 	this->_targetFilePath = fullPath;
 //	std::cerr << "Fully qualified path: ***" << fullPath << "***" << std::endl;
-
-	// if (req.getHeaders().find(std::string("content-length")) != req.getHeaders().find(std::string("content-length")))
+	maxBodySize = this->_targetLocation ? this->_targetLocation->getClientBodyBufferMax() : this->_targetServer->getClientBodyBufferMax();
+	if (maxBodySize.size())
+	{
+		if (req.getBodySize() != "0" && isSuperiorStringNumbers((req.getHeaders())[std::string("content-length")].front(), maxBodySize))
+			return (this->errorResponse(413), false);
+		req.setMaxBodySize(maxBodySize);
+	}
 	if (req.getType() == std::string("PUT"))
 		return (true);
 	if (!pathIsValid(this->_targetFilePath, &buf))
