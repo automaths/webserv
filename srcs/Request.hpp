@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/10/05 17:41:22 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/20 12:16:18 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/20 19:28:44 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -81,6 +81,7 @@ class Request{
 		bool			_ischunked;
 		bool			_isfirst;
 		char			_bufsize[10];
+		char			*_uri;
 };
 
 int rm(const char *, const struct stat *, int, struct FTW*);
