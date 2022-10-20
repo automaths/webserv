@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/10/05 17:41:22 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/19 21:09:15 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/20 12:16:18 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,19 +67,20 @@ class Request{
 
 	private:
 
-		std::string		_type; //method
-		std::string		_version; 
-		std::string		_file; 
+		std::string		_type;
+		std::string		_version;
+		std::string		_file;
 		std::string		_body;
 		std::map<std::string, std::list<std::string> > _headers;
 		bool			_isbody;
 		std::string		_bodysize;
 		std::ofstream	_putfile;
-		std::ifstream	_tmpfile; 
+		std::ifstream	_tmpfile;
 		std::string		_query;
 		bool			_keepalive;
 		bool			_ischunked;
 		bool			_isfirst;
+		char			_bufsize[10];
 };
 
 int rm(const char *, const struct stat *, int, struct FTW*);
