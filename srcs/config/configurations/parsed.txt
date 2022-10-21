@@ -2,50 +2,19 @@
             -------| THE SERVER SCOPE |-------            
 
     address: |*|
-    port: |8181|
-    listen: the address is |*| and the port is |8181|
-    server_name: |putty|
-    index: |index.html|
-    index: |index.htm|
-    autoindex: |on|
-    limit_upload: |on|
-    root: /sgoinfre/goinfre/Perso/tnaton/putty
-    rewrite_location: |/gagagougou|
-    rewrite: |permanent|
-    upload_pass: |/tmp|
-
-            -------| THE SERVER SCOPE |-------            
-
-    address: |*|
     port: |8079|
     listen: the address is |*| and the port is |8079|
     server_name: |default|
+    allow_method: |POST|
     default error page |403| associated to path |/403.html|
     default error page |404| associated to path |./www/default/w404.html|
     index: |index.html|
     index: |index.htm|
-    autoindex: ||
-    limit_upload: ||
-    root: ./www/default 
-    rewrite_location: ||
-    rewrite: ||
-    upload_pass: ||
+    autoindex: |on|
+    limit_upload: |on|
+    root: ./www/default
+    rewrite_location: |permanent|
+    rewrite: |/path/|
+    upload_pass: |/path/upload|
     cgi: extension |.php| associated to path |/usr/lib/cgi-bin/php|
     cgi: extension |.py| associated to path |/usr/bin/python3|
-
-            -------| THE SERVER SCOPE |-------            
-
-    address: |*|
-    port: |8080|
-    listen: the address is |*| and the port is |8080|
-    server_name: |basic|
-    default error page |403| associated to path |/403.html|
-    default error page |404| associated to path |/404.html|
-    index: |index.html|
-    index: |index.htm|
-    autoindex: ||
-    limit_upload: ||
-    root: ./www/basic
-    rewrite_location: ||
-    rewrite: ||
-    upload_pass: ||

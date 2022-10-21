@@ -110,7 +110,8 @@ void LocationScope::extract_rewrite(std::string directive) {
 void LocationScope::extract_root(std::string directive) {
     _has_root = 1;
     directive.erase(0, directive.find_first_of("root") + 4);
-    _root = directive.substr(directive.find_first_not_of("\t\v\n\r\f "), directive.find_first_of("\t\v\n\r\f ", directive.find_first_not_of("\t\v\n\r\f ")));
+    directive.erase(0, directive.find_first_not_of("\t\v\n\r\f "));
+    _root = directive.substr(0, directive.find_last_not_of("\t\v\n\r\f ;") + 1);
 }
 void LocationScope::extract_allow_method(std::string directive) {
     directive.erase(0, directive.find("allow_method") + 12);
