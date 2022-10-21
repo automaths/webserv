@@ -50,6 +50,7 @@ class Response
 		std::size_t		getBodySize(void);
 		std::string &	getTargetFile(void);
 		ServerScope*	getServerScope(void);
+		void			setRequest(Request & req);
 		void			setServerScope(ServerScope * target);
 		bool			serverSet(void);
 		bool			headerIsSent(void);

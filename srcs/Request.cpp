@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:32:13 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/21 17:25:45 by nsartral         ###   ########.fr       */
+/*   Updated: 2022/10/21 18:14:50 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -587,9 +587,7 @@ int Request::parseChunk(std::string & chunk) {
 				if (line != "") {
 					if (checkType(line)) {
 						return (400);
-					} else if (_type == HEAD) {
-						return (405);
-					} else if (!(_type == GET || _type == POST || _type == PUT || _type == DELETE)) {
+					} else if (!(_type == HEAD ||_type == GET || _type == POST || _type == PUT || _type == DELETE)) {
 						return (501);
 					} else if (_version == "") {
 						std::cerr << "Connection should be closed " << std::endl;
@@ -639,8 +637,6 @@ int Request::parseChunk(std::string & chunk) {
 			line = chunk.substr(0, chunk.find("\r\n"));
 			chunk.erase(0, (line.length() + 2));
 			if (line == "") {
-				if (_type == HEAD)
-					return (200);
 				if (_headers.find("connection") != _headers.end()) {
 					if (_headers["connection"].front() == "close") {
 						std::cerr << "Connection should be closed " << std::endl;
