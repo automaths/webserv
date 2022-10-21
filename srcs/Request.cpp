@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:32:13 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/21 13:11:35 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/21 16:39:19 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,10 +17,10 @@
 
 extern volatile std::sig_atomic_t g_code;
 
-Request::Request(void): _type(""), _version(""), _file(""), _body(""), _headers(), _isbody(false), _bodysize("0"), _putfile(), _tmpfile(), _query(""), _maxBodySize(""), _keepalive(true), _ischunked(false), _case(1), _bufsize("\0"), _uri(NULL) {
+Request::Request(void): _type(""), _version(""), _file(""), _body(""), _headers(), _isbody(false), _bodysize("0"), _putfile(), _tmpfile(), _query(""), _maxBodySize(""), _keepalive(true), _ischunked(false), _case(1), _bufsize("\0"), _uri(NULL), _currentsize("0") {
 }
 
-Request::Request(const Request & other): _type(other._type), _version(other._version), _file(other._file), _body(other._body), _headers(other._headers), _isbody(other._isbody), _bodysize(other._bodysize), _putfile(), _tmpfile(), _query(other._query), _maxBodySize(other._maxBodySize), _keepalive(other._keepalive), _ischunked(other._ischunked), _case(other._case) {
+Request::Request(const Request & other): _type(other._type), _version(other._version), _file(other._file), _body(other._body), _headers(other._headers), _isbody(other._isbody), _bodysize(other._bodysize), _putfile(), _tmpfile(), _query(other._query), _maxBodySize(other._maxBodySize), _keepalive(other._keepalive), _ischunked(other._ischunked), _case(other._case), _currentsize(other._currentsize) {
 	strcpy(_bufsize, other._bufsize);
 	if (other._uri) {
 		_uri = new char[8192];
@@ -59,6 +59,7 @@ Request & Request::operator=(const Request & other) {
 	if (_uri)
 		delete[] _uri;
 	_uri = other._uri;
+	_currentsize = other._currentsize;
 	return (*this);
 }
 
@@ -475,11 +476,19 @@ void Request::parseBodyChunked(std::string & chunk) {
 				if (chunk.size() > static_cast<unsigned long>(ft_atoi(_bodysize))) {
 					_putfile.write(chunk.data(), ft_atoi(_bodysize));
 					chunk.erase(0, ft_atoi(_bodysize));
+					if (isSuperiorStringNumbers(_currentsize = addStringNumbers(_currentsize, _bodysize), _maxBodySize)) {
+						_bodysize = "Big";
+						return ;
+					}
 					_bodysize = "chunked";
 					_case = 3;
 				} else {
 					_putfile.write(chunk.data(), chunk.size());
 					_bodysize = minus(_bodysize, chunk.size());
+					if (isSuperiorStringNumbers(_currentsize = addStringNumbers(_currentsize, numberToString(chunk.size())), _maxBodySize)) {
+						_bodysize = "Big";
+						return ;
+					}
 					if (_bodysize == "0") {
 						_bodysize = "chunked";
 						_case = 3;
