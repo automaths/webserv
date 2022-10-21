@@ -10,7 +10,7 @@ http{
 	}
 
 	server {
-		listen 127.0.256.1:8181;
+		listen 127.0.0.1:8181;
 		listen localhost:7878;
 
 		root /sgoinfre/goinfre/Perso/tnaton/putty;
@@ -22,7 +22,7 @@ http{
 
 
 	server {
-		listen 8079;
+		listen 8081;
 
 		client_body_buffer_size	1024K;
 

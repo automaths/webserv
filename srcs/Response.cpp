@@ -1227,11 +1227,14 @@ bool	Response::getServer(std::string const & host, std::vector<ServerScope> & ma
 	std::vector<std::string>	lst;
 	std::vector<std::string>::iterator	first;
 
+	std::cerr << "Identification of server: " << host << std::endl;
+	std::cerr << "Number of potential matches: " << matches.size() << std::endl;	
 	for (std::vector<ServerScope>::iterator st = matches.begin(); st != matches.end(); st++)
 	{
 		lst = st->getServerName();
 		for (std::vector<std::string>::iterator first = lst.begin(); first != lst.end(); first++)
 		{
+			std::cerr << "Contender: |" << *first << "|" << std::endl;
 			if (*first == host)
 			{
 				this->_targetServer = &(*st);
