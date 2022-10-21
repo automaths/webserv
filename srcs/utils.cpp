@@ -1,5 +1,21 @@
 #include "utils.hpp"
 
+std::string numberToString(unsigned long nb)
+{
+    std::stringstream result;
+
+    result << nb;
+    return (result.str());
+}
+
+std::string numberToString(long int nb)
+{
+    std::stringstream result;
+
+    result << nb;
+    return (result.str());
+}
+
 std::string addStringNumbersVector(std::vector<std::string> vct)
 {
     bool            carry = false;
@@ -56,6 +72,69 @@ std::string addStringNumbersVector(std::vector<std::string> vct)
         }
     }
     return (result);
+}
+
+std::string addStringNumbers(std::string lhs, std::string rhs)
+{
+    bool            carry = false;
+    long int        sizeLhs;
+    long int        sizeRhs;
+
+    sizeLhs = static_cast<long int>(lhs.size());
+    sizeRhs = static_cast<long int>(rhs.size());
+    if (sizeLhs == 0)
+        return (rhs);
+    if (sizeRhs == 0)
+        return (lhs);
+    if (sizeLhs < sizeRhs)
+    {
+        while (sizeLhs < sizeRhs)
+        {
+            lhs.insert(0, 1, '0');
+            sizeLhs++;
+        }
+    }
+    else
+    {
+        while (sizeRhs < sizeLhs)
+        {
+            rhs.insert(0, 1, '0');
+            sizeRhs++;
+        }
+    }
+    for (long int i = 0; i < sizeRhs; i++)
+    {
+        if (carry)
+        {
+            lhs[sizeLhs - 1 - i] += 1;
+            if (lhs[sizeLhs - 1 - i] == 58)
+            {
+                carry = true;
+                lhs[sizeLhs - 1 - i] = '0';
+            }
+            else
+                carry = false;
+        }
+        lhs[sizeLhs - 1 - i] += (rhs[sizeLhs - 1 - i] - '0');
+        if (lhs[sizeLhs - 1 - i] > '9')
+        {
+            carry = true;
+            lhs[sizeLhs - 1 - i] = lhs[sizeLhs - 1 - i] - 58 + '0';
+        }
+    }
+    if (carry)
+    {
+        lhs.insert(0, 1, '1');
+    }
+    if (lhs[0] == '0')
+    {
+        if (lhs.find_first_not_of('0') == std::string::npos)
+        {
+            return (std::string("0"));
+        }
+        lhs = lhs.erase(0, lhs.find_first_not_of('0'));
+    }
+    return (lhs);
 }
 
 std::string multiplyStringNumbers(std::string lhs, std::string rhs)
