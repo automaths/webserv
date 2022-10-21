@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/29 12:29:34 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/21 13:04:43 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/21 13:16:17 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -456,7 +456,7 @@ void	Response::create200Header(std::string extension)
 	header << setBaseHeader();
 	header << "Content-type: " << extension << "\r\n";
 	this->_chunked ? (header << "Transfer-Encoding: chunked\r\n") : (header << "Content-Length: " << this->_bodySize << "\r\n");
-	this->_close ? header << "Connection: keep-alive\r\n" : header << "Connection: close\r\n";
+	this->_close ? header << "Connection: close\r\n" : header << "Connection: keep-alive\r\n";
 	header << "\r\n";
 	this->_header = header.str();
 	this->_headerSize = this->_header.size();
