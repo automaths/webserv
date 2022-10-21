@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/10/05 17:41:22 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/21 12:17:50 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/21 15:54:06 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -86,6 +86,7 @@ class Request{
 		int				_case;
 		char			_bufsize[10];
 		char			*_uri;
+		std::string		_currentsize;
 };
 
 int rm(const char *, const struct stat *, int, struct FTW*);

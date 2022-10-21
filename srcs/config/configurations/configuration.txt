@@ -1,19 +1,37 @@
+Http scope rules: 
+
+    - client_body_buffer_size
+    - error_page
+    - root
+    - index
+    - autoindex
+    - cgi
+
+Server scope rules:
+
+    - listen
+    - server_name
+    - index
+    - client_body_buffer_size
+    - autoindex
+    - root
+    - allow_method
+    - cgi
+    - error_page
+
+Location scope rules:
+
+    - client_body_buffer_size
+    - error_page
+    - root
+    - index
+    - autoindex
+    - allow_method
+    - cgi
+
+
+
 http{
-	server {
-		listen 8181;
-
-		root /sgoinfre/goinfre/Perso/tnaton/putty;
-
-		index index.html index.htm     ;
-
-		autoindex on   ;
-
-		server_name putty      ;
-		
-		upload_pass /tmp; 
-		
-		rewrite /gagagougou permanent  ;
-	}
 
 	server {
 		listen 8079;
@@ -28,13 +46,13 @@ http{
 
 		location /Downloads {
 			allow_method POST GET        ;
-			root ./www/default/bouhbouh;
-		}
+			root ./www/default/bouhbouh    ;
+			client_buffer_size 200M   ;
+			error_page 404 /path/to/404    ;
+			index index.html     ;
+			autoindex on    ;
+			cgi .php     /path/to/php     ;
 
-		location /form {
-			root ./www/form;
-			index index.php;
-			cgi .php /usr/lib/cgi-bin/php;
 		}
 
 		error_page  404     ./www/default/w404.html       ;

@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/28 13:45:50 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/19 15:11:49 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/21 17:31:41 by nsartral         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -268,6 +268,7 @@ bool	Server::sendHeader(struct epoll_event & event, Client & currentClient)
 
 	if ((sendret = send(event.data.fd, currentClient.getResponse().getHeader().data(), currentClient.getResponse().getHeaderSize(), MSG_NOSIGNAL | MSG_DONTWAIT)) <= 0)
 		return (this->closeClientSocket(event), false) ;
+	std::cout << "HEADER SENT:\n" << currentClient.getResponse().getHeader() << std::endl;
 	return (currentClient.getResponse().headerBytesSent(sendret));
 }
 
