@@ -50,7 +50,7 @@ make && ./webserv [+ configuration file path]
 ## Theory
 
 - From the select, poll and epoll functions allowed, epoll has been implemented as it uses a kernel queue for the sockets, making it more performant
-- The documentation used for the project: **rfc 9210** (update of rfc 7230, 7231, 7232, 7233, 7234 and 7235), **nginx configuration guidelines**
+- The documentation used for the project: **rfc 9110** (update of rfc 7230, 7231, 7232, 7233, 7234 and 7235), **nginx configuration guidelines**
 - Telnet, curl, siege and vegeta were used for testing the server
  
 
