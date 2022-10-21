@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:32:13 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/21 16:39:19 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/21 16:41:58 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -476,7 +476,7 @@ void Request::parseBodyChunked(std::string & chunk) {
 				if (chunk.size() > static_cast<unsigned long>(ft_atoi(_bodysize))) {
 					_putfile.write(chunk.data(), ft_atoi(_bodysize));
 					chunk.erase(0, ft_atoi(_bodysize));
-					if (isSuperiorStringNumbers(_currentsize = addStringNumbers(_currentsize, _bodysize), _maxBodySize)) {
+					if (isSuperiorStringNumbers(_currentsize = addStringNumbers(_currentsize, _bodysize), _maxBodySize) && _maxBodySize != "") {
 						_bodysize = "Big";
 						return ;
 					}
@@ -485,7 +485,7 @@ void Request::parseBodyChunked(std::string & chunk) {
 				} else {
 					_putfile.write(chunk.data(), chunk.size());
 					_bodysize = minus(_bodysize, chunk.size());
-					if (isSuperiorStringNumbers(_currentsize = addStringNumbers(_currentsize, numberToString(chunk.size())), _maxBodySize)) {
+					if (isSuperiorStringNumbers(_currentsize = addStringNumbers(_currentsize, numberToString(chunk.size())), _maxBodySize) && _maxBodySize != "") {
 						_bodysize = "Big";
 						return ;
 					}
