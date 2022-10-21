@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:32:13 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/21 18:14:50 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/21 19:22:15 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -499,6 +499,20 @@ void Request::parseBodyChunked(std::string & chunk) {
 			}
 			case(3) : {
 				std::cerr << "------CASE 3------" << std::endl;
+				if (chunk.size() == 1 && chunk == "\r") {
+					std::cerr << "Set to wtf" << std::endl;
+					_bodysize = "wtf";
+					return ;
+				}
+				if (_bodysize == "wtf") {
+					std::cerr << "Reset to 0" << std::endl;
+					_bodysize = "0";
+					chunk = "\r" + chunk;
+					std::cerr << "----print of ascii value of chunk -----" << std::endl;
+					for (std::string::iterator it = chunk.begin(); it != chunk.end(); it++) {
+						printf("%d\n", *it);
+					}
+				}
 				if (chunk.size() < 2 || (chunk.substr(0, 2) != "\r\n")) {
 					_bodysize = "Hexa";
 					return ;
