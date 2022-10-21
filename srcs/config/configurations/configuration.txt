@@ -1,35 +1,3 @@
-Http scope rules: 
-
-    - client_body_buffer_size
-    - error_page
-    - root
-    - index
-    - autoindex
-    - cgi
-
-Server scope rules:
-
-    - listen
-    - server_name
-    - index
-    - client_body_buffer_size
-    - autoindex
-    - root
-    - allow_method
-    - cgi
-    - error_page
-
-Location scope rules:
-
-    - client_body_buffer_size
-    - error_page
-    - root
-    - index
-    - autoindex
-    - allow_method
-    - cgi
-
-
 
 http{
 
@@ -38,13 +6,29 @@ http{
 
 		root ./www/default       ;
 		
-		index index.html index.htm;
+		index index.html index.htm     ;
 
 		cgi .php /usr/lib/cgi-bin/php .py /usr/bin/python3       ;
 
 		server_name default;
 
+		allow_method POST    ; 
+
+		autoindex on    ;
+
+		upload_pass /path/upload    ;
+
+		client_buffer_size  200M     ;
+
+		limit_upload   ;
+
+		rewrite    /path/    permanent    ;
+		rewrite    /path2/    redirection    ;
+
 		location /Downloads {
+
+			limit_upload    ;
+		upload_pass /path/upload    ;
 			allow_method POST GET        ;
 			root ./www/default/bouhbouh    ;
 			client_buffer_size 200M   ;
@@ -52,23 +36,11 @@ http{
 			index index.html     ;
 			autoindex on    ;
 			cgi .php     /path/to/php     ;
-
+			rewrite    /path/    permanent    ;
+			rewrite    /path2/    redirection    ;
 		}
 
 		error_page  404     ./www/default/w404.html       ;
 		error_page  403     /403.html       ;
-	}
-
-	server {
-		listen 8080;
-
-		root ./www/basic;
-
-		index index.html index.htm;
-
-		server_name basic;
-
-		error_page  404     /404.html;
-		error_page  403     /403.html;
 	}
 }

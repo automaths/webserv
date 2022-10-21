@@ -9,6 +9,7 @@ SRC		=	main.cpp \
 			scope_http.cpp \
 			scope_server.cpp \
 			scope_location.cpp \
+			../utils.cpp \
 
 OBJ		:=	$(addprefix ./obj/,$(SRC:%.cpp=%.o))
 

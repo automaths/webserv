@@ -163,7 +163,8 @@ void ServerScope::extract_client_body_buffer_size(std::string directive) {
 }
 void ServerScope::extract_root(std::string directive) {
     directive.erase(0, directive.find_first_of("root") + 4);
-    _root = directive.substr(directive.find_first_not_of("\t\v\n\r\f "), directive.find_first_of("\t\v\n\r\f ", directive.find_first_not_of("\t\v\n\r\f ")));
+    directive.erase(0, directive.find_first_not_of("\t\v\n\r\f "));
+    _root = directive.substr(0, directive.find_last_not_of("\t\v\n\r\f ;") + 1);
 }
 void ServerScope::extract_allow_method(std::string directive) {
     directive.erase(0, directive.find("allow_method") + 12);
