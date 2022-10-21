@@ -10,6 +10,18 @@ http{
 	}
 
 	server {
+		listen 127.0.256.1:8181;
+		listen localhost:7878;
+
+		root /sgoinfre/goinfre/Perso/tnaton/putty;
+
+		index index.html index.htm;
+
+		server_name putty;
+	}
+
+
+	server {
 		listen 8079;
 
 		client_body_buffer_size	1024K;

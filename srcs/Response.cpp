@@ -211,7 +211,7 @@ int Response::execCgi(std::string exec)
 	_env.push_back("SCRIPT_NAME=" + _cgi_file);
 	_env.push_back("QUERY_STRING=" + _req->getQuery());
     _env.push_back("PATH_INFO=" + _path_info);
-	_env.push_back("REQUEST_URI=" + _targetFilePath);
+	// _env.push_back("REQUEST_URI=" + _targetFilePath);
     _env.push_back("REDIRECT_STATUS=1");
 	if (_req->getHeaders().find(std::string("content-length")) != _req->getHeaders().end())
 		_env.push_back(std::string("CONTENT_LENGTH=") + _req->getHeaders()[std::string("content-length")].front());
@@ -240,9 +240,9 @@ int Response::execCgi(std::string exec)
 		_env.push_back("HTTP_" + temp + "=" + val);
 		tmp++;
 	}
-	// std::cout << "THE ENVIRONMENT OF THE CGI" << std::endl;
-	// for (std::vector<std::string>::iterator it = _env.begin(); it != _env.end(); ++it)
-	// 	std::cout << "|" << *it << "|" << std::endl;
+	std::cout << "THE ENVIRONMENT OF THE CGI" << std::endl;
+	for (std::vector<std::string>::iterator it = _env.begin(); it != _env.end(); ++it)
+		std::cout << "|" << *it << "|" << std::endl;
 	if (this->_req->getIsBody())
 	{
 		this->_cgi_input = open(this->_req->getBody().data(), O_RDONLY);
@@ -307,6 +307,7 @@ bool Response::cgiResponse(int fd)
 	char buffer[1048576];
 	memset(buffer, 0, 1048576);
 	size = read(fd, &buffer, 1048576);
+
 	if (size == 0)
 	{
 		_over = true;
@@ -325,6 +326,7 @@ bool Response::cgiResponse(int fd)
 	else
 	{
 		_body = buffer;
+		std ::cout << "received fomr cgi: " << _body << std::endl << std::endl ;
 		std::string cgiHeader = _body.substr(0, _body.find("\r\n\r\n") + 2);
 		_body.erase(0, _body.find("\r\n\r\n") + 4);
 		std::stringstream hexsize;
@@ -374,6 +376,7 @@ bool Response::cgiResponse(int fd)
 			header << "Transfer-Encoding: chunked\r\n";
 		header << "\r\n";
 		_header = header.str();
+		std::cerr << "Header from cgi: " << header << std::endl;
 		_headerSize = _header.size();
 		if (no_send)
 		{
@@ -685,6 +688,12 @@ bool	Response::isCgiPath()
 		}
     }
 	_path_info = uri.substr(_cgi_file.size(), uri.size() - _cgi_file.size());
+	std::cerr << "Size PATH INFO: " << _path_info.size() << std::endl;
+	if (!_path_info.size())
+	{
+		_path_info = "/";
+	}
+	std::cerr << "PATH INFO: " << _path_info << std::endl;;
 	std::map<std::string, std::string> cgi = _targetServer->getCgi(); 
 	if (_cgi_file.find_last_of(".") != std::string::npos)
 		_extension = _cgi_file.substr(_cgi_file.find_last_of("."));

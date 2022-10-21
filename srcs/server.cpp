@@ -369,7 +369,7 @@ void	Server::readPipe(struct epoll_event & event)
 	Client	& currentClient = this->_client_sockets[this->_cgi_pipes[event.data.fd]];
 	Response & currentResponse = currentClient.getResponse();
 
-	std::cerr << event.data.fd << std::endl; 
+	std::cerr << "Server reading pipe " << event.data.fd << std::endl; 
 	redirection = currentResponse.cgiResponse(event.data.fd);
 	if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_DEL, event.data.fd, &event) == -1)
 	{
