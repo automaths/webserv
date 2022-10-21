@@ -1,0 +1,31 @@
+http{
+
+	server {
+		listen 8079;
+        
+        location / {
+            alow_method GET;
+            root ./www/default/
+
+        }
+
+        autoindex on;
+        
+        location /put_test {
+            allow_method GET POST PUT;
+            #need to save files to directory of choice
+        }
+
+        cgi .bla ./ubuntu_cgi_tester ;
+
+        location /post_body {
+            client_body_buffer_size 100 ;
+        }
+
+        location /diretory {
+            root ./YoupiBanane  ;
+            index youpi.bad_extension ;
+        }
+    }
+}
+
