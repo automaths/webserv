@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:32:13 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/20 21:27:40 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/21 12:43:22 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,10 +17,10 @@
 
 extern volatile std::sig_atomic_t g_code;
 
-Request::Request(void): _type(""), _version(""), _file(""), _body(""), _headers(), _isbody(false), _bodysize("0"), _putfile(), _tmpfile(), _query(""), _maxBodySize(""), _keepalive(true), _ischunked(false), _isfirst(true), _bufsize("\0"), _uri(NULL) {
+Request::Request(void): _type(""), _version(""), _file(""), _body(""), _headers(), _isbody(false), _bodysize("0"), _putfile(), _tmpfile(), _query(""), _maxBodySize(""), _keepalive(true), _ischunked(false), _case(1), _bufsize("\0"), _uri(NULL) {
 }
 
-Request::Request(const Request & other): _type(other._type), _version(other._version), _file(other._file), _body(other._body), _headers(other._headers), _isbody(other._isbody), _bodysize(other._bodysize), _putfile(), _tmpfile(), _query(other._query), _maxBodySize(other._maxBodySize), _keepalive(other._keepalive), _ischunked(other._ischunked), _isfirst(other._isfirst) {
+Request::Request(const Request & other): _type(other._type), _version(other._version), _file(other._file), _body(other._body), _headers(other._headers), _isbody(other._isbody), _bodysize(other._bodysize), _putfile(), _tmpfile(), _query(other._query), _maxBodySize(other._maxBodySize), _keepalive(other._keepalive), _ischunked(other._ischunked), _case(other._case) {
 	strcpy(_bufsize, other._bufsize);
 	if (other._uri) {
 		_uri = new char[8192];
@@ -54,7 +54,7 @@ Request & Request::operator=(const Request & other) {
 	_maxBodySize = other._maxBodySize;
 	_keepalive = other._keepalive;
 	_ischunked = other._ischunked;
-	_isfirst = other._isfirst;
+	_case = other._case;
 	strcpy(_bufsize, other._bufsize);
 	if (_uri)
 		delete[] _uri;
@@ -415,75 +415,94 @@ int ft_strlen(char *str) {
 	return (i);
 }
 
+
+
 void Request::parseBodyChunked(std::string & chunk) {
-
 	while (chunk.size()) {
-		std::cerr << "chunk in parsing : >" << chunk << "<" << std::endl;
-		std::cerr << "Shall i wait for a \\r\\n : " << (!_isfirst ? "yes" : "no") << std::endl;
-		if (!_isfirst) {
-			if (chunk.size() < 2 || (chunk != "\r\n" && chunk != "0\r\n")) {
-				_bodysize = "Hexa";
-				return ;
-			}
-			_isfirst = true;
-			chunk.erase(0, 2);
-			if (!chunk.size())
-				return ;
-		}
-		if (_bodysize == "chunked") {
-			std::stringstream	hex;
-			std::stringstream	dec;
-			unsigned long		tmp;
-			std::string			test;
+		std::cerr << std::endl;
+		std::cerr << "Chunk in parseBodyChunked : >" << chunk << "<" << std::endl;
+		std::cerr << "_case : " << _case << std::endl;
+		switch(_case) { 
+			case(1) : { 
+				std::cerr << "------CASE 1------" << std::endl;
+				std::stringstream	hex;
+				std::stringstream	dec;
+				unsigned long		tmp;
+				std::string			test;
 
-			if (chunk != "0\r\n") {
-				chunk.erase(0, chunk.find_first_not_of('0'));
-			}
-			if (ft_strlen(_bufsize))
-				chunk = _bufsize + chunk;
-			tmp = chunk.find("\r\n");
-			if (!chunk.substr(0, tmp).size()) {
-				_bodysize = "Hexa";
-				return ;
-			}
-			if (tmp == NPOS || tmp > 7) {
-				if (chunk.size() > 7) {
-					std::cerr << "Big" << std::endl;
-					_bodysize = "Big";
-					return ;
+				if (chunk.find_first_not_of("0\r\n") != NPOS) {
+					chunk.erase(0, chunk.find_first_not_of('0'));
+				} else {
+					chunk.erase(0, chunk.find_first_not_of('0'));
+					chunk = "0" + chunk;
 				}
-				strcpy(_bufsize, chunk.data());
-				return ;
-			}
-			hex << std::hex << 0 << chunk.substr(0, tmp);
-			chunk.erase(0, tmp + 2);
-			test = hex.str();
-			hex >> tmp;
-			dec << std::dec << tmp;
-			_bodysize = dec.str();
-			for (std::string::const_iterator it = test.begin(); it != test.end(); it++) {
-				if (static_cast<std::string>("0123456789abcdfABCDEF").find(*it) == NPOS) {
+				if (ft_strlen(_bufsize))
+					chunk = _bufsize + chunk;
+				tmp = chunk.find("\r\n");
+				if (!chunk.substr(0, tmp).size()) {
 					_bodysize = "Hexa";
 					return ;
 				}
+				if (tmp == NPOS || tmp > 7) {
+					if (chunk.size() > 7) {
+						std::cerr << "Big" << std::endl;
+						_bodysize = "Big";
+						return ;
+					}
+					strcpy(_bufsize, chunk.data());
+					return ;
+				}
+				hex << std::hex << 0 << chunk.substr(0, tmp);
+				chunk.erase(0, tmp + 2);
+				test = hex.str();
+				hex >> tmp;
+				dec << std::dec << tmp;
+				_bodysize = dec.str();
+				for (std::string::const_iterator it = test.begin(); it != test.end(); it++) {
+					if (static_cast<std::string>("0123456789abcdfABCDEF").find(*it) == NPOS) {
+						_bodysize = "Hexa";
+						return ;
+					}
+				}
+				_case = 2;
+				if (_bodysize == "0") {
+					_case = 3;
+				}
+				break;
 			}
-			if (_bodysize == "0")
-				return ;
-		} if (chunk.size() > static_cast<unsigned long>(ft_atoi(_bodysize))) {
-			_putfile.write(chunk.data(), ft_atoi(_bodysize));
-			chunk.erase(0, ft_atoi(_bodysize));
-			_bodysize = "chunked";
-			_isfirst = false;
-		} else {
-			_putfile.write(chunk.data(), chunk.size());
-			_bodysize = minus(_bodysize, chunk.size());
-			if (_bodysize == "0") {
-				_bodysize = "chunked";
-				_isfirst = false;
+			case(2) : {
+				std::cerr << "------CASE 2------" << std::endl;
+				if (chunk.size() > static_cast<unsigned long>(ft_atoi(_bodysize))) {
+					_putfile.write(chunk.data(), ft_atoi(_bodysize));
+					chunk.erase(0, ft_atoi(_bodysize));
+					_bodysize = "chunked";
+					_case = 3;
+				} else {
+					_putfile.write(chunk.data(), chunk.size());
+					_bodysize = minus(_bodysize, chunk.size());
+					if (_bodysize == "0") {
+						_bodysize = "chunked";
+						_case = 3;
+					}
+					chunk = "";
+				}
+				break;
 			}
-			chunk = "";
+			case(3) : {
+				std::cerr << "------CASE 3------" << std::endl;
+				if (chunk.size() < 2 || (chunk.substr(0, 2) != "\r\n")) {
+					_bodysize = "Hexa";
+					return ;
+				}
+				_case = 1;
+				chunk.erase(0, 2);
+				if (!chunk.size())
+					return ;
+				break;
+			}
 		}
-		std::cerr << "bodysize : " << _bodysize << std::endl;
+		std::cerr << "-------END--------" << std::endl;
+		std::cerr << "Bodysize : " << _bodysize << std::endl;
 	}
 }
 
@@ -528,7 +547,7 @@ int Request::parseChunk(std::string & chunk) {
 			return (400);
 		} else if (_bodysize == "Big") {
 			return (413);
-		} else if (_bodysize != "0") {
+		} else if (_bodysize != "0" || _case == 3) {
 			return (0);
 		}
 		_putfile.close();
@@ -538,6 +557,7 @@ int Request::parseChunk(std::string & chunk) {
 			do {
 				if (_uri) {
 					chunk = chunk + _uri;
+					delete[] _uri;
 					_uri = NULL;
 				}
 				if (chunk.find("\r\n") == NPOS) {
@@ -587,6 +607,7 @@ int Request::parseChunk(std::string & chunk) {
 		do {
 			if (_uri) {
 				chunk = chunk + _uri;
+				delete[] _uri;
 				_uri = NULL;
 			}
 			if (chunk.find("\r\n") == NPOS) {
@@ -641,7 +662,11 @@ int Request::parseChunk(std::string & chunk) {
 					parseBody(chunk);
 					if (_bodysize == "Error") {
 						return (507);
-					} if (_bodysize != "0")
+					} if (_bodysize == "Hexa") {
+						return (400);
+					} if (_bodysize == "Big") {
+						return (413);
+					} if (_bodysize != "0" || _case == 3)
 						return (201);
 					_putfile.close();
 					return (200);

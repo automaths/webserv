@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/10/05 17:41:22 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/20 19:28:44 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/21 12:17:50 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,7 +83,7 @@ class Request{
 		std::string		_maxBodySize;
 		bool			_keepalive;
 		bool			_ischunked;
-		bool			_isfirst;
+		int				_case;
 		char			_bufsize[10];
 		char			*_uri;
 };
