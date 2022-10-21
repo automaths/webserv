@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:32:13 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/21 16:41:58 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/21 17:16:33 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -617,7 +617,9 @@ int Request::parseChunk(std::string & chunk) {
 
 		do {
 			if (_uri) {
-				chunk = chunk + _uri;
+				std::cerr << "Uri : >" << _uri << "<" << std::endl;
+				chunk = _uri + chunk;
+				std::cerr << "WTFCHUNK : >" << chunk << "<" << std::endl;
 				delete[] _uri;
 				_uri = NULL;
 			}
