@@ -53,13 +53,47 @@ struct sockaddr_in Server::getAddr(void)
 	return (this->_address);
 }
 
+bool	isIPAddress(std::string eval)
+{
+	std::vector<std::string>	split;
+
+	split = splitWithEmpty(eval, std::string("."));
+	if (split.size() != 4)
+		return (false);
+	for (std::vector<std::string>::iterator current = split.begin(); current != split.end(); current++)
+	{
+		if (!current->size() || current->size() > 3)
+			return (false);
+		for (std::string::size_type i = 0; i < current->size(); i++)
+		{
+			if (!isdigit((*current)[i]))
+				return (false);
+		}
+		if (std::atoi(current->data()) > 255)
+			return (false);
+	}
+	return (true);
+}
+
 void Server::initing(std::vector<ServerScope> & virtual_servers)
 {
 	int	_server_fd;
 	int	enable = 1;
+	std::map<std::string, std::string>	listeners;
 
 	for (std::vector<ServerScope>::iterator first = virtual_servers.begin(); first != virtual_servers.end(); first++)
 	{
+		listeners = first->getListen();
+		for (std::map<std::string, std::string>::iterator current = listeners.begin(); current != listeners.end(); current++)
+		{
+			if (current->first == "*")
+				std::cout << "All interfaces";
+			else if (isIPAddress(current->first))
+				std::cout << current->first << " is an IP address";
+			else
+				std::cout << current->first << " is a hostname";
+			std::cout << ", listening on port number: " << current->second << std::endl;
+		}
 		this->_virtual_servers[atoi(first->getPort().data())].push_back(*first);
 	}
 	for (std::map<int, std::vector<ServerScope> >::iterator first = this->_virtual_servers.begin(); first != this->_virtual_servers.end(); first++)
@@ -306,7 +340,7 @@ void	Server::sendResponse(struct epoll_event & event)
 	}
 	if (this->sendHeader(event, currentClient))
 	{
-		if (!currentClient.getResponse().getBodySize())
+		if (!currentClient.getResponse().getBodySize() || currentClient.getRequest().getType() == std::string("HEAD"))
 		{
 			if (currentClient.getResponse().isCgi())
 			{
@@ -347,6 +381,7 @@ void	Server::readPipe(struct epoll_event & event)
 		targetServer = currentResponse.getServerScope();
 		currentClient.resetResponse();
 		currentResponse.setServerScope(targetServer);
+		currentResponse.setRequest(currentClient.getRequest());
 		this->_cgi_pipes.erase(event.data.fd);
 		if (!currentResponse.precheck(currentClient.getRequest()))
 		{

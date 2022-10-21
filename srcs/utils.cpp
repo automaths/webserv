@@ -207,3 +207,51 @@ bool isSuperiorStringNumbers(std::string lhs, std::string rhs)
     }
     return (false);
 }
+
+std::vector<std::string>    splitWithEmpty(std::string src, std::string tokens)
+{
+    std::string                 tmp;
+    std::string::size_type      current;
+    std::vector<std::string>    result;
+
+    if (src.size() == 0)
+        return(result);
+    if (tokens.size() == 0)
+    {
+        result.push_back(src);
+        return (result);
+    }
+    while ((current = src.find_first_of(tokens)) != std::string::npos)
+    {
+        tmp = src.substr(0, current);
+        result.push_back(tmp);
+        src.erase(0, (current + 1));
+    }
+    result.push_back(src);
+    return (result);
+}
+
+std::vector<std::string>    splitNoEmpty(std::string src, std::string tokens)
+{
+    std::string                 tmp;
+    std::string::size_type      current;
+    std::vector<std::string>    result;
+
+    if (src.size() == 0)
+        return(result);
+    if (tokens.size() == 0)
+    {
+        result.push_back(src);
+        return (result);
+    }
+    while ((current = src.find_first_of(tokens)) != std::string::npos)
+    {
+        tmp = src.substr(0, current);
+        if (tmp.size())
+            result.push_back(tmp);
+        src.erase(0, (current + 1));
+    }
+    if (src.size())
+        result.push_back(src);
+    return (result);
+}

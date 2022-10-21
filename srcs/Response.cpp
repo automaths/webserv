@@ -496,6 +496,11 @@ std::string &	Response::getTargetFile(void)
 	return (this->_targetFilePath);
 }
 
+void	Response::setRequest(Request & req)
+{
+	this->_req = &req;
+}
+
 bool	Response::precheck(Request & req)
 {
 	std::vector<std::string>	indexes;
