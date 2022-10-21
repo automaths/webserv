@@ -6,7 +6,7 @@
 /*   By: bdetune <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/29 13:30:25 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/19 12:10:56 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/21 13:01:39 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,6 +64,11 @@
 # define DEFAULT413BODY "<html>\n<head><title>413 Request Entity Too Large</title></head>\n<body bgcolor=\"white\">\n<center><h1>413 Request Entity Too Large</h1></center>\n<hr>\n<center><div><img src=\"https://http.cat/413\"  alt=\"A beautiful 413 response\"></div></center>\n<hr>\n<center>webserv/1.0</center>\n</body>\n</html>\n"
 
 # define DEFAULT413STATUS "Request Entity Too Large"
+
+//414
+# define DEFAULT414BODY "<html>\n<head><title>414 URI Too Long</title></head>\n<body bgcolor=\"white\">\n<center><h1>414 URI Too Long</h1></center>\n<hr>\n<center><div><img src=\"https://http.cat/414\"  alt=\"A beautiful 414 response\"></div></center>\n<hr>\n<center>webserv/1.0</center>\n</body>\n</html>\n"
+
+# define DEFAULT414STATUS "URI Too Long"
 
 //416
 # define DEFAULT416BODY "<html>\n<head><title>416 Request Range Not Satisfiable</title></head>\n<body bgcolor=\"white\">\n<center><h1>416 Request Range Not Satisfiable</h1></center>\n<hr>\n<center><div><img src=\"https://http.cat/416\"  alt=\"A beautiful 416 response\"></div></center>\n<hr>\n<center>webserv/1.0</center>\n</body>\n</html>\n"

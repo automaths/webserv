@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/29 12:29:34 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/20 21:30:24 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/21 13:04:43 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -744,7 +744,7 @@ void	Response::makeResponse(Request & req)
 			header << setBaseHeader();
 			header << "Content-type: text/html" << "\r\n";
 			header << "Content-Length: " << this->_bodySize << "\r\n";
-			header << "Connection: keep-alive\r\n";
+			header << "Connection: " << (this->_close ? "close" : "keep-alive") << "\r\n";
 			header << "\r\n";
 			this->_header = header.str();
 			this->_headerSize = this->_header.size();
@@ -928,6 +928,10 @@ void	Response::errorResponse(int error)
 			status << " 413 " << DEFAULT413STATUS;
 			body = DEFAULT413BODY;
 			break;
+		case 414:
+			status << " 414 " << DEFAULT414STATUS;
+			body = DEFAULT414BODY;
+			break;
 		case 416:
 			status << " 416 " << DEFAULT416STATUS;
 			body = DEFAULT416BODY;
@@ -1001,6 +1005,9 @@ void	Response::createFileErrorHeader(int errorCode, std::string mime)
 			break;
 		case 413:
 			status << " 413 " << DEFAULT413STATUS;
+			break;
+		case 414:
+			status << " 414 " << DEFAULT414STATUS;
 			break;
 		case 416:
 			status << " 416 " << DEFAULT416STATUS;

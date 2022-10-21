@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:32:13 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/21 12:43:22 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/21 13:11:35 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -583,15 +583,17 @@ int Request::parseChunk(std::string & chunk) {
 					} else if (!(_type == GET || _type == POST || _type == PUT || _type == DELETE)) {
 						return (501);
 					} else if (_version == "") {
-						std::cerr << "test " << std::endl;
+						std::cerr << "Connection should be closed " << std::endl;
 						_keepalive = false;
 						_type = GET;
 						return (200);
 					} else if (NOT_NEW && NOT_OLD) {
 						return (505);
 					} if (_version == "HTTP/1.0") {
+						std::cerr << "Connection should be closed " << std::endl;
 						_keepalive = false;
 					} else {
+						std::cerr << "Connection should be keep-alive " << std::endl;
 						_keepalive = true;
 					}
 					break;
@@ -628,8 +630,10 @@ int Request::parseChunk(std::string & chunk) {
 			if (line == "") {
 				if (_headers.find("connection") != _headers.end()) {
 					if (_headers["connection"].front() == "close") {
+						std::cerr << "Connection should be closed " << std::endl;
 						_keepalive = false;
 					} else if (_headers["connection"].front() == "keep-alive") {
+						std::cerr << "Connection should be keep-alive " << std::endl;
 						_keepalive = true;
 					}
 				} if (_headers.find("host") == _headers.end() && NOT_OLD) {
