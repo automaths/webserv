@@ -4,7 +4,7 @@ http{
 		listen 8079;
         
         location / {
-            alow_method GET;
+            allow_method GET;
             root ./www/default/
 
         }
@@ -22,8 +22,8 @@ http{
             client_body_buffer_size 100 ;
         }
 
-        location /diretory {
-            root ./YoupiBanane  ;
+        location /directory {
+            root ./YoupiBanane;
             index youpi.bad_extension ;
         }
     }

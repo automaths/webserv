@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/29 12:29:34 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/21 13:16:17 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/21 18:07:02 by nsartral         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -132,8 +132,12 @@ bool	Response::allowedMethod(std::vector<std::string> methods, std::string curre
 
 bool	Response::pathIsValid(std::string path, struct stat * buf)
 {
+	std::cerr << "Tested path: " << path << std::endl;
 	if (access(path.data(), F_OK) == -1)
+	{
+		std::cerr << "Does not exist" << std::endl;
 		return (false);
+	}
 	if (stat(path.data(), buf) == -1)
 		return (false);
 	return (true);
@@ -257,6 +261,7 @@ int Response::execCgi(std::string exec)
 	}
 	catch (std::exception const & src)
 	{
+		std::cerr << "Exxception while initing CGI class: " << src.what() << std::endl;
 		this->errorResponse(500);
 	}
 	return (-1);
@@ -510,6 +515,7 @@ bool	Response::precheck(Request & req)
 		this->_close = true;
 		return (false) ;
 	}
+	std::cerr << "Path to test: " << req.getFile() << std::endl;
 	this->findLocation(this->_targetServer->getLocations(), req.getFile());
 	if ((this->_targetLocation && !allowedMethod(this->_targetLocation->getAllowMethod(), req.getType())) || (!this->_targetLocation && !allowedMethod(this->_targetServer->getAllowMethod(), req.getType())))
 		return (false);
@@ -521,7 +527,10 @@ bool	Response::precheck(Request & req)
 		std::cerr << "Rewrite: " << this->_targetLocation->getRewrite() << std::endl;
 		std::cerr << "Rewrite Location: " << this->_targetLocation->getRewriteLocation() << std::endl;
 		std::string	partial_root = req.getFile();
+		std::cerr << "File requested: " << partial_root << std::endl;
 		partial_root.erase(0, this->_targetLocation->getMainPath().size());
+		std::cerr << "Location path: " << this->_targetLocation->getMainPath() << std::endl;
+		std::cerr << "Partial root after erase: " << partial_root << std::endl;
 		if (this->_targetLocation->getRewrite().size())
 		{
 			this->_redirection = this->_targetLocation->getRewrite() + partial_root;
@@ -530,6 +539,7 @@ bool	Response::precheck(Request & req)
 			return (false); 
 		}
 		fullPath += partial_root;
+		std::cerr << "Full path: " << fullPath << std::endl;
 	}
 	else
 	{
@@ -544,8 +554,8 @@ bool	Response::precheck(Request & req)
 		}
 		fullPath += req.getFile();
 	}
-	while (fullPath.find_first_of("\t\n\v\r\f ") != std::string::npos)
-		fullPath.erase(fullPath.find_first_of("\t\v\n\r\f ", 1));
+	// while (fullPath.find_first_of("\t\n\v\r\f ") != std::string::npos)
+	// 	fullPath.erase(fullPath.find_first_of("\t\v\n\r\f ", 1));
 	this->_targetFilePath = fullPath;
 //	std::cerr << "Fully qualified path: ***" << fullPath << "***" << std::endl;
 	maxBodySize = this->_targetLocation ? this->_targetLocation->getClientBodyBufferMax() : this->_targetServer->getClientBodyBufferMax();
@@ -570,6 +580,7 @@ bool	Response::precheck(Request & req)
 	}
 	if (!pathIsValid(this->_targetFilePath, &buf))
 	{
+		std::cerr << "Invalid path" << std::endl;
 		_cgi_file.clear();
 		_path_info.clear();
 		_is_cgi = false;
@@ -709,6 +720,7 @@ void	Response::makeResponse(Request & req)
 				}
 				catch (std::exception const & e)
 				{
+					std::cerr << "Exception on first cgi exec" << std::endl;
 					_is_cgi = 0;
 					this->errorResponse(500);
 					return ;
