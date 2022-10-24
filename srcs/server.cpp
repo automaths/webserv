@@ -420,6 +420,8 @@ void	Server::readPipe(struct epoll_event & event)
 	Response & currentResponse = currentClient.getResponse();
 
 	redirection = currentResponse.cgiResponse(event.data.fd);
+	if (redirection && getTmp().size())
+		return ;
 	if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_DEL, event.data.fd, &event) == -1)
 	{
 		this->_cgi_pipes.erase(event.data.fd);
