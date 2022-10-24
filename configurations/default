@@ -1,0 +1,20 @@
+
+server {
+    listen 127.0.0.1:8079;
+    server_name default;
+    index index.html;
+    autoindex on;
+    root ./www/default;
+    client_body_buffer_size 200M;
+    cgi .php /usr/lib/cgi-bin/php .py /usr/bin/python3;
+    location /Downloads {
+        root ./www/bouhbouh;
+        index index.html index.htm;
+    }
+    location /Documents {
+        location /redirect {
+            rewrite ./www/default redirection;
+            allow_method GET;
+        }
+    }
+}
