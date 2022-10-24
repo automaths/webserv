@@ -32,6 +32,5 @@ std::string ListDirectory::listing() {
     for (std::vector<std::string>::iterator it = _listing.begin(); it != _listing.end(); ++it)
         body += *it;
     body += "</ul>\n</body>\n</html>";
-    std::cout << body << std::endl;
     return (body);
 }

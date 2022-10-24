@@ -313,7 +313,6 @@ bool Response::cgiResponse(int fd)
 	else
 	{
 		_body = buffer;
-		std ::cout << "received fomr cgi: " << _body << std::endl << std::endl ;
 		std::string cgiHeader = _body.substr(0, _body.find("\r\n\r\n") + 2);
 		_body.erase(0, _body.find("\r\n\r\n") + 4);
 		std::stringstream hexsize;
