@@ -41,12 +41,18 @@ void Configuration::the_inheritance(){
             std::vector<std::string> getAllowMethod = it->getAllowMethod(); 
             for (std::vector<std::string>::iterator it = getAllowMethod.begin(); it != getAllowMethod.end(); ++it)
                 it_one->getAllowMethod().push_back(*it);
-            std::map<std::string, std::string> getCgi = it->getCgi();
-            for (std::map<std::string, std::string>::iterator it = getCgi.begin(); it != getCgi.end(); ++it)
-                it_one->getCgi()[it->first] = it->second;
-            std::map<std::string, std::string> getDefaultErrorPage = it->getDefaultErrorPage();
-            for (std::map<std::string, std::string>::iterator it = getDefaultErrorPage.begin(); it != getDefaultErrorPage.end(); ++it)
-                it_one->getDefaultErrorPage()[it->first] = it->second;
+            std::map<std::string, std::string> getCgi = it_one->getCgi();
+            if (getCgi.size() == 0)
+            {
+                for (std::map<std::string, std::string>::iterator tmp = it->getCgi().begin(); tmp != it->getCgi().end(); ++tmp)
+                    it_one->getCgi()[tmp->first] = tmp->second;
+            }
+            std::map<std::string, std::string> getDefaultErrorPage = it_one->getDefaultErrorPage();
+            if (getDefaultErrorPage.size() == 0)
+            {
+                for (std::map<std::string, std::string>::iterator tmp = it->getDefaultErrorPage().begin(); tmp != it->getDefaultErrorPage().end(); ++tmp)
+                    it_one->getDefaultErrorPage()[tmp->first] = tmp->second;
+            }
         }
         if (it->getLocations().size())
             the_recursivity(it->getLocations());
@@ -78,12 +84,18 @@ void Configuration::the_recursivity(std::vector<LocationScope> &locations){
             std::vector<std::string> getAllowMethod = it->getAllowMethod(); 
             for (std::vector<std::string>::iterator it = getAllowMethod.begin(); it != getAllowMethod.end(); ++it)
                 it_one->getAllowMethod().push_back(*it);
-            std::map<std::string, std::string> getCgi = it->getCgi();
-            for (std::map<std::string, std::string>::iterator it = getCgi.begin(); it != getCgi.end(); ++it)
-                it_one->getCgi()[it->first] = it->second;
-            std::map<std::string, std::string> getDefaultErrorPage = it->getDefaultErrorPage();
-            for (std::map<std::string, std::string>::iterator it = getDefaultErrorPage.begin(); it != getDefaultErrorPage.end(); ++it)
-                it_one->getDefaultErrorPage()[it->first] = it->second;
+            std::map<std::string, std::string> getCgi = it_one->getCgi();
+            if (getCgi.size() == 0)
+            {
+                for (std::map<std::string, std::string>::iterator tmp = it->getCgi().begin(); tmp != it->getCgi().end(); ++tmp)
+                    it_one->getCgi()[tmp->first] = tmp->second;
+            }
+            std::map<std::string, std::string> getDefaultErrorPage = it_one->getDefaultErrorPage();
+            if (getDefaultErrorPage.size() == 0)
+            {
+                for (std::map<std::string, std::string>::iterator tmp = it->getDefaultErrorPage().begin(); tmp != it->getDefaultErrorPage().end(); ++tmp)
+                    it_one->getDefaultErrorPage()[tmp->first] = tmp->second;
+            }
         }
         if (it->getLocations().size())
             the_recursivity(it->getLocations());

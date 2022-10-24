@@ -35,6 +35,12 @@ http{
 			error_page 404 /path/to/404    ;
 			index index.html     ;
 			autoindex on    ;
+
+			location /test {
+				cgi .php /another/cgi;
+				error_page 406 /path/to/406;
+			}
+
 			cgi .php     /path/to/php     ;
 			rewrite    /path/    permanent    ;
 			rewrite    /path2/    redirection    ;
