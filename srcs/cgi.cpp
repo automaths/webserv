@@ -67,7 +67,7 @@ void Cgi::converting_env(){
 void Cgi::forking() {
     if (_fd_input != -1)
     {
-        std::cout << "coucou c'est le dup" << std::endl;
+        
         if (dup2(_fd_input, STDIN_FILENO) == -1)
             exit(1);
         close (_fd_input);
@@ -81,7 +81,7 @@ void Cgi::forking() {
 }
 void Cgi::print_inputs() {
     int i = 0;
-    std::cout << "the path is: " << _argz[0] << std::endl;
+    
     while (_argz[i] != NULL)
         printf("the argz is: %s\n", _argz[i++]);
     i = 0;

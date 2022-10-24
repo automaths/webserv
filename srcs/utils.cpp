@@ -167,7 +167,7 @@ std::string multiplyStringNumbers(std::string lhs, std::string rhs)
     }
     for (std::vector<std::string>::iterator a = result.begin(); a != result.end(); a++)
     {
-        std::cerr << *a << std::endl;
+        
     }
     return (addStringNumbersVector(result));
 }
@@ -175,7 +175,7 @@ std::string multiplyStringNumbers(std::string lhs, std::string rhs)
 
 bool isSuperiorStringNumbers(std::string lhs, std::string rhs)
 {
-    std::cerr << "Numbers to compare: " << lhs << ">" << rhs << "?" << std::endl;
+    
     if (rhs.size() == 0 && lhs.size())
         return (true);
     if ((lhs.size() == 0 && rhs.size()) || (rhs.size() == 0 && lhs.size() == 0))
