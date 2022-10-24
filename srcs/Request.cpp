@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:32:13 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/21 19:22:15 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/24 17:42:46 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -601,7 +601,7 @@ int Request::parseChunk(std::string & chunk) {
 				if (line != "") {
 					if (checkType(line)) {
 						return (400);
-					} else if (!(_type == HEAD ||_type == GET || _type == POST || _type == PUT || _type == DELETE)) {
+					} else if (!(_type == GET || _type == POST || _type == PUT || _type == DELETE)) {
 						return (501);
 					} else if (_version == "") {
 						std::cerr << "Connection should be closed " << std::endl;
