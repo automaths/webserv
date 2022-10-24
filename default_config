@@ -36,7 +36,6 @@ http{
 
 
 	server {
-		listen 10.11.1.2:8081;
 		listen localhost:8282;
 
 		client_body_buffer_size	1024K;

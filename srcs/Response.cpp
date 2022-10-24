@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/29 12:29:34 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/24 12:49:46 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/24 15:41:02 by nsartral         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -237,6 +237,8 @@ int Response::execCgi(std::string exec)
 		for (unsigned int i = 0; i < (*tmp).first.size(); i++) {
 			temp.push_back(std::toupper((*tmp).first[i]));
 		}
+		while (temp.find('-') != std::string::npos)
+			temp.replace(temp.find('-'), 1, "_");
 		_env.push_back("HTTP_" + temp + "=" + val);
 		tmp++;
 	}

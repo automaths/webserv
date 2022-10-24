@@ -8,7 +8,7 @@ Configuration::Configuration(std::string str){
     extract_http_blocks();
     transfer_servers();
     the_inheritance();
-    print_resultings();
+    // print_resultings();
 }
 Configuration& Configuration::operator=(Configuration const &other){
     if (this != &other)
