@@ -9,10 +9,10 @@ app = Flask(__name__)
 @app.route("/")
 def hello_world():
     user = request.args.get('user')
-    print(user, file=sys.stderr)
     username = request.args.get('username')
-    print(username, file=sys.stderr)
-    return "<p>Hello, World!</p>"
+    if username :
+        return f"<p>Hello {username}!</p>"
+    return f"<p>Hello World!</p>"
 
 @app.route("/test")
 def test():
