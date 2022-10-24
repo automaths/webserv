@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/27 17:32:13 by tnaton            #+#    #+#             */
-/*   Updated: 2022/10/24 17:42:46 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/24 18:28:16 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -420,12 +420,12 @@ int ft_strlen(char *str) {
 
 void Request::parseBodyChunked(std::string & chunk) {
 	while (chunk.size()) {
-		std::cerr << std::endl;
-		std::cerr << "Chunk in parseBodyChunked : >" << chunk << "<" << std::endl;
-		std::cerr << "_case : " << _case << std::endl;
+		
+		
+		
 		switch(_case) { 
 			case(1) : { 
-				std::cerr << "------CASE 1------" << std::endl;
+				
 				std::stringstream	hex;
 				std::stringstream	dec;
 				unsigned long		tmp;
@@ -446,7 +446,7 @@ void Request::parseBodyChunked(std::string & chunk) {
 				}
 				if (tmp == NPOS || tmp > 7) {
 					if (chunk.size() > 7) {
-						std::cerr << "Big" << std::endl;
+						
 						_bodysize = "Big";
 						return ;
 					}
@@ -472,7 +472,7 @@ void Request::parseBodyChunked(std::string & chunk) {
 				break;
 			}
 			case(2) : {
-				std::cerr << "------CASE 2------" << std::endl;
+				
 				if (chunk.size() > static_cast<unsigned long>(ft_atoi(_bodysize))) {
 					_putfile.write(chunk.data(), ft_atoi(_bodysize));
 					chunk.erase(0, ft_atoi(_bodysize));
@@ -498,17 +498,17 @@ void Request::parseBodyChunked(std::string & chunk) {
 				break;
 			}
 			case(3) : {
-				std::cerr << "------CASE 3------" << std::endl;
+				
 				if (chunk.size() == 1 && chunk == "\r") {
-					std::cerr << "Set to wtf" << std::endl;
+					
 					_bodysize = "wtf";
 					return ;
 				}
 				if (_bodysize == "wtf") {
-					std::cerr << "Reset to 0" << std::endl;
+					
 					_bodysize = "0";
 					chunk = "\r" + chunk;
-					std::cerr << "----print of ascii value of chunk -----" << std::endl;
+					
 					for (std::string::iterator it = chunk.begin(); it != chunk.end(); it++) {
 						printf("%d\n", *it);
 					}
@@ -524,8 +524,8 @@ void Request::parseBodyChunked(std::string & chunk) {
 				break;
 			}
 		}
-		std::cerr << "-------END--------" << std::endl;
-		std::cerr << "Bodysize : " << _bodysize << std::endl;
+		
+		
 	}
 }
 
@@ -543,7 +543,7 @@ void Request::parseBody(std::string & chunk) {
 			_putfile.write(chunk.data(), chunk.size());
 			_bodysize = minus(_bodysize, chunk.size());
 		}
-		std::cout << "Bodysize left : " << _bodysize << std::endl;
+		
 	} else {
 		parseBodyChunked(chunk);
 	}
@@ -561,7 +561,7 @@ bool	Request::getIsBody() const {
 int Request::parseChunk(std::string & chunk) {
 	std::string line;
 
-	std::cerr << "Chunk received: " << std::endl << std::endl << ">" << reinterpret_cast<unsigned char const *>(chunk.data()) << "<" << std::endl;
+	
 	if (_isbody) {
 		parseBody(chunk);
 		if (_bodysize == "Error") {
@@ -604,17 +604,17 @@ int Request::parseChunk(std::string & chunk) {
 					} else if (!(_type == GET || _type == POST || _type == PUT || _type == DELETE)) {
 						return (501);
 					} else if (_version == "") {
-						std::cerr << "Connection should be closed " << std::endl;
+						
 						_keepalive = false;
 						_type = GET;
 						return (200);
 					} else if (NOT_NEW && NOT_OLD) {
 						return (505);
 					} if (_version == "HTTP/1.0") {
-						std::cerr << "Connection should be closed " << std::endl;
+						
 						_keepalive = false;
 					} else {
-						std::cerr << "Connection should be keep-alive " << std::endl;
+						
 						_keepalive = true;
 					}
 					break;
@@ -629,9 +629,9 @@ int Request::parseChunk(std::string & chunk) {
 
 		do {
 			if (_uri) {
-				std::cerr << "Uri : >" << _uri << "<" << std::endl;
+				
 				chunk = _uri + chunk;
-				std::cerr << "WTFCHUNK : >" << chunk << "<" << std::endl;
+				
 				delete[] _uri;
 				_uri = NULL;
 			}
@@ -653,10 +653,10 @@ int Request::parseChunk(std::string & chunk) {
 			if (line == "") {
 				if (_headers.find("connection") != _headers.end()) {
 					if (_headers["connection"].front() == "close") {
-						std::cerr << "Connection should be closed " << std::endl;
+						
 						_keepalive = false;
 					} else if (_headers["connection"].front() == "keep-alive") {
-						std::cerr << "Connection should be keep-alive " << std::endl;
+						
 						_keepalive = true;
 					}
 				} if (_headers.find("host") == _headers.end() && NOT_OLD) {
@@ -666,7 +666,7 @@ int Request::parseChunk(std::string & chunk) {
 					if (_headers.find("transfer-encoding") != _headers.end()) {
 						_bodysize = "chunked";
 						for (std::list<std::string>::const_iterator	it = _headers["transfer-encoding"].begin(); it != _headers["transfer-encoding"].end(); it++) {
-							std::cerr << tolower(*it) << std::endl;
+							
 							if (tolower(*it) == "chunked") {
 								_ischunked = true;
 								break;
@@ -677,7 +677,7 @@ int Request::parseChunk(std::string & chunk) {
 							_bodysize = "0";
 						} else {
 							_bodysize = _headers["content-length"].front();
-							std::cerr << "Content-length in bodysize : " << _bodysize << std::endl;
+							
 							for (std::string::const_iterator it = _bodysize.begin(); it != _bodysize.end(); it++) {
 								if (!std::isdigit(*it)) {
 									_bodysize = "0";
@@ -701,7 +701,7 @@ int Request::parseChunk(std::string & chunk) {
 				try {
 					return(parseHeaders());
 				} catch (std::exception & e) {
-					std::cerr << "Erreur dans le parsing du header :" << e.what() << std::endl;
+					
 					return (200);
 				}
 			}
@@ -713,8 +713,8 @@ int Request::parseChunk(std::string & chunk) {
 				val = line.substr(line.find_first_not_of(" ,"), line.find_last_not_of(" ,") - line.find_first_not_of(" ,") + 1);
 			else
 				val = "";
-			std::cerr << "Key : " << key << std::endl;
-			std::cerr << "Val : " << val << std::endl;
+			
+			
 			if (key.find(" ") != NPOS) {
 				return (400);
 			} if (key == "host") {
