@@ -6,7 +6,7 @@
 /*   By: bdetune <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/29 13:30:25 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/24 12:50:26 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/24 16:35:59 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -89,6 +89,11 @@
 # define DEFAULT206STATUS "Partial Content"
 
 # define DEFAULT206BODY "<html>\n<head><title>206 Partial Content</title></head>\n<body bgcolor=\"white\">\n<center><h1>206 Partial Content</h1></center>\n<hr>\n<center><div><img src=\"https://http.cat/206\"  alt=\"A beautiful 206 response\"></div></center>\n<hr>\n<center>webserv/1.0</center>\n</body>\n</html>\n"
+
+//504
+# define DEFAULT504BODY "<html>\n<head><title>504 Gateway Timeout</title></head>\n<body bgcolor=\"white\">\n<center><h1>504 Gateway Timeout</h1></center>\n<hr>\n<center><div><img src=\"https://httpcats.com/504.jpg\"  alt=\"A beautiful 504 response\"></div></center>\n<hr>\n<center>webserv/1.0</center>\n</body>\n</html>\n"
+
+# define DEFAULT504STATUS "Gateway Timeout"
 
 //505
 # define DEFAULT505BODY "<html>\n<head><title>505 HTTP Version Not Supported</title></head>\n<body bgcolor=\"white\">\n<center><h1>505 HTTP Version Not Supported</h1></center>\n<hr>\n<center><div><img src=\"https://httpcats.com/505.jpg\"  alt=\"A beautiful 505 response\"></div></center>\n<hr>\n<center>webserv/1.0</center>\n</body>\n</html>\n"
