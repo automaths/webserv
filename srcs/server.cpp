@@ -573,12 +573,27 @@ void	Server::closeTimedoutConnections(void)
 {
 	std::time_t	current = std::time(NULL);
 	std::map<int, Client>::iterator tmp;
+	ServerScope*					serv;
+	std::vector<ServerScope>		tmpServ;
 
 	for (std::map<int, Client>::iterator st = this->_client_sockets.begin(); st != this->_client_sockets.end(); st = tmp)
 	{
 		tmp = st;
 		tmp++;
 		if (std::difftime(current, (*st).second.getLastConnection()) > (*st).second.getKeepAlive())
-			this->closeClientSocket((*st).second.getEvent());
+		{
+			if ((*st).second.getResponse().isCgi() && (*st).second.getResponse().getCgiFd() > 0)
+			{
+				tmpServ.clear();
+				serv = (*st).second.getResponse().getServerScope();
+				tmpServ.push_back(*serv);
+				(*st).second.getResponse() = Response((*st).second.getRequest(), tmpServ, 504);
+				(*st).second.getEvent().events = EPOLLOUT;
+				if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_MOD, (*st).second.getEvent().data.fd, &((*st).second.getEvent())) == -1)
+					this->closeClientSocket((*st).second.getEvent());
+			}
+			else
+				this->closeClientSocket((*st).second.getEvent());
+		}
 	}
 }

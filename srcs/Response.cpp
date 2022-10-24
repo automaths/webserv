@@ -192,26 +192,29 @@ int Response::execCgi(std::string exec)
 	std::vector<std::string> server_name = _targetServer->getServerName();
 	std::string server_name_env;
 	server_name_env = "SERVER_NAME=";
-	for (std::vector<std::string>::iterator it = server_name.begin(); it != server_name.end(); ++it)
+	if (_req->getHeaders().find("host") != _req->getHeaders().end())
 	{
-		server_name_env += *it;
-		if (++it != server_name.end())
-			server_name_env += ":";
-		--it;
+		server_name_env += (_req->getHeaders())["host"].front();
+	}
+	else
+	{
+		if (server_name.size())
+			server_name_env += server_name[0];
+		else
+			server_name_env = "localhost";
 	}
 	_env.push_back(server_name_env);
 	_env.push_back("SERVER_PROTOCOL=" + _req->getVersion());
 	_env.push_back("SERVER_PORT=" + _targetServer->getPort());
-	char buff[100];
-	std::string cwd = "DOCUMENT_ROOT=";
-	cwd += getcwd(buff, 100);
-	_env.push_back(cwd);
+	char buff[256];
+	std::string cwd = getcwd(buff, 256);
+	_env.push_back("DOCUMENT_ROOT=" + cwd);
 	_env.push_back("REQUEST_METHOD=" + _req->getType());
 	_env.push_back("SCRIPT_FILENAME=" + _cgi_file);
 	_env.push_back("SCRIPT_NAME=" + _cgi_file);
 	_env.push_back("QUERY_STRING=" + _req->getQuery());
     _env.push_back("PATH_INFO=" + _path_info);
-	// _env.push_back("REQUEST_URI=" + _targetFilePath);
+	_env.push_back("REQUEST_URI=" + _req->getFile() + (_req->getQuery().size() ? "?" + _req->getQuery() : ""));
     _env.push_back("REDIRECT_STATUS=1");
 	if (_req->getHeaders().find(std::string("content-length")) != _req->getHeaders().end())
 		_env.push_back(std::string("CONTENT_LENGTH=") + _req->getHeaders()[std::string("content-length")].front());
