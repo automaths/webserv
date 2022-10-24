@@ -6,7 +6,7 @@
 /*   By: bdetune <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/29 13:30:25 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/21 13:01:39 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/24 12:50:26 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,7 +80,10 @@
 
 # define DEFAULT500STATUS "Internal Server Error"
 
+//501
+# define DEFAULT501BODY "<html>\n<head><title>501 Not Implemented</title></head>\n<body bgcolor=\"white\">\n<center><h1>501 Not Implemented</h1></center>\n<hr>\n<center><div><img src=\"https://http.cat/501\"  alt=\"A beautiful 501 response\"></div></center>\n<hr>\n<center>webserv/1.0</center>\n</body>\n</html>\n"
 
+# define DEFAULT501STATUS "Not Implemented"
 
 //206
 # define DEFAULT206STATUS "Partial Content"
