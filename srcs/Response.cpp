@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/29 12:29:34 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/24 16:37:04 by tnaton           ###   ########.fr       */
+/*   Updated: 2022/10/24 14:08:28 by nsartral         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,12 +18,12 @@
 #include <iostream>
 #include <unistd.h>
 
-Response::Response(void): _env(), _header(), _headerSize(0), _body(), _bodySize(0), _targetFile(), _targetFilePath(), _redirection(), _headerSent(false), _chunked(false), _over(false), _fileConsumed(false), _close(false), _req(NULL), _targetServer(NULL), _targetLocation(NULL), _responseType(0), _cgi_file(), _path_info(), _is_cgi(false), _cgi_fd(-1), _cgi_input(-1), _root(), _extension()
+Response::Response(void) : _env(), _header(), _headerSize(0), _body(), _bodySize(0), _targetFile(), _targetFilePath(), _redirection(), _headerSent(false), _chunked(false), _over(false), _fileConsumed(false), _close(false), _req(NULL), _targetServer(NULL), _targetLocation(NULL), _responseType(0), _cgi_file(), _path_info(), _is_cgi(false), _cgi_fd(-1), _cgi_input(-1), _root(), _extension(), _tmp()
 {
-	return ;
+	return;
 }
 
-void	Response::closeCgiFd(void)
+void Response::closeCgiFd(void)
 {
 	if (this->_cgi_fd != -1)
 	{
@@ -32,10 +32,10 @@ void	Response::closeCgiFd(void)
 	}
 }
 
-Response::Response(Request & req, std::vector<ServerScope> & matches, int error): _env(), _header(), _headerSize(0), _body(), _bodySize(0), _targetFile(), _targetFilePath(), _redirection(), _headerSent(false), _chunked(false), _over(false), _fileConsumed(false), _close(false), _req(&req), _targetServer(NULL), _targetLocation(NULL), _responseType(0), _cgi_file(), _path_info(), _is_cgi(false), _cgi_fd(-1), _cgi_input(-1), _root(), _extension()
+Response::Response(Request &req, std::vector<ServerScope> &matches, int error) : _env(), _header(), _headerSize(0), _body(), _bodySize(0), _targetFile(), _targetFilePath(), _redirection(), _headerSent(false), _chunked(false), _over(false), _fileConsumed(false), _close(false), _req(&req), _targetServer(NULL), _targetLocation(NULL), _responseType(0), _cgi_file(), _path_info(), _is_cgi(false), _cgi_fd(-1), _cgi_input(-1), _root(), _extension(), _tmp()
 {
-	std::map<std::string, std::list<std::string> >				headerMap = req.getHeaders();
-	std::map<std::string, std::list<std::string> >::iterator	host;
+	std::map<std::string, std::list<std::string> > headerMap = req.getHeaders();
+	std::map<std::string, std::list<std::string> >::iterator host;
 	if (error)
 		errorResponse(error);
 	else
@@ -46,15 +46,15 @@ Response::Response(Request & req, std::vector<ServerScope> & matches, int error)
 		else
 			this->_targetServer = &(matches.front());
 	}
-	return ;
+	return;
 }
 
-bool	Response::findLocation(std::vector<LocationScope> & locations, std::string uri)
+bool Response::findLocation(std::vector<LocationScope> &locations, std::string uri)
 {
-	std::string					path;
-	std::size_t					max_depth = 0;
-	std::size_t					depth;
-	std::string::size_type		index = 0;
+	std::string path;
+	std::size_t max_depth = 0;
+	std::size_t depth;
+	std::string::size_type index = 0;
 
 	if (!locations.size())
 		return (false);
@@ -90,24 +90,24 @@ bool	Response::findLocation(std::vector<LocationScope> & locations, std::string 
 	return (false);
 }
 
-bool	Response::getIsConsumed(void)
+bool Response::getIsConsumed(void)
 {
 	return (this->_fileConsumed);
 }
 
-bool	Response::isCgi(void)
+bool Response::isCgi(void)
 {
 	return (this->_is_cgi);
 }
 
-int	Response::getCgiFd(void)
+int Response::getCgiFd(void)
 {
 	return (this->_cgi_fd);
 }
 
-bool	Response::allowedMethod(std::vector<std::string> methods, std::string currentMethod)
+bool Response::allowedMethod(std::vector<std::string> methods, std::string currentMethod)
 {
-	std::stringstream	header;
+	std::stringstream header;
 
 	if (!methods.size())
 		return (true);
@@ -117,7 +117,7 @@ bool	Response::allowedMethod(std::vector<std::string> methods, std::string curre
 			return (true);
 	}
 	this->errorResponse(405);
-	std::string	st0 = this->_header.substr(0, this->_header.find(std::string("Content-type")));
+	std::string st0 = this->_header.substr(0, this->_header.find(std::string("Content-type")));
 	header << st0;
 	header << "Allow: ";
 	for (std::vector<std::string>::size_type i = 0; i < (methods.size() - 1); i++)
@@ -130,7 +130,7 @@ bool	Response::allowedMethod(std::vector<std::string> methods, std::string curre
 	return (false);
 }
 
-bool	Response::pathIsValid(std::string path, struct stat * buf)
+bool Response::pathIsValid(std::string path, struct stat *buf)
 {
 	if (access(path.data(), F_OK) == -1)
 		return (false);
@@ -139,17 +139,17 @@ bool	Response::pathIsValid(std::string path, struct stat * buf)
 	return (true);
 }
 
-bool	Response::openFile(std::string path)
+bool Response::openFile(std::string path)
 {
-	struct stat	buf;
+	struct stat buf;
 
 	if (access(path.data(), F_OK | R_OK) == -1)
 		return (false);
 	if (stat(path.data(), &buf) == -1 || S_ISDIR(buf.st_mode) || !S_ISREG(buf.st_mode))
-		return (false) ;
+		return (false);
 	this->_targetFile.open(path.data(), std::ifstream::binary);
 	if (this->_targetFile.fail())
-		return (false) ;
+		return (false);
 	if (buf.st_size > 1048576)
 	{
 		this->_chunked = true;
@@ -161,10 +161,10 @@ bool	Response::openFile(std::string path)
 	return (true);
 }
 
-bool	Response::foundDirectoryIndex(std::vector<std::string> indexes, std::string path)
+bool Response::foundDirectoryIndex(std::vector<std::string> indexes, std::string path)
 {
-	std::string	tmpIndex;
-	struct stat	buf;
+	std::string tmpIndex;
+	struct stat buf;
 
 	if (path.size() == 0)
 		path = "/";
@@ -209,28 +209,31 @@ int Response::execCgi(std::string exec)
 	_env.push_back("SCRIPT_FILENAME=" + _cgi_file);
 	_env.push_back("SCRIPT_NAME=" + _cgi_file);
 	_env.push_back("QUERY_STRING=" + _req->getQuery());
-    _env.push_back("PATH_INFO=" + _path_info);
+	_env.push_back("PATH_INFO=" + _path_info);
 	_env.push_back("REQUEST_URI=" + _req->getFile() + (_req->getQuery().size() ? "?" + _req->getQuery() : ""));
-    _env.push_back("REDIRECT_STATUS=1");
+	_env.push_back("REDIRECT_STATUS=1");
 	if (_req->getHeaders().find(std::string("content-length")) != _req->getHeaders().end())
 		_env.push_back(std::string("CONTENT_LENGTH=") + _req->getHeaders()[std::string("content-length")].front());
 	if (_req->getHeaders().find(std::string("content-type")) != _req->getHeaders().end())
 		_env.push_back(std::string("CONTENT_TYPE=") + _req->getHeaders()[std::string("content-type")].front());
 	std::map<std::string, std::list<std::string> > map = _req->getHeaders();
 	std::map<std::string, std::list<std::string> >::iterator tmp = map.begin();
-	std::string	val;
+	std::string val;
 	std::string temp;
-	while (tmp != map.end()) {
+	while (tmp != map.end())
+	{
 		val = "";
-		std::list<std::string>::iterator i = (*tmp).second.begin(); 
-		while (i != (*tmp).second.end()) {
+		std::list<std::string>::iterator i = (*tmp).second.begin();
+		while (i != (*tmp).second.end())
+		{
 			val += *i;
 			i++;
 			if (i != (*tmp).second.end())
 				val += ",";
 		}
 		temp.clear();
-		for (unsigned int i = 0; i < (*tmp).first.size(); i++) {
+		for (unsigned int i = 0; i < (*tmp).first.size(); i++)
+		{
 			temp.push_back(std::toupper((*tmp).first[i]));
 		}
 		while (temp.find('-') != std::string::npos)
@@ -249,11 +252,11 @@ int Response::execCgi(std::string exec)
 	}
 	try
 	{
-    	Cgi test(_cgi_file, exec, _env, _cgi_input);
+		Cgi test(_cgi_file, exec, _env, _cgi_input);
 		this->_cgi_input = -1;
 		return test.getResult();
 	}
-	catch (std::exception const & src)
+	catch (std::exception const &src)
 	{
 		this->errorResponse(500);
 	}
@@ -262,8 +265,8 @@ int Response::execCgi(std::string exec)
 
 bool Response::internalRedirect(std::string redirect)
 {
-	std::vector<std::string>	indexes;
-	std::string					fullPath;
+	std::vector<std::string> indexes;
+	std::string fullPath;
 
 	_targetLocation = NULL;
 	while (redirect.find_first_of("\t\n\v\r\f ") != std::string::npos)
@@ -275,7 +278,7 @@ bool Response::internalRedirect(std::string redirect)
 	fullPath = _targetLocation ? _targetLocation->getRoot() : _targetServer->getRoot();
 	if (_targetLocation)
 	{
-		std::string	partial_root = _req->getFile();
+		std::string partial_root = _req->getFile();
 		partial_root.erase(0, _targetLocation->getMainPath().size());
 		fullPath += partial_root;
 	}
@@ -286,6 +289,8 @@ bool Response::internalRedirect(std::string redirect)
 		return (true);
 	return (false);
 }
+
+std::string Response::getTmp() { return _tmp; }
 
 bool Response::cgiResponse(int fd)
 {
@@ -301,6 +306,7 @@ bool Response::cgiResponse(int fd)
 		_fileConsumed = true;
 		_body = std::string("0\r\n\r\n");
 		_bodySize = 5;
+		_tmp.clear();
 		return false;
 	}
 	if (_headerSent)
@@ -312,12 +318,22 @@ bool Response::cgiResponse(int fd)
 	}
 	else
 	{
-		_body = buffer;
+		if (_tmp.size())
+			_body = _tmp;
+		_body += buffer;
+		if (_body.find("\r\n\r\n") == std::string::npos)
+		{
+			_tmp += buffer;
+			return (true);
+		}
 		std::string cgiHeader = _body.substr(0, _body.find("\r\n\r\n") + 2);
 		_body.erase(0, _body.find("\r\n\r\n") + 4);
-		std::stringstream hexsize;
-		hexsize << std::hex << _body.size();
-		_body = hexsize.str() + "\r\n" + _body + "\r\n";
+		if (_body.size() != 0)
+		{
+			std::stringstream hexsize;
+			hexsize << std::hex << _body.size();
+			_body = hexsize.str() + "\r\n" + _body + "\r\n";
+		}
 		_bodySize = _body.size();
 		std::stringstream header;
 		if (cgiHeader.find("Location:") != std::string::npos)
@@ -329,6 +345,7 @@ bool Response::cgiResponse(int fd)
 				_targetFilePath = _req->getFile();
 				std::string type = "GET";
 				_req->setType(type);
+				_tmp.clear();
 				return true;
 			}
 			no_send = 1;
@@ -343,13 +360,9 @@ bool Response::cgiResponse(int fd)
 			cgiHeader.erase(cgiHeader.find("Status:"), cgiHeader.find("\r\n", cgiHeader.find("Status:")) + 2);
 		}
 		else
-			header << "HTTP/1.1 200 "<< DEFAULT200STATUS << "\r\n";
+			header << "HTTP/1.1 200 " << DEFAULT200STATUS << "\r\n";
 		header << setBaseHeader();
 		header << cgiHeader;
-		// if (cgiHeader.find("Content-type:") == std::string::npos && _targetFilePath.find_last_of(".") != std::string::npos)
-		// 	header << "Content-type: " << MimeTypes().convert( _targetFilePath.substr(_targetFilePath.find_last_of("."))) << "\r\n";
-		// if (cgiHeader.find("Content-size:") != std::string::npos)
-		// 	cgiHeader.erase(cgiHeader.find("Content-size:"), cgiHeader.find("\r\n", cgiHeader.find("Content-size:")) + 2);
 		if (no_send)
 		{
 			header << "Connection: close\r\n";
@@ -369,13 +382,14 @@ bool Response::cgiResponse(int fd)
 		}
 	}
 	memset(buffer, 0, 1048576);
+	_tmp.clear();
 	return false;
 }
 
-std::string	Response::createFileResponse(void)
+std::string Response::createFileResponse(void)
 {
-	std::string			extension = "";
-	std::stringstream	size;
+	std::string extension = "";
+	std::stringstream size;
 
 	this->_responseType = 2;
 	if (this->_targetFilePath.find_last_of(".") != std::string::npos)
@@ -393,10 +407,10 @@ std::string	Response::createFileResponse(void)
 		this->_bodySize = this->_targetFile.gcount();
 		this->_fileConsumed = false;
 		size << std::hex << this->_bodySize;
-		size <<	"\r\n";
-		std::string	hex_size = size.str();
-		std::size_t	hex_length = size.str().size();
-		std::size_t	cpas = 0;
+		size << "\r\n";
+		std::string hex_size = size.str();
+		std::size_t hex_length = size.str().size();
+		std::size_t cpas = 0;
 		for (std::size_t j = this->_bodySize; j > 0; j--)
 		{
 			this->_body[j - 1 + hex_length] = this->_body[j - 1];
@@ -408,7 +422,7 @@ std::string	Response::createFileResponse(void)
 		this->_bodySize += hex_length;
 		this->_body[this->_bodySize] = '\r';
 		this->_body[this->_bodySize + 1] = '\n';
-		this->_bodySize +=  2;
+		this->_bodySize += 2;
 	}
 	else
 	{
@@ -430,11 +444,11 @@ std::string	Response::createFileResponse(void)
 	return (extension);
 }
 
-void	Response::create200Header(std::string extension)
+void Response::create200Header(std::string extension)
 {
-	std::stringstream	header;
+	std::stringstream header;
 
-	header << "HTTP/1.1 200 "<< DEFAULT200STATUS << "\r\n";
+	header << "HTTP/1.1 200 " << DEFAULT200STATUS << "\r\n";
 	header << setBaseHeader();
 	header << "Content-type: " << extension << "\r\n";
 	this->_chunked ? (header << "Transfer-Encoding: chunked\r\n") : (header << "Content-Length: " << this->_bodySize << "\r\n");
@@ -444,16 +458,16 @@ void	Response::create200Header(std::string extension)
 	this->_headerSize = this->_header.size();
 }
 
-bool	Response::serverSet(void)
+bool Response::serverSet(void)
 {
 	return (this->_targetServer == NULL ? false : true);
 }
 
-bool	Response::canPUT(std::string fullPath)
+bool Response::canPUT(std::string fullPath)
 {
-	std::string::size_type	index = 0;
-	std::string::size_type	current = 0;
-	bool					ret = true;
+	std::string::size_type index = 0;
+	std::string::size_type current = 0;
+	bool ret = true;
 
 	while (((index = fullPath.find('/', current)) != std::string::npos))
 	{
@@ -468,34 +482,34 @@ bool	Response::canPUT(std::string fullPath)
 			break;
 		current = index + 1;
 		if (current == fullPath.size())
-			break ;
+			break;
 	}
 	return (ret);
 }
 
-std::string &	Response::getTargetFile(void)
+std::string &Response::getTargetFile(void)
 {
 	return (this->_targetFilePath);
 }
 
-void	Response::setRequest(Request & req)
+void Response::setRequest(Request &req)
 {
 	this->_req = &req;
 }
 
-bool	Response::precheck(Request & req)
+bool Response::precheck(Request &req)
 {
-	std::vector<std::string>	indexes;
-	std::string					fullPath;
-	std::string					maxBodySize;
-	struct stat					buf;
+	std::vector<std::string> indexes;
+	std::string fullPath;
+	std::string maxBodySize;
+	struct stat buf;
 
 	if (!this->_req)
 		this->_req = &req;
 	if (this->_responseType == 1)
 	{
 		this->_close = true;
-		return (false) ;
+		return (false);
 	}
 	this->findLocation(this->_targetServer->getLocations(), req.getFile());
 	if ((this->_targetLocation && !allowedMethod(this->_targetLocation->getAllowMethod(), req.getType())) || (!this->_targetLocation && !allowedMethod(this->_targetServer->getAllowMethod(), req.getType())))
@@ -503,13 +517,13 @@ bool	Response::precheck(Request & req)
 	fullPath = this->_targetLocation ? this->_targetLocation->getRoot() : this->_targetServer->getRoot();
 	if (this->_targetLocation)
 	{
-		std::string	partial_root = req.getFile();
+		std::string partial_root = req.getFile();
 		partial_root.erase(0, this->_targetLocation->getMainPath().size());
 		if (this->_targetLocation->getRewrite().size())
 		{
 			this->_redirection = this->_targetLocation->getRewrite() + partial_root;
 			this->_targetLocation->getRewriteLocation() == std::string("redirection") ? this->errorResponse(307) : this->errorResponse(308);
-			return (false); 
+			return (false);
 		}
 		fullPath += partial_root;
 	}
@@ -519,7 +533,7 @@ bool	Response::precheck(Request & req)
 		{
 			this->_redirection = this->_targetServer->getRewrite() + req.getFile();
 			this->_targetServer->getRewriteLocation() == std::string("redirection") ? this->errorResponse(307) : this->errorResponse(308);
-			return (false); 
+			return (false);
 		}
 		fullPath += req.getFile();
 	}
@@ -569,9 +583,7 @@ bool	Response::precheck(Request & req)
 			this->_responseType = 2;
 			return (true);
 		}
-		else if (((this->_targetLocation && this->_targetLocation->getAutoIndex() == std::string("on")) 
-		|| (!this->_targetLocation && this->_targetServer->getAutoIndex() == std::string("on")))
-		&& req.getType() == std::string("GET") && access(this->_targetFilePath.data(), R_OK) == 0)
+		else if (((this->_targetLocation && this->_targetLocation->getAutoIndex() == std::string("on")) || (!this->_targetLocation && this->_targetServer->getAutoIndex() == std::string("on"))) && req.getType() == std::string("GET") && access(this->_targetFilePath.data(), R_OK) == 0)
 		{
 			this->_responseType = 3;
 			return (true);
@@ -595,17 +607,17 @@ bool	Response::precheck(Request & req)
 	return (false);
 }
 
-ServerScope*	Response::getServerScope(void)
+ServerScope *Response::getServerScope(void)
 {
 	return (this->_targetServer);
 }
 
-void	Response::setServerScope(ServerScope * target)
+void Response::setServerScope(ServerScope *target)
 {
 	this->_targetServer = target;
 }
 
-bool	Response::isCgiPath()
+bool Response::isCgiPath()
 {
 	if (_is_cgi == true)
 		return true;
@@ -616,38 +628,38 @@ bool	Response::isCgiPath()
 	else
 		_root = _targetServer->getRoot();
 	std::string uri = _targetFilePath;
-    std::string tmp;
+	std::string tmp;
 	std::string copy = uri;
-    while (copy.find('/') != std::string::npos)
-    {
-        tmp = _cgi_file;
-        tmp += copy.substr(0, copy.find('/'));
-        if (access(tmp.data(), F_OK) == -1 && tmp.compare("/") != 0 && tmp.compare("./") != 0 && tmp.size() > 0)
-            break;
-        _cgi_file += copy.substr(0, copy.find('/') + 1);
-        copy.erase(0, copy.find('/'));
+	while (copy.find('/') != std::string::npos)
+	{
+		tmp = _cgi_file;
+		tmp += copy.substr(0, copy.find('/'));
+		if (access(tmp.data(), F_OK) == -1 && tmp.compare("/") != 0 && tmp.compare("./") != 0 && tmp.size() > 0)
+			break;
+		_cgi_file += copy.substr(0, copy.find('/') + 1);
+		copy.erase(0, copy.find('/'));
 		if (copy.size() > 0)
 			copy.erase(0, 1);
-    }
-    if (_cgi_file.size() != uri.size())
-    {
-        tmp = _cgi_file;
-        tmp += copy;
-        if (access(tmp.data(), F_OK) != -1)
-            _cgi_file += copy;
+	}
+	if (_cgi_file.size() != uri.size())
+	{
+		tmp = _cgi_file;
+		tmp += copy;
+		if (access(tmp.data(), F_OK) != -1)
+			_cgi_file += copy;
 		else
 		{
 			if (_cgi_file.size() > 0)
 				_cgi_file.erase(_cgi_file.size() - 1, 1);
 		}
-    }
+	}
 	_path_info = uri.substr(_cgi_file.size(), uri.size() - _cgi_file.size());
 	if (!_path_info.size())
 	{
 		_path_info = "/";
 	}
 	std::map<std::string, std::string> cgi;
-	cgi = _targetLocation ? _targetLocation->getCgi() : _targetServer->getCgi(); 
+	cgi = _targetLocation ? _targetLocation->getCgi() : _targetServer->getCgi();
 	if (_cgi_file.find_last_of(".") != std::string::npos)
 		_extension = _cgi_file.substr(_cgi_file.find_last_of("."));
 	for (std::map<std::string, std::string>::iterator it = cgi.begin(); it != cgi.end(); ++it)
@@ -661,12 +673,12 @@ bool	Response::isCgiPath()
 	return (false);
 }
 
-void	Response::makeResponse(Request & req)
+void Response::makeResponse(Request &req)
 {
-	struct stat			buf;
-	std::string			extension;
-	int					ret;
-	
+	struct stat buf;
+	std::string extension;
+	int ret;
+
 	this->_close = !req.isKeepAlive();
 	if (isCgiPath())
 	{
@@ -683,21 +695,21 @@ void	Response::makeResponse(Request & req)
 				{
 					_cgi_fd = execCgi(it->second);
 					if (g_code == 1)
-						return ;
+						return;
 				}
-				catch (std::exception const & e)
+				catch (std::exception const &e)
 				{
 					_is_cgi = 0;
 					this->errorResponse(500);
-					return ;
+					return;
 				}
-				return ;
+				return;
 			}
 		}
 	}
 	else if (req.getType() == std::string("PUT"))
 	{
-		return ;
+		return;
 	}
 	else if (req.getType() == std::string("DELETE"))
 	{
@@ -710,18 +722,19 @@ void	Response::makeResponse(Request & req)
 		{
 			ListDirectory listing(this->_targetFilePath, req.getFile());
 			_body = listing.listing();
-			_bodySize = _body.size();	
+			_bodySize = _body.size();
 			std::stringstream header;
-			header << "HTTP/1.1 200 "<< DEFAULT200STATUS << "\r\n";
+			header << "HTTP/1.1 200 " << DEFAULT200STATUS << "\r\n";
 			header << setBaseHeader();
-			header << "Content-type: text/html" << "\r\n";
+			header << "Content-type: text/html"
+				   << "\r\n";
 			header << "Content-Length: " << this->_bodySize << "\r\n";
 			header << "Connection: " << (this->_close ? "close" : "keep-alive") << "\r\n";
 			header << "\r\n";
 			this->_header = header.str();
 			this->_headerSize = this->_header.size();
 		}
-		catch (std::exception const & src)
+		catch (std::exception const &src)
 		{
 			this->errorResponse(500);
 		}
@@ -735,7 +748,7 @@ void	Response::makeResponse(Request & req)
 			{
 				this->_targetFile.close();
 				this->errorResponse(500);
-				return ;
+				return;
 			}
 			if (buf.st_size > 1048576)
 			{
@@ -746,11 +759,11 @@ void	Response::makeResponse(Request & req)
 				this->_bodySize = buf.st_size;
 			extension = this->createFileResponse();
 			if (_is_cgi)
-				return ;
+				return;
 			if (this->_responseType == 1)
 			{
 				this->errorResponse(500);
-				return ;
+				return;
 			}
 			this->create200Header(extension);
 			return;
@@ -760,12 +773,13 @@ void	Response::makeResponse(Request & req)
 	}
 }
 
-Response::Response(Response const & src): _env(src._env), _header(src._header), _headerSize(src._headerSize), _body(src._body), _bodySize(src._bodySize), _targetFilePath(src._targetFilePath), _redirection(src._redirection), _headerSent(src._headerSent), _chunked(src._chunked), _over(src._over), _fileConsumed(src._fileConsumed), _close(src._close), _req(src._req), _targetServer(src._targetServer), _targetLocation(src._targetLocation), _responseType(src._responseType), _is_cgi(src._is_cgi), _cgi_fd(src._cgi_fd), _cgi_input(-1), _root(""), _extension("")
+Response::Response(Response const &src) : _env(src._env), _header(src._header), _headerSize(src._headerSize), _body(src._body), _bodySize(src._bodySize), _targetFilePath(src._targetFilePath), _redirection(src._redirection), _headerSent(src._headerSent), _chunked(src._chunked), _over(src._over), _fileConsumed(src._fileConsumed), _close(src._close), _req(src._req), _targetServer(src._targetServer), _targetLocation(src._targetLocation), _responseType(src._responseType), _is_cgi(src._is_cgi), _cgi_fd(src._cgi_fd), _cgi_input(-1), _root(""), _extension(""), _tmp(src._tmp)
 {
-	return ;
+	return;
 }
 
-std::vector<std::string> Response::getEnv(void) const {
+std::vector<std::string> Response::getEnv(void) const
+{
 	return (_env);
 }
 
@@ -774,12 +788,12 @@ Response::~Response(void)
 	if (_is_cgi)
 	{
 		if (fcntl(_cgi_fd, F_GETFD) != -1)
-			close (_cgi_fd);
+			close(_cgi_fd);
 	}
-	return ;
+	return;
 }
 
-Response &	Response::operator=(Response const & rhs)
+Response &Response::operator=(Response const &rhs)
 {
 	if (&rhs == this)
 		return (*this);
@@ -810,16 +824,17 @@ Response &	Response::operator=(Response const & rhs)
 	this->_cgi_input = rhs._cgi_input;
 	this->_root = rhs._root;
 	this->_extension = rhs._extension;
+	this->_tmp = rhs._tmp;
 	return (*this);
 }
 
-void	Response::errorResponse(int error)
+void Response::errorResponse(int error)
 {
-	std::stringstream	header;
-	std::stringstream	status;
-	std::stringstream	code;
-	std::string			body;
-	std::string			mime;
+	std::stringstream header;
+	std::stringstream status;
+	std::stringstream code;
+	std::string body;
+	std::string mime;
 
 	this->_responseType = 1;
 	if (error >= 300 || !this->_req->isKeepAlive())
@@ -836,11 +851,11 @@ void	Response::errorResponse(int error)
 		{
 			mime = this->createFileResponse();
 			if (_is_cgi)
-				return ;
+				return;
 			if (this->_responseType == 2)
 			{
 				this->createFileErrorHeader(error, mime);
-				return ;
+				return;
 			}
 			else
 			{
@@ -848,85 +863,85 @@ void	Response::errorResponse(int error)
 				if (error != 500)
 				{
 					this->errorResponse(500);
-					return ;
-				}	
+					return;
+				}
 			}
 		}
 	}
 	switch (error)
 	{
-		case 200:
-			status << " 200 " << DEFAULT200STATUS;
-			body = DEFAULT200BODY;
-			break ;
-		case 201:
-			status << " 201 " << DEFAULT201STATUS;
-			body = DEFAULT201BODY;
-			break ;
-		case 206:
-			status << " 206 " << DEFAULT206STATUS;
-			body = DEFAULT206BODY;
-			break ;
-		case 307:
-			status << " 307 " << DEFAULT307STATUS;
-			body = std::string(DEFAULT307BODY) + "<a href=\"" + this->_redirection + "\">" + this->_redirection + "</a>" + std::string(DEFAULT307BODY2);
-			break ;
-		case 308:
-			status << " 308 " << DEFAULT308STATUS;
-			body = std::string(DEFAULT308BODY) + "<a href=\"" + this->_redirection + "\">" + this->_redirection + "</a>" + std::string(DEFAULT308BODY2);
-			break ;
-		case 400:
-			status << " 400 " << DEFAULT400STATUS;
-			body = DEFAULT400BODY;
-			break ;
-		case 401:
-			status << " 401 " << DEFAULT401STATUS;
-			body = DEFAULT401BODY;
-			break ;
-		case 403:
-			status << " 403 " << DEFAULT403STATUS;
-			body = DEFAULT403BODY;
-			break ;
-		case 404:
-			status << " 404 " << DEFAULT404STATUS;
-			body = DEFAULT404BODY;
-			break;
-		case 405:
-			status << " 405 " << DEFAULT405STATUS;
-			body = DEFAULT405BODY;
-			break;
-		case 413:
-			status << " 413 " << DEFAULT413STATUS;
-			body = DEFAULT413BODY;
-			break;
-		case 414:
-			status << " 414 " << DEFAULT414STATUS;
-			body = DEFAULT414BODY;
-			break;
-		case 416:
-			status << " 416 " << DEFAULT416STATUS;
-			body = DEFAULT416BODY;
-			break;
-		case 501:
-			status << " 501 " << DEFAULT501STATUS;
-			body = DEFAULT501BODY;
-			break;
-		case 504:
-			status << " 504 " << DEFAULT504STATUS;
-			body = DEFAULT504BODY;
-			break;
-		case 505:
-			status << " 505 " << DEFAULT505STATUS;
-			body = DEFAULT505BODY;
-			break ;
-		case 507:
-			status << " 507 " << DEFAULT507STATUS;
-			body = DEFAULT507BODY;
-			break ;
-		default:
-			status << " 500 " << DEFAULT500STATUS;
-			body = DEFAULT500BODY;
-			break;
+	case 200:
+		status << " 200 " << DEFAULT200STATUS;
+		body = DEFAULT200BODY;
+		break;
+	case 201:
+		status << " 201 " << DEFAULT201STATUS;
+		body = DEFAULT201BODY;
+		break;
+	case 206:
+		status << " 206 " << DEFAULT206STATUS;
+		body = DEFAULT206BODY;
+		break;
+	case 307:
+		status << " 307 " << DEFAULT307STATUS;
+		body = std::string(DEFAULT307BODY) + "<a href=\"" + this->_redirection + "\">" + this->_redirection + "</a>" + std::string(DEFAULT307BODY2);
+		break;
+	case 308:
+		status << " 308 " << DEFAULT308STATUS;
+		body = std::string(DEFAULT308BODY) + "<a href=\"" + this->_redirection + "\">" + this->_redirection + "</a>" + std::string(DEFAULT308BODY2);
+		break;
+	case 400:
+		status << " 400 " << DEFAULT400STATUS;
+		body = DEFAULT400BODY;
+		break;
+	case 401:
+		status << " 401 " << DEFAULT401STATUS;
+		body = DEFAULT401BODY;
+		break;
+	case 403:
+		status << " 403 " << DEFAULT403STATUS;
+		body = DEFAULT403BODY;
+		break;
+	case 404:
+		status << " 404 " << DEFAULT404STATUS;
+		body = DEFAULT404BODY;
+		break;
+	case 405:
+		status << " 405 " << DEFAULT405STATUS;
+		body = DEFAULT405BODY;
+		break;
+	case 413:
+		status << " 413 " << DEFAULT413STATUS;
+		body = DEFAULT413BODY;
+		break;
+	case 414:
+		status << " 414 " << DEFAULT414STATUS;
+		body = DEFAULT414BODY;
+		break;
+	case 416:
+		status << " 416 " << DEFAULT416STATUS;
+		body = DEFAULT416BODY;
+		break;
+	case 501:
+		status << " 501 " << DEFAULT501STATUS;
+		body = DEFAULT501BODY;
+		break;
+	case 504:
+		status << " 504 " << DEFAULT504STATUS;
+		body = DEFAULT504BODY;
+		break;
+	case 505:
+		status << " 505 " << DEFAULT505STATUS;
+		body = DEFAULT505BODY;
+		break;
+	case 507:
+		status << " 507 " << DEFAULT507STATUS;
+		body = DEFAULT507BODY;
+		break;
+	default:
+		status << " 500 " << DEFAULT500STATUS;
+		body = DEFAULT500BODY;
+		break;
 	}
 	header << "HTTP/1.1" << status.str() << "\r\n";
 	if (error == 307 || error == 308)
@@ -944,70 +959,70 @@ void	Response::errorResponse(int error)
 	this->_bodySize = this->_body.size();
 }
 
-void	Response::createFileErrorHeader(int errorCode, std::string mime)
+void Response::createFileErrorHeader(int errorCode, std::string mime)
 {
-	std::stringstream	header;
-	std::stringstream	status;
-	std::string			body;
+	std::stringstream header;
+	std::stringstream status;
+	std::string body;
 
 	if (errorCode >= 300)
 		this->_close = true;
 	switch (errorCode)
 	{
-		case 200:
-			status << " 200 " << DEFAULT200STATUS;
-			break ;
-		case 201:
-			status << " 201 " << DEFAULT201STATUS;
-			break ;
-		case 206:
-			status << " 206 " << DEFAULT206STATUS;
-			break ;
-		case 307:
-			status << " 307 " << DEFAULT307STATUS;
-			break ;
-		case 308:
-			status << " 308 " << DEFAULT308STATUS;
-			break ;	
-		case 400:
-			status << " 400 " << DEFAULT400STATUS;
-			break ;
-		case 401:
-			status << " 401 " << DEFAULT401STATUS;
-			break ;
-		case 403:
-			status << " 403 " << DEFAULT403STATUS;
-			break ;
-		case 404:
-			status << " 404 " << DEFAULT404STATUS;
-			break;
-		case 405:
-			status << " 405 " << DEFAULT405STATUS;
-			break;
-		case 413:
-			status << " 413 " << DEFAULT413STATUS;
-			break;
-		case 414:
-			status << " 414 " << DEFAULT414STATUS;
-			break;
-		case 416:
-			status << " 416 " << DEFAULT416STATUS;
-			break;
-		case 501:
-			status << " 501 " << DEFAULT501STATUS;
-			break;
-		case 504:
-			status << " 504 " << DEFAULT504STATUS;
-			break;
-		case 505:
-			status << " 505 " << DEFAULT505STATUS;
-			break;
-		case 507:
-			status << " 507 " << DEFAULT507STATUS;
-			break;
-		default:
-			status << " 500 " << DEFAULT500STATUS;
-			break;
+	case 200:
+		status << " 200 " << DEFAULT200STATUS;
+		break;
+	case 201:
+		status << " 201 " << DEFAULT201STATUS;
+		break;
+	case 206:
+		status << " 206 " << DEFAULT206STATUS;
+		break;
+	case 307:
+		status << " 307 " << DEFAULT307STATUS;
+		break;
+	case 308:
+		status << " 308 " << DEFAULT308STATUS;
+		break;
+	case 400:
+		status << " 400 " << DEFAULT400STATUS;
+		break;
+	case 401:
+		status << " 401 " << DEFAULT401STATUS;
+		break;
+	case 403:
+		status << " 403 " << DEFAULT403STATUS;
+		break;
+	case 404:
+		status << " 404 " << DEFAULT404STATUS;
+		break;
+	case 405:
+		status << " 405 " << DEFAULT405STATUS;
+		break;
+	case 413:
+		status << " 413 " << DEFAULT413STATUS;
+		break;
+	case 414:
+		status << " 414 " << DEFAULT414STATUS;
+		break;
+	case 416:
+		status << " 416 " << DEFAULT416STATUS;
+		break;
+	case 501:
+		status << " 501 " << DEFAULT501STATUS;
+		break;
+	case 504:
+		status << " 504 " << DEFAULT504STATUS;
+		break;
+	case 505:
+		status << " 505 " << DEFAULT505STATUS;
+		break;
+	case 507:
+		status << " 507 " << DEFAULT507STATUS;
+		break;
+	default:
+		status << " 500 " << DEFAULT500STATUS;
+		break;
 	}
 	header << "HTTP/1.1" << status.str() << "\r\n";
 	if (errorCode == 307 || errorCode == 308)
@@ -1023,28 +1038,28 @@ void	Response::createFileErrorHeader(int errorCode, std::string mime)
 	this->_headerSize = this->_header.size();
 }
 
-std::string	Response::setBaseHeader(void)
+std::string Response::setBaseHeader(void)
 {
-	std::locale					loc;
-	std::time_t					now = std::time(NULL);
-	std::tm*					gmt = std::gmtime(&now);
-	std::string					pattern("%a, %d %b %Y %H:%M:%S");
-	const std::time_put<char>	&tmput = std::use_facet <std::time_put<char> > (loc);
-	std::stringstream			baseHeader;
+	std::locale loc;
+	std::time_t now = std::time(NULL);
+	std::tm *gmt = std::gmtime(&now);
+	std::string pattern("%a, %d %b %Y %H:%M:%S");
+	const std::time_put<char> &tmput = std::use_facet<std::time_put<char> >(loc);
+	std::stringstream baseHeader;
 
 	baseHeader << "Server: webserv/1.0\r\n";
 	baseHeader << "Date: ";
-	tmput.put(baseHeader, baseHeader, ' ', gmt, pattern.data(), pattern.data()+pattern.length());
+	tmput.put(baseHeader, baseHeader, ' ', gmt, pattern.data(), pattern.data() + pattern.length());
 	baseHeader << " GMT\r\n";
 	return (baseHeader.str());
 }
 
-std::string & Response::getHeader(void)
+std::string &Response::getHeader(void)
 {
 	return (this->_header);
 }
 
-std::string & Response::getBody(void)
+std::string &Response::getBody(void)
 {
 	return (this->_body);
 }
@@ -1059,17 +1074,17 @@ std::size_t Response::getBodySize(void)
 	return (this->_bodySize);
 }
 
-bool	Response::headerIsSent(void)
+bool Response::headerIsSent(void)
 {
 	return (this->_headerSent);
 }
 
-bool	Response::isOver(void)
+bool Response::isOver(void)
 {
 	return (this->_over);
 }
 
-bool	Response::headerBytesSent(std::size_t bytes)
+bool Response::headerBytesSent(std::size_t bytes)
 {
 	if (this->_header.size() <= bytes)
 	{
@@ -1084,15 +1099,15 @@ bool	Response::headerBytesSent(std::size_t bytes)
 	return (this->_headerSent);
 }
 
-bool	Response::bodyBytesSent(std::size_t bytes)
+bool Response::bodyBytesSent(std::size_t bytes)
 {
-	std::stringstream	size;
+	std::stringstream size;
 
 	if (this->_bodySize <= bytes)
 	{
 		this->_body.clear();
 		this->_bodySize = 0;
-		if (this->_is_cgi && !this->_fileConsumed )
+		if (this->_is_cgi && !this->_fileConsumed)
 		{
 			return (false);
 		}
@@ -1133,10 +1148,10 @@ bool	Response::bodyBytesSent(std::size_t bytes)
 				return (true);
 			}
 			size << std::hex << this->_bodySize;
-			size <<	"\r\n";
-			std::string	hex_size = size.str();
-			std::size_t	hex_length = size.str().size();
-			std::size_t	cpas = 0;
+			size << "\r\n";
+			std::string hex_size = size.str();
+			std::size_t hex_length = size.str().size();
+			std::size_t cpas = 0;
 			for (std::size_t j = this->_bodySize; j > 0; j--)
 			{
 				this->_body[j - 1 + hex_length] = this->_body[j - 1];
@@ -1148,7 +1163,7 @@ bool	Response::bodyBytesSent(std::size_t bytes)
 			this->_bodySize += hex_length;
 			this->_body[this->_bodySize] = '\r';
 			this->_body[this->_bodySize + 1] = '\n';
-			this->_bodySize +=  2;
+			this->_bodySize += 2;
 		}
 		else if (this->_responseType == 2 && !this->_fileConsumed && this->_targetFile.is_open())
 		{
@@ -1173,16 +1188,16 @@ bool	Response::bodyBytesSent(std::size_t bytes)
 	return (this->_over);
 }
 
-bool	Response::getClose(void)
+bool Response::getClose(void)
 {
 	return (this->_close);
 }
 
-bool	Response::getServer(std::string const & host, std::vector<ServerScope> & matches)
+bool Response::getServer(std::string const &host, std::vector<ServerScope> &matches)
 {
-	std::vector<std::string>	lst;
-	std::vector<std::string>::iterator	first;
-	
+	std::vector<std::string> lst;
+	std::vector<std::string>::iterator first;
+
 	for (std::vector<ServerScope>::iterator st = matches.begin(); st != matches.end(); st++)
 	{
 		lst = st->getServerName();

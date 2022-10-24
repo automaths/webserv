@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/28 13:45:50 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/21 17:31:41 by nsartral         ###   ########.fr       */
+/*   Updated: 2022/10/24 14:04:13 by nsartral         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -391,7 +391,7 @@ void	Server::sendResponse(struct epoll_event & event)
 	}
 	if (this->sendHeader(event, currentClient))
 	{
-		if (!currentClient.getResponse().getBodySize() || currentClient.getRequest().getType() == std::string("HEAD"))
+		if ((!currentClient.getResponse().getBodySize() && !currentClient.getResponse().isCgi()) || currentClient.getRequest().getType() == std::string("HEAD"))
 		{
 			if (currentClient.getResponse().isCgi())
 			{
@@ -409,6 +409,23 @@ void	Server::sendResponse(struct epoll_event & event)
 					this->closeClientSocket(event);
 			}
 		}
+		else if (currentClient.getResponse().isCgi() && !currentClient.getResponse().getBodySize())
+		{
+			std::memset(&(this->_tmpEv), '\0', sizeof(struct epoll_event));
+			if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_DEL, event.data.fd, &event) == -1)
+			{
+				this->closeClientSocket(event);
+				return ;
+			}
+			this->_tmpEv.events = EPOLLIN;
+			this->_tmpEv.data.fd = currentClient.getResponse().getCgiFd();
+			this->_cgi_pipes[currentClient.getResponse().getCgiFd()] = event.data.fd;
+			if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_ADD, this->_tmpEv.data.fd, &(this->_tmpEv)) == -1)
+			{
+				this->closeClientSocket(event);
+				return ;
+			}
+		}
 	}
 }
 
@@ -420,7 +437,7 @@ void	Server::readPipe(struct epoll_event & event)
 	Response & currentResponse = currentClient.getResponse();
 
 	redirection = currentResponse.cgiResponse(event.data.fd);
-	if (redirection && getTmp().size())
+	if (redirection && currentResponse.getTmp().size())
 		return ;
 	if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_DEL, event.data.fd, &event) == -1)
 	{
