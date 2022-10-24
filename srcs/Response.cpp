@@ -211,7 +211,7 @@ int Response::execCgi(std::string exec)
 	_env.push_back("SCRIPT_NAME=" + _cgi_file);
 	_env.push_back("QUERY_STRING=" + _req->getQuery());
     _env.push_back("PATH_INFO=" + _path_info);
-	// _env.push_back("REQUEST_URI=" + _targetFilePath);
+	_env.push_back("REQUEST_URI=" + _req->getFile() + (_req->getQuery().size() ? "?" + _req->getQuery() : ""));
     _env.push_back("REDIRECT_STATUS=1");
 	if (_req->getHeaders().find(std::string("content-length")) != _req->getHeaders().end())
 		_env.push_back(std::string("CONTENT_LENGTH=") + _req->getHeaders()[std::string("content-length")].front());
