@@ -40,7 +40,7 @@ Server::~Server(void)
 		shutdown((*st).first, SHUT_RDWR);
 		close((*st).first);
 	}
-	for (std::map<int, int>::iterator st = this->_listen_sockets.begin(); st!= this->_listen_sockets.end(); st++)
+	for (std::map<int, std::pair<int, unsigned long > >::iterator st = this->_listen_sockets.begin(); st!= this->_listen_sockets.end(); st++)
 	{
 		close((*st).first);
 	}
@@ -77,32 +77,101 @@ bool	isIPAddress(std::string eval)
 
 void Server::initing(std::vector<ServerScope> & virtual_servers)
 {
+
 	int	_server_fd;
 	int	enable = 1;
+	struct ifaddrs *ifaddr;
+	struct addrinfo	hint;
+	struct addrinfo	*res;
 	std::map<std::string, std::string>	listeners;
+	std::vector<unsigned long>		interfaces;
+	unsigned long					current_address;
 
+	memset(&hint, 0, sizeof(struct addrinfo));
+	if (getifaddrs(&ifaddr) == -1)
+		throw BindException();
+	for (struct ifaddrs *ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next)
+	{
+		if (ifa->ifa_addr->sa_family == AF_INET)
+		{
+			interfaces.push_back((reinterpret_cast<sockaddr_in *>(ifa->ifa_addr))->sin_addr.s_addr);
+			unsigned long address = ntohl(interfaces.back());
+				std::cout << "Address: ";
+				std::cout << (address >> 24) << ".";
+				std::cout << ((address >> 16) & 255) << ".";
+				std::cout << ((address >> 8) & 255) << ".";
+				std::cout << (address & 255) << std::endl;
+		}
+	}
+	freeifaddrs(ifaddr);
+	hint.ai_family = AF_INET;
+	hint.ai_socktype = SOCK_STREAM;
 	for (std::vector<ServerScope>::iterator first = virtual_servers.begin(); first != virtual_servers.end(); first++)
 	{
 		listeners = first->getListen();
 		for (std::map<std::string, std::string>::iterator current = listeners.begin(); current != listeners.end(); current++)
 		{
 			if (current->first == "*")
+			{
+				for (std::vector<unsigned long>::iterator cur = interfaces.begin(); cur != interfaces.end(); cur++)
+				{
+					this->_virtual_servers[std::make_pair<int, unsigned long>(atoi(current->second.data()), *cur)].push_back(*first);
+				}
 				std::cout << "All interfaces";
+			}
 			else if (isIPAddress(current->first))
+			{
+				current_address = inet_addr(current->first.data());
+				for (std::vector<unsigned long>::iterator cur = interfaces.begin(); cur != interfaces.end(); cur++)
+				{
+					if (current_address == *cur)
+					{
+						this->_virtual_servers[std::make_pair<int, unsigned long>(atoi(current->second.data()), *cur)].push_back(*first);
+						enable = 0;
+						break ;
+					}
+				}
+				if (enable)
+					throw BindException();
+				enable = 1;
 				std::cout << current->first << " is an IP address";
+			}
 			else
+			{
+				res = NULL;
+				if (getaddrinfo(current->first.data(), current->second.data(), &hint, &res) != 0 || res == NULL)
+				{
+					std::cerr << "Error while trying to resolve host " << current->first << std::endl;
+					throw BindException();
+				}
+				current_address = (reinterpret_cast<sockaddr_in *>(res->ai_addr))->sin_addr.s_addr;
+				freeaddrinfo(res);
+				for (std::vector<unsigned long>::iterator cur = interfaces.begin(); cur != interfaces.end(); cur++)
+				{
+					if (current_address == *cur)
+					{
+						this->_virtual_servers[std::make_pair<int, unsigned long>(atoi(current->second.data()), *cur)].push_back(*first);
+						enable = 0;
+						break ;
+					}
+				}
+				if (enable)
+					throw BindException();
+				enable = 1;
 				std::cout << current->first << " is a hostname";
+			}
 			std::cout << ", listening on port number: " << current->second << std::endl;
 		}
-		this->_virtual_servers[atoi(first->getPort().data())].push_back(*first);
 	}
-	for (std::map<int, std::vector<ServerScope> >::iterator first = this->_virtual_servers.begin(); first != this->_virtual_servers.end(); first++)
+	int i = 0;
+	for (std::map< std::pair <int, unsigned long>, std::vector<ServerScope> >::iterator first = this->_virtual_servers.begin(); first != this->_virtual_servers.end(); first++)
 	{	
+		std::cerr << "Server: " << i++ << std::endl;
 		if ((_server_fd = socket(AF_INET, SOCK_STREAM, 0)) == -1) // creating the socket
 			throw SocketCreationException();
 		_address.sin_family = AF_INET; // socket configuration
-		_address.sin_addr.s_addr = INADDR_ANY;
-		_address.sin_port = htons( (*first).first );
+		_address.sin_addr.s_addr = first->first.second;
+		_address.sin_port = htons(first->first.first);
 		memset(_address.sin_zero, '\0', sizeof _address.sin_zero); // applying configurations on the created socket
 		if (setsockopt(_server_fd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)))
 			throw BindException();
@@ -110,7 +179,7 @@ void Server::initing(std::vector<ServerScope> & virtual_servers)
 			throw BindException();
 		if (listen(_server_fd, CONNECTIONQUEUE) < 0) // opening the socket to the port
 			throw ListenException();
-		this->_listen_sockets.insert(std::pair<int, int>(_server_fd, (*first).first));
+		this->_listen_sockets.insert(std::pair<int, std::pair<int, unsigned long> >(_server_fd, first->first));
 	}
 	if ((this->_epoll_fd = epoll_create(1)) == -1)
 		throw EpollCreateException();
@@ -119,7 +188,7 @@ void Server::initing(std::vector<ServerScope> & virtual_servers)
 bool	Server::epollSockets(void)
 {
 	std::memset(&(this->_tmpEv), '\0', sizeof(struct epoll_event));
-	for (std::map<int, int>::iterator st = this->_listen_sockets.begin(); st!= this->_listen_sockets.end(); st++)
+	for (std::map<int, std::pair<int, unsigned long> >::iterator st = this->_listen_sockets.begin(); st!= this->_listen_sockets.end(); st++)
 	{
 		this->_tmpEv.events = EPOLLIN;
 		this->_tmpEv.data.fd = (*st).first;
@@ -157,21 +226,14 @@ void	Server::acceptIncomingConnection(struct epoll_event & event)
 		epoll_ctl(this->_epoll_fd, EPOLL_CTL_DEL, this->_tmpEv.data.fd, &(this->_tmpEv));
 		close(this->_tmpEv.data.fd);
 	}
-	/*
-	unsigned long address = ntohl(_address.sin_addr.s_addr);
-	std::cout << "Address: ";
-	std::cout << (address >> 24) << ".";
-	std::cout << ((address >> 16) & 255) << ".";
-	std::cout << ((address >> 8) & 255) << ".";
-	std::cout << (address & 255) << std::endl;
-	*/
+
 }
 
 void	Server::readToWrite(struct epoll_event & event, Client & currentClient, Request & currentRequest, Response & currentResponse)
 {
 	if (!currentResponse.serverSet())
 	{
-		currentResponse = Response(currentRequest, this->_virtual_servers[currentClient.getPortNumber()]);
+		currentResponse = Response(currentRequest, this->_virtual_servers[currentClient.getInterface()]);
 		if (!currentResponse.precheck(currentRequest))
 		{
 			event.events = EPOLLOUT;
@@ -181,6 +243,8 @@ void	Server::readToWrite(struct epoll_event & event, Client & currentClient, Req
 		}
 	}
 	currentResponse.makeResponse(currentRequest);
+	if (g_code == 1)
+		return ;
 	if (currentResponse.isCgi())
 	{
 		std::memset(&(this->_tmpEv), '\0', sizeof(struct epoll_event));
@@ -242,7 +306,7 @@ void	Server::readRequest(struct epoll_event & event)
 		case 201 :
 			if (currentResponse.serverSet())
 				break ;
-			currentResponse = Response(currentRequest, this->_virtual_servers[currentClient.getPortNumber()]);
+			currentResponse = Response(currentRequest, this->_virtual_servers[currentClient.getInterface()]);
 			if (!currentResponse.precheck(currentRequest))
 			{
 				event.events = EPOLLOUT;
@@ -252,7 +316,7 @@ void	Server::readRequest(struct epoll_event & event)
 			break ;
 		default :
 			if (!currentResponse.serverSet())
-				currentResponse = Response(currentRequest, this->_virtual_servers[currentClient.getPortNumber()], result);
+				currentResponse = Response(currentRequest, this->_virtual_servers[currentClient.getInterface()], result);
 			else
 				currentResponse.errorResponse(result);
 			event.events = EPOLLOUT;
@@ -443,7 +507,11 @@ void Server::execute(void)
 					continue ;
 				}	
 			else if (this->_cgi_pipes.find(this->_watchedEvents[i].data.fd) != this->_cgi_pipes.end())
+			{
 				this->readPipe(this->_watchedEvents[i]);
+				if (g_code == 1)
+					return ;
+			}
 			else if (this->_client_sockets.find(this->_watchedEvents[i].data.fd) != this->_client_sockets.end())
 			{
 				try
@@ -455,6 +523,8 @@ void Server::execute(void)
 							break;
 						case EPOLLIN:
 							this->readRequest(this->_watchedEvents[i]);
+							if (g_code == 1)
+								return ;
 							break;
 						default:
 							this->closeClientSocket(this->_watchedEvents[i]);

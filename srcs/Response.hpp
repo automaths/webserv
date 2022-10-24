@@ -32,6 +32,8 @@
 # include "utils.hpp"
 # include "ListDirectory.hpp"
 
+extern volatile std::sig_atomic_t g_code;
+
 class Response
 {
 	public:

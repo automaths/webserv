@@ -17,7 +17,7 @@ Client::Client(void)
 	return ;
 }
 
-Client::Client(int const & portNumber): _event(), _socketFD(0), _portNumber(portNumber), _ipAddress(), _request(), _response(), _keepAlive(60), _nbRequest(0), _lastConnection(std::time(NULL))
+Client::Client(std::pair<int, unsigned long> const & interface): _event(), _socketFD(0), _portNumber(), _ipAddress(), _request(), _response(), _keepAlive(60), _nbRequest(0), _lastConnection(std::time(NULL)), _interface(interface)
 {
 	return ;
 }
@@ -27,7 +27,7 @@ Client::~Client(void)
 	return ;
 }
 
-Client::Client(Client const & src): _event(src._event), _socketFD(src._socketFD), _portNumber(src._portNumber), _ipAddress(src._ipAddress), _request(src._request), _response(src._response), _keepAlive(src._keepAlive), _nbRequest(src._nbRequest), _lastConnection(src._lastConnection)
+Client::Client(Client const & src): _event(src._event), _socketFD(src._socketFD), _portNumber(src._portNumber), _ipAddress(src._ipAddress), _request(src._request), _response(src._response), _keepAlive(src._keepAlive), _nbRequest(src._nbRequest), _lastConnection(src._lastConnection), _interface(src._interface)
 {
 	return ;
 }
@@ -45,7 +45,18 @@ Client & Client::operator=(Client const & rhs)
 	this->_keepAlive = rhs._keepAlive;
 	this->_nbRequest = rhs._nbRequest;
 	this->_lastConnection = rhs._lastConnection;
+	this->_interface = rhs._interface;
 	return (*this);
+}
+
+std::pair<int, unsigned long>	Client::getInterface(void)
+{
+	return (this->_interface);
+}
+
+void	Client::setInterface(std::pair<int, unsigned long> interface)
+{
+	this->_interface = interface;
 }
 
 struct epoll_event &	Client::getEvent(void)

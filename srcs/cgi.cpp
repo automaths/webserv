@@ -77,11 +77,7 @@ void Cgi::forking() {
     close(_fd[1]);
 	close(_fd[0]);
     if (execve(_argz[0], _argz, _envp) == -1)
-    {
-        freeing();
         g_code = 1;
-        throw ExecveException();
-    }
 }
 void Cgi::print_inputs() {
     int i = 0;

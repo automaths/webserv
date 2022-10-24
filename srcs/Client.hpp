@@ -16,12 +16,13 @@
 # include "Response.hpp"
 # include <ctime>
 # include <string>
+# include <utility>
 
 class Client
 {
 	public:
 		Client(void);
-		Client(int const & portNumber);
+		Client(std::pair<int, unsigned long> const & interface);
 		~Client(void);
 		Client(Client const & src);
 
@@ -33,6 +34,8 @@ class Client
 		void					setSocketFD(int fd);
 		int &					getPortNumber(void);
 		void					setPortNumber(int portNumber);
+		std::pair<int, unsigned long>	getInterface(void);
+		void					setInterface(std::pair<int, unsigned long>);
 		unsigned long &			getIpAddress(void);
 		void					setIpAddress(unsigned long address);
 		Request &				getRequest(void);
@@ -56,6 +59,7 @@ class Client
 		int					_keepAlive;
 		unsigned int		_nbRequest;
 		std::time_t			_lastConnection;
+		std::pair<int, unsigned long>	_interface;
 };
 
 #endif

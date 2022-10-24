@@ -694,7 +694,8 @@ bool	Response::isCgiPath()
 		_path_info = "/";
 	}
 	std::cerr << "PATH INFO: " << _path_info << std::endl;;
-	std::map<std::string, std::string> cgi = _targetServer->getCgi(); 
+	std::map<std::string, std::string> cgi;
+	cgi = _targetLocation ? _targetLocation->getCgi() : _targetServer->getCgi(); 
 	if (_cgi_file.find_last_of(".") != std::string::npos)
 		_extension = _cgi_file.substr(_cgi_file.find_last_of("."));
 	for (std::map<std::string, std::string>::iterator it = cgi.begin(); it != cgi.end(); ++it)
@@ -718,7 +719,8 @@ void	Response::makeResponse(Request & req)
 	if (isCgiPath())
 	{
 		std::cerr << "CGIIIIIIIII" << std::endl;
-		std::map<std::string, std::string> cgi = _targetServer->getCgi(); 
+		std::map<std::string, std::string> cgi;
+		cgi = _targetLocation ? _targetLocation->getCgi() : _targetServer->getCgi();
 		std::string extension;
 		if (_cgi_file.find_last_of(".") != std::string::npos)
 			extension = _cgi_file.substr(_cgi_file.find_last_of("."));
@@ -731,6 +733,8 @@ void	Response::makeResponse(Request & req)
 				try
 				{
 					_cgi_fd = execCgi(it->second);
+					if (g_code == 1)
+						return ;
 				}
 				catch (std::exception const & e)
 				{
@@ -1237,11 +1241,14 @@ bool	Response::getServer(std::string const & host, std::vector<ServerScope> & ma
 	std::vector<std::string>	lst;
 	std::vector<std::string>::iterator	first;
 
+	std::cerr << "Identification of server: " << host << std::endl;
+	std::cerr << "Number of potential matches: " << matches.size() << std::endl;	
 	for (std::vector<ServerScope>::iterator st = matches.begin(); st != matches.end(); st++)
 	{
 		lst = st->getServerName();
 		for (std::vector<std::string>::iterator first = lst.begin(); first != lst.end(); first++)
 		{
+			std::cerr << "Contender: |" << *first << "|" << std::endl;
 			if (*first == host)
 			{
 				this->_targetServer = &(*st);

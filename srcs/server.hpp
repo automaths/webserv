@@ -6,6 +6,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <netdb.h>
 #include <unistd.h>
 #include <set>
 #include "Client.hpp"
@@ -15,6 +16,8 @@
 #include <cstring>
 #include <cstdlib>
 #include <csignal>
+#include <ifaddrs.h>
+#include <arpa/inet.h>
 #define PORT 8080
 #define CONNECTIONQUEUE 1024
 #define READCHUNKSIZE 2097152
@@ -38,8 +41,9 @@ class Server {
 	int											_epoll_fd;			//fd for epoll queue
 	char*										_rdBuffer;			//Reading buffer
 	std::string									_rdBufferCpy;
-	std::map<int, std::vector<ServerScope> >	_virtual_servers;	//List of servers per ports
-	std::map<int, int>							_listen_sockets;	//Listening sockets: <fd, port>
+	std::map< std::pair<int, unsigned long>, std::vector<ServerScope> >	_virtual_servers;	//List of servers per ports
+	
+	std::map<int, std::pair<int, unsigned long> >	_listen_sockets;	//Listening sockets: <fd, port>
 	std::map<int, Client>						_client_sockets;	//Accepted connections sockets: <fd, Client>
 	std::vector<Client *>						_filesMovingClients;
 	std::map<int, int>							_cgi_pipes;			//Cgi pipes
