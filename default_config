@@ -1,6 +1,7 @@
 http{
 	server {
 		listen 8181;
+		listen localhost:5050;
 
 		root /sgoinfre/goinfre/Perso/tnaton/putty;
 
@@ -20,9 +21,23 @@ http{
 		server_name putty;
 	}
 
+	server {
+		listen 127.0.0.1:8081;
+
+		root ./www/basic;
+
+		index index.html index.htm;
+
+		server_name basic;
+
+		error_page  404     /404.html;
+		error_page  403     /403.html;
+	}
+
 
 	server {
-		listen 8081;
+		listen 10.11.1.2:8081;
+		listen localhost:8282;
 
 		client_body_buffer_size	1024K;
 
@@ -32,7 +47,7 @@ http{
 
 		autoindex on;
 
-		cgi .php /usr/lib/cgi-bin/php .py /usr/bin/python3;
+		cgi .php /usr/lib/cgi-bin/pp .py /usr/bin/python3;
 
 		server_name default;
 
@@ -59,16 +74,4 @@ http{
 		error_page  403     /403.html;
 	}
 
-	server {
-		listen 8080;
-
-		root ./www/basic;
-
-		index index.html index.htm;
-
-		server_name basic;
-
-		error_page  404     /404.html;
-		error_page  403     /403.html;
-	}
 }

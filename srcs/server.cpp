@@ -81,10 +81,13 @@ void Server::initing(std::vector<ServerScope> & virtual_servers)
 	int	_server_fd;
 	int	enable = 1;
 	struct ifaddrs *ifaddr;
+	struct addrinfo	hint;
+	struct addrinfo	*res;
 	std::map<std::string, std::string>	listeners;
 	std::vector<unsigned long>		interfaces;
 	unsigned long					current_address;
 
+	memset(&hint, 0, sizeof(struct addrinfo));
 	if (getifaddrs(&ifaddr) == -1)
 		throw BindException();
 	for (struct ifaddrs *ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next)
@@ -101,6 +104,8 @@ void Server::initing(std::vector<ServerScope> & virtual_servers)
 		}
 	}
 	freeifaddrs(ifaddr);
+	hint.ai_family = AF_INET;
+	hint.ai_socktype = SOCK_STREAM;
 	for (std::vector<ServerScope>::iterator first = virtual_servers.begin(); first != virtual_servers.end(); first++)
 	{
 		listeners = first->getListen();
@@ -132,7 +137,29 @@ void Server::initing(std::vector<ServerScope> & virtual_servers)
 				std::cout << current->first << " is an IP address";
 			}
 			else
+			{
+				res = NULL;
+				if (getaddrinfo(current->first.data(), current->second.data(), &hint, &res) != 0 || res == NULL)
+				{
+					std::cerr << "Error while trying to resolve host " << current->first << std::endl;
+					throw BindException();
+				}
+				current_address = (reinterpret_cast<sockaddr_in *>(res->ai_addr))->sin_addr.s_addr;
+				freeaddrinfo(res);
+				for (std::vector<unsigned long>::iterator cur = interfaces.begin(); cur != interfaces.end(); cur++)
+				{
+					if (current_address == *cur)
+					{
+						this->_virtual_servers[std::make_pair<int, unsigned long>(atoi(current->second.data()), *cur)].push_back(*first);
+						enable = 0;
+						break ;
+					}
+				}
+				if (enable)
+					throw BindException();
+				enable = 1;
 				std::cout << current->first << " is a hostname";
+			}
 			std::cout << ", listening on port number: " << current->second << std::endl;
 		}
 	}
@@ -216,6 +243,8 @@ void	Server::readToWrite(struct epoll_event & event, Client & currentClient, Req
 		}
 	}
 	currentResponse.makeResponse(currentRequest);
+	if (g_code == 1)
+		return ;
 	if (currentResponse.isCgi())
 	{
 		std::memset(&(this->_tmpEv), '\0', sizeof(struct epoll_event));
@@ -478,7 +507,11 @@ void Server::execute(void)
 					continue ;
 				}	
 			else if (this->_cgi_pipes.find(this->_watchedEvents[i].data.fd) != this->_cgi_pipes.end())
+			{
 				this->readPipe(this->_watchedEvents[i]);
+				if (g_code == 1)
+					return ;
+			}
 			else if (this->_client_sockets.find(this->_watchedEvents[i].data.fd) != this->_client_sockets.end())
 			{
 				try
@@ -490,6 +523,8 @@ void Server::execute(void)
 							break;
 						case EPOLLIN:
 							this->readRequest(this->_watchedEvents[i]);
+							if (g_code == 1)
+								return ;
 							break;
 						default:
 							this->closeClientSocket(this->_watchedEvents[i]);

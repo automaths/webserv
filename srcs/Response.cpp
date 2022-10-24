@@ -694,7 +694,8 @@ bool	Response::isCgiPath()
 		_path_info = "/";
 	}
 	std::cerr << "PATH INFO: " << _path_info << std::endl;;
-	std::map<std::string, std::string> cgi = _targetServer->getCgi(); 
+	std::map<std::string, std::string> cgi;
+	cgi = _targetLocation ? _targetLocation->getCgi() : _targetServer->getCgi(); 
 	if (_cgi_file.find_last_of(".") != std::string::npos)
 		_extension = _cgi_file.substr(_cgi_file.find_last_of("."));
 	for (std::map<std::string, std::string>::iterator it = cgi.begin(); it != cgi.end(); ++it)
@@ -718,7 +719,8 @@ void	Response::makeResponse(Request & req)
 	if (isCgiPath())
 	{
 		std::cerr << "CGIIIIIIIII" << std::endl;
-		std::map<std::string, std::string> cgi = _targetServer->getCgi(); 
+		std::map<std::string, std::string> cgi;
+		cgi = _targetLocation ? _targetLocation->getCgi() : _targetServer->getCgi();
 		std::string extension;
 		if (_cgi_file.find_last_of(".") != std::string::npos)
 			extension = _cgi_file.substr(_cgi_file.find_last_of("."));
@@ -731,6 +733,8 @@ void	Response::makeResponse(Request & req)
 				try
 				{
 					_cgi_fd = execCgi(it->second);
+					if (g_code == 1)
+						return ;
 				}
 				catch (std::exception const & e)
 				{
