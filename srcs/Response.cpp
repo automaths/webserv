@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/29 12:29:34 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/24 15:41:02 by nsartral         ###   ########.fr       */
+/*   Updated: 2022/10/24 16:37:04 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -912,6 +912,10 @@ void	Response::errorResponse(int error)
 			status << " 501 " << DEFAULT501STATUS;
 			body = DEFAULT501BODY;
 			break;
+		case 504:
+			status << " 504 " << DEFAULT504STATUS;
+			body = DEFAULT504BODY;
+			break;
 		case 505:
 			status << " 505 " << DEFAULT505STATUS;
 			body = DEFAULT505BODY;
@@ -992,6 +996,9 @@ void	Response::createFileErrorHeader(int errorCode, std::string mime)
 			break;
 		case 501:
 			status << " 501 " << DEFAULT501STATUS;
+			break;
+		case 504:
+			status << " 504 " << DEFAULT504STATUS;
 			break;
 		case 505:
 			status << " 505 " << DEFAULT505STATUS;
