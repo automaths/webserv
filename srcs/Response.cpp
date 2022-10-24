@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/29 12:29:34 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/21 18:07:02 by nsartral         ###   ########.fr       */
+/*   Updated: 2022/10/24 05:55:42 by nsartral         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -361,10 +361,10 @@ bool Response::cgiResponse(int fd)
 			header << "HTTP/1.1 200 "<< DEFAULT200STATUS << "\r\n";
 		header << setBaseHeader();
 		header << cgiHeader;
-		if (cgiHeader.find("Content-type:") == std::string::npos && _targetFilePath.find_last_of(".") != std::string::npos)
-			header << "Content-type: " << MimeTypes().convert( _targetFilePath.substr(_targetFilePath.find_last_of("."))) << "\r\n";
-		if (cgiHeader.find("Content-size:") != std::string::npos)
-			cgiHeader.erase(cgiHeader.find("Content-size:"), cgiHeader.find("\r\n", cgiHeader.find("Content-size:")) + 2);
+		// if (cgiHeader.find("Content-type:") == std::string::npos && _targetFilePath.find_last_of(".") != std::string::npos)
+		// 	header << "Content-type: " << MimeTypes().convert( _targetFilePath.substr(_targetFilePath.find_last_of("."))) << "\r\n";
+		// if (cgiHeader.find("Content-size:") != std::string::npos)
+		// 	cgiHeader.erase(cgiHeader.find("Content-size:"), cgiHeader.find("\r\n", cgiHeader.find("Content-size:")) + 2);
 		if (no_send)
 		{
 			header << "Connection: close\r\n";
