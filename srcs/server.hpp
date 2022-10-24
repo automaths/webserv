@@ -37,19 +37,18 @@ class Server {
 
     private:
     
-	bool										_filesMoving;
-	int											_epoll_fd;			//fd for epoll queue
-	char*										_rdBuffer;			//Reading buffer
-	std::string									_rdBufferCpy;
-	std::map< std::pair<int, unsigned long>, std::vector<ServerScope> >	_virtual_servers;	//List of servers per ports
-	
-	std::map<int, std::pair<int, unsigned long> >	_listen_sockets;	//Listening sockets: <fd, port>
-	std::map<int, Client>						_client_sockets;	//Accepted connections sockets: <fd, Client>
-	std::vector<Client *>						_filesMovingClients;
-	std::map<int, int>							_cgi_pipes;			//Cgi pipes
-    struct sockaddr_in							_address;			// Address to bind to a socket
-	struct epoll_event*							_watchedEvents;
-	struct epoll_event							_tmpEv;
+	bool																_filesMoving;
+	int																	_epoll_fd;
+	char*																_rdBuffer;
+	std::string															_rdBufferCpy;
+	std::map< std::pair<int, unsigned long>, std::vector<ServerScope> >	_virtual_servers;
+	std::map<int, std::pair<int, unsigned long> >						_listen_sockets;
+	std::map<int, Client>												_client_sockets;
+	std::vector<Client *>												_filesMovingClients;
+	std::map<int, int>													_cgi_pipes;
+    struct sockaddr_in													_address;
+	struct epoll_event*													_watchedEvents;
+	struct epoll_event													_tmpEv;
 
 	void	moveFiles(void);
 	bool	epollSockets(void);

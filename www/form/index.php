@@ -20,22 +20,17 @@ if (isset($_POST["password"]))
         include "log.php";
     }
 }
-else if (isset($_POST["disconnect"]))
-{
-    if (isset($_COOKIE["Logged"]))
-        $_COOKIE["Logged"] = "false";
-    else
-        setcookie("Logged", "false", time() + (86400 * 30));
-    include "log.php";
-}
 else if (isset($_FILES["loggedfile"]))
 {
-    if ($_FILES["loggedfile"]["error"] != 0)
-        echo "Error while trying to upload file";
-    else
-        move_uploaded_file($_FILES["loggedfile"]["tmp_name"], "./Downloads/" . $_FILES["loggedfile"]["name"]);
     if (isset($_COOKIE["Logged"]) && $_COOKIE["Logged"] == "true")
     {
+        if ($_FILES["loggedfile"]["error"] != 0 || !move_uploaded_file($_FILES["loggedfile"]["tmp_name"], "./Downloads/" . $_FILES["loggedfile"]["name"]))
+            echo "Error while trying to upload file";
+        else
+        {
+            echo "File " . $_FILES["loggedfile"]["name"] . " successfully uploaded";
+            http_response_code(201);
+        }
         include "upload.php";
     }
     else
@@ -54,8 +49,3 @@ else
         include "log.php";
     }
 }
-
-
-var_dump($_POST);
-var_dump($_FILES);
-phpinfo();

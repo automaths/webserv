@@ -93,15 +93,7 @@ void Server::initing(std::vector<ServerScope> & virtual_servers)
 	for (struct ifaddrs *ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next)
 	{
 		if (ifa->ifa_addr->sa_family == AF_INET)
-		{
 			interfaces.push_back((reinterpret_cast<sockaddr_in *>(ifa->ifa_addr))->sin_addr.s_addr);
-			unsigned long address = ntohl(interfaces.back());
-				std::cout << "Address: ";
-				std::cout << (address >> 24) << ".";
-				std::cout << ((address >> 16) & 255) << ".";
-				std::cout << ((address >> 8) & 255) << ".";
-				std::cout << (address & 255) << std::endl;
-		}
 	}
 	freeifaddrs(ifaddr);
 	hint.ai_family = AF_INET;
@@ -134,7 +126,7 @@ void Server::initing(std::vector<ServerScope> & virtual_servers)
 				if (enable)
 					throw BindException();
 				enable = 1;
-				std::cout << current->first << " is an IP address";
+				std::cout << current->first ;
 			}
 			else
 			{
@@ -158,26 +150,24 @@ void Server::initing(std::vector<ServerScope> & virtual_servers)
 				if (enable)
 					throw BindException();
 				enable = 1;
-				std::cout << current->first << " is a hostname";
+				std::cout << current->first ;
 			}
 			std::cout << ", listening on port number: " << current->second << std::endl;
 		}
 	}
-	int i = 0;
 	for (std::map< std::pair <int, unsigned long>, std::vector<ServerScope> >::iterator first = this->_virtual_servers.begin(); first != this->_virtual_servers.end(); first++)
 	{	
-		std::cerr << "Server: " << i++ << std::endl;
-		if ((_server_fd = socket(AF_INET, SOCK_STREAM, 0)) == -1) // creating the socket
+		if ((_server_fd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
 			throw SocketCreationException();
-		_address.sin_family = AF_INET; // socket configuration
+		_address.sin_family = AF_INET;
 		_address.sin_addr.s_addr = first->first.second;
 		_address.sin_port = htons(first->first.first);
-		memset(_address.sin_zero, '\0', sizeof _address.sin_zero); // applying configurations on the created socket
+		memset(_address.sin_zero, '\0', sizeof _address.sin_zero);
 		if (setsockopt(_server_fd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)))
 			throw BindException();
 		if (bind(_server_fd, (struct sockaddr *)&_address, sizeof(_address)) < 0)
 			throw BindException();
-		if (listen(_server_fd, CONNECTIONQUEUE) < 0) // opening the socket to the port
+		if (listen(_server_fd, CONNECTIONQUEUE) < 0)
 			throw ListenException();
 		this->_listen_sockets.insert(std::pair<int, std::pair<int, unsigned long> >(_server_fd, first->first));
 	}
@@ -206,7 +196,7 @@ void	Server::acceptIncomingConnection(struct epoll_event & event)
 	std::memset(&(this->_tmpEv), '\0', sizeof(struct epoll_event));
 	this->_tmpEv.events = EPOLLIN;
 	this->_tmpEv.data.fd = accept(event.data.fd, (struct sockaddr *)&_address, (socklen_t*)&addrlen);
-	if (this->_tmpEv.data.fd < 0)	// If client socket cannot be created
+	if (this->_tmpEv.data.fd < 0)
 		return ;
 	tmp.setIpAddress(_address.sin_addr.s_addr);
 	tmp.setSocketFD(this->_tmpEv.data.fd);
@@ -222,11 +212,9 @@ void	Server::acceptIncomingConnection(struct epoll_event & event)
 	}
 	catch (std::exception const & e)
 	{
-		std::cerr << "Could not insert new client in map: " << e.what() << std::endl;
 		epoll_ctl(this->_epoll_fd, EPOLL_CTL_DEL, this->_tmpEv.data.fd, &(this->_tmpEv));
 		close(this->_tmpEv.data.fd);
 	}
-
 }
 
 void	Server::readToWrite(struct epoll_event & event, Client & currentClient, Request & currentRequest, Response & currentResponse)
@@ -292,7 +280,6 @@ void	Server::readRequest(struct epoll_event & event)
 	}
 	this->_rdBufferCpy.assign(this->_rdBuffer, (this->_rdBuffer + recvret));
 	result = currentClient.addToRequest(this->_rdBufferCpy);
-	std::cerr << "Result : " << result << std::endl;
 	switch (result)
 	{
 		case 0:
@@ -332,7 +319,6 @@ bool	Server::sendHeader(struct epoll_event & event, Client & currentClient)
 
 	if ((sendret = send(event.data.fd, currentClient.getResponse().getHeader().data(), currentClient.getResponse().getHeaderSize(), MSG_NOSIGNAL | MSG_DONTWAIT)) <= 0)
 		return (this->closeClientSocket(event), false) ;
-	std::cout << "HEADER SENT:\n" << currentClient.getResponse().getHeader() << std::endl;
 	return (currentClient.getResponse().headerBytesSent(sendret));
 }
 
@@ -433,7 +419,6 @@ void	Server::readPipe(struct epoll_event & event)
 	Client	& currentClient = this->_client_sockets[this->_cgi_pipes[event.data.fd]];
 	Response & currentResponse = currentClient.getResponse();
 
-	std::cerr << "Server reading pipe " << event.data.fd << std::endl; 
 	redirection = currentResponse.cgiResponse(event.data.fd);
 	if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_DEL, event.data.fd, &event) == -1)
 	{
@@ -508,9 +493,16 @@ void Server::execute(void)
 				}	
 			else if (this->_cgi_pipes.find(this->_watchedEvents[i].data.fd) != this->_cgi_pipes.end())
 			{
-				this->readPipe(this->_watchedEvents[i]);
-				if (g_code == 1)
-					return ;
+				try
+				{
+					this->readPipe(this->_watchedEvents[i]);
+					if (g_code == 1)
+						return ;
+				}
+				catch (std::exception const & e)
+				{
+					this->closeClientSocket(this->_client_sockets[this->_cgi_pipes[this->_watchedEvents[i].data.fd]].getEvent());
+				}
 			}
 			else if (this->_client_sockets.find(this->_watchedEvents[i].data.fd) != this->_client_sockets.end())
 			{
