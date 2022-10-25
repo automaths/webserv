@@ -6,7 +6,7 @@
 /*   By: nsartral <nsartral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/28 13:45:50 by bdetune           #+#    #+#             */
-/*   Updated: 2022/10/24 14:04:13 by nsartral         ###   ########.fr       */
+/*   Updated: 2022/10/24 20:53:02 by tnaton           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,7 +83,7 @@ void Server::initing(std::vector<ServerScope> & virtual_servers)
 	struct ifaddrs *ifaddr;
 	struct addrinfo	hint;
 	struct addrinfo	*res;
-	std::map<std::string, std::string>	listeners;
+	std::map<std::string, std::vector<std::string> >	listeners;
 	std::vector<unsigned long>		interfaces;
 	unsigned long					current_address;
 
@@ -101,13 +101,16 @@ void Server::initing(std::vector<ServerScope> & virtual_servers)
 	for (std::vector<ServerScope>::iterator first = virtual_servers.begin(); first != virtual_servers.end(); first++)
 	{
 		listeners = first->getListen();
-		for (std::map<std::string, std::string>::iterator current = listeners.begin(); current != listeners.end(); current++)
+		for (std::map<std::string, std::vector<std::string> >::iterator current = listeners.begin(); current != listeners.end(); current++)
 		{
 			if (current->first == "*")
 			{
 				for (std::vector<unsigned long>::iterator cur = interfaces.begin(); cur != interfaces.end(); cur++)
 				{
-					this->_virtual_servers[std::make_pair<int, unsigned long>(atoi(current->second.data()), *cur)].push_back(*first);
+					for (std::vector<std::string>::iterator port = current->second.begin(); port != current->second.end(); port++)
+					{
+						this->_virtual_servers[std::make_pair<int, unsigned long>(atoi(port->data()), *cur)].push_back(*first);
+					}
 				}
 				std::cout << "All interfaces";
 			}
@@ -118,7 +121,10 @@ void Server::initing(std::vector<ServerScope> & virtual_servers)
 				{
 					if (current_address == *cur)
 					{
-						this->_virtual_servers[std::make_pair<int, unsigned long>(atoi(current->second.data()), *cur)].push_back(*first);
+						for (std::vector<std::string>::iterator port = current->second.begin(); port != current->second.end(); port++)
+						{
+							this->_virtual_servers[std::make_pair<int, unsigned long>(atoi(port->data()), *cur)].push_back(*first);
+						}
 						enable = 0;
 						break ;
 					}
@@ -131,7 +137,7 @@ void Server::initing(std::vector<ServerScope> & virtual_servers)
 			else
 			{
 				res = NULL;
-				if (getaddrinfo(current->first.data(), current->second.data(), &hint, &res) != 0 || res == NULL)
+				if (getaddrinfo(current->first.data(), NULL, &hint, &res) != 0 || res == NULL)
 				{
 					std::cerr << "Error while trying to resolve host " << current->first << std::endl;
 					throw BindException();
@@ -142,7 +148,10 @@ void Server::initing(std::vector<ServerScope> & virtual_servers)
 				{
 					if (current_address == *cur)
 					{
-						this->_virtual_servers[std::make_pair<int, unsigned long>(atoi(current->second.data()), *cur)].push_back(*first);
+						for (std::vector<std::string>::iterator port = current->second.begin(); port != current->second.end(); port++)
+						{
+							this->_virtual_servers[std::make_pair<int, unsigned long>(atoi(port->data()), *cur)].push_back(*first);
+						}
 						enable = 0;
 						break ;
 					}
@@ -152,7 +161,10 @@ void Server::initing(std::vector<ServerScope> & virtual_servers)
 				enable = 1;
 				std::cout << current->first ;
 			}
-			std::cout << ", listening on port number: " << current->second << std::endl;
+			for (std::vector<std::string>::iterator port = current->second.begin(); port != current->second.end(); port++)
+			{
+				std::cout << ", listening on port number: " << *port << std::endl;
+			}
 		}
 	}
 	for (std::map< std::pair <int, unsigned long>, std::vector<ServerScope> >::iterator first = this->_virtual_servers.begin(); first != this->_virtual_servers.end(); first++)
@@ -164,11 +176,20 @@ void Server::initing(std::vector<ServerScope> & virtual_servers)
 		_address.sin_port = htons(first->first.first);
 		memset(_address.sin_zero, '\0', sizeof _address.sin_zero);
 		if (setsockopt(_server_fd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)))
+		{
+			close(_server_fd);
 			throw BindException();
+		};
 		if (bind(_server_fd, (struct sockaddr *)&_address, sizeof(_address)) < 0)
+		{
+			close(_server_fd);
 			throw BindException();
+		}
 		if (listen(_server_fd, CONNECTIONQUEUE) < 0)
+		{
+			close(_server_fd);
 			throw ListenException();
+		}
 		this->_listen_sockets.insert(std::pair<int, std::pair<int, unsigned long> >(_server_fd, first->first));
 	}
 	if ((this->_epoll_fd = epoll_create(1)) == -1)
@@ -595,6 +616,15 @@ void	Server::closeTimedoutConnections(void)
 		{
 			if ((*st).second.getResponse().isCgi() && (*st).second.getResponse().getCgiFd() > 0)
 			{
+				std::memset(&(this->_tmpEv), '\0', sizeof(struct epoll_event));
+				this->_tmpEv.events = EPOLLIN;
+				this->_tmpEv.data.fd = (*st).second.getResponse().getCgiFd();
+				if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_DEL, this->_tmpEv.data.fd, &(this->_tmpEv)) == -1)
+				{
+					this->closeClientSocket((*st).second.getEvent());
+					continue ;
+				}
+				this->_cgi_pipes.erase((*st).second.getResponse().getCgiFd());
 				tmpServ.clear();
 				serv = (*st).second.getResponse().getServerScope();
 				tmpServ.push_back(*serv);

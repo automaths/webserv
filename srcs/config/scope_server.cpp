@@ -74,7 +74,7 @@ void ServerScope::extract_listen(std::string directive){
         directive.erase(0, directive.find_first_of(':') + 1);
         directive.erase(0, directive.find_first_not_of("\t\v\n\r\f "));
         _port = directive.substr(0, directive.find_last_not_of("\t\v\n\r\f ") + 1);
-        _listen.insert(std::make_pair(_address, directive.substr(0, directive.find_last_not_of("\t\v\n\r\f ") + 1)));
+        _listen[_address].push_back(directive.substr(0, directive.find_last_not_of("\t\v\n\r\f ") + 1));
     }
     else
     {
@@ -83,14 +83,14 @@ void ServerScope::extract_listen(std::string directive){
             directive.erase(0, directive.find_first_not_of("\t\v\n\r\f "));
             _port = directive.substr(0, directive.find_last_not_of("\t\v\n\r\f ") + 1);
             _address = "*";
-            _listen.insert(std::make_pair("*", directive.substr(0, directive.find_last_not_of("\t\v\n\r\f ") + 1)));
+            _listen["*"].push_back(directive.substr(0, directive.find_last_not_of("\t\v\n\r\f ") + 1));
         }
         else
         {
             _port = "8080";
             directive.erase(0, directive.find_first_not_of("\t\v\n\r\f "));
             _address = directive.substr(0, directive.find_last_not_of("\t\v\n\r\f ") + 1);
-            _listen.insert(std::make_pair(directive.substr(0, directive.find_last_not_of("\t\v\n\r\f ") + 1), "8080"));
+            _listen[directive.substr(0, directive.find_last_not_of("\t\v\n\r\f ") + 1)].push_back("8080");
         }
     }
 }

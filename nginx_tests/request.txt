@@ -1,3 +1,0 @@
-GET /cgi/big.php HTTP/1.1 
-Host: default
-

@@ -34,7 +34,7 @@ class ServerScope {
     void                                                setLocations(std::vector<LocationScope> arg) { _locations = arg; }
     void                                                setAddress(std::string arg) { _address = arg; }
     void                                                setPort(std::string arg) { _port = arg; }
-    void                                                setListen(std::map<std::string, std::string> arg) { _listen = arg; }
+    void                                                setListen(std::map<std::string, std::vector<std::string> > arg) { _listen = arg; }
     void                                                setServerName(std::vector<std::string> arg) { _server_names = arg; }
     void                                                setIndex(std::vector<std::string> arg) { _index = arg; }
     void                                                setClientBodyBufferMax(std::string arg) {_client_body_buffer_size = arg; }
@@ -56,7 +56,7 @@ class ServerScope {
     std::vector<std::string>&                           getAllowMethod() { return _allow_method; }
     std::map<std::string, std::string>&                 getCgi() { return _cgi; }
     std::map<std::string, std::string>&                 getDefaultErrorPage() { return _default_error_pages; }
-    std::map<std::string, std::string>&                 getListen() { return _listen; }
+    std::map<std::string, std::vector<std::string> >&   getListen() { return _listen; }
     void                                                setRootIn(std::string arg) { _in_root = arg; }
     std::string&                                        getRewrite() {return _rewrite_location; }
     std::string&                                        getRewriteLocation() { return _rewrite; }
@@ -70,7 +70,7 @@ class ServerScope {
     std::vector<LocationScope>                          _locations;
     std::string                                         _address;
     std::string                                         _port;
-    std::map<std::string, std::string>                  _listen;
+    std::map<std::string, std::vector<std::string> >    _listen;
     std::vector<std::string>                            _server_names;
     std::vector<std::string>                            _index;
     std::string                                         _client_body_buffer_size;

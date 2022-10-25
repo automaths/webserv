@@ -54,25 +54,11 @@ int main(int ac, char **av)
 	}
 	else
 		buffer << "http {" << std::endl << "server {" << std::endl << "listen 8080;" << std::endl << "}" << std::endl << "}" << std::endl;
-	Configuration			current_config(buffer.str());
-	virtual_servers = current_config.getServers();
-	// for (std::vector<ServerScope>::iterator st = virtual_servers.begin(); st != virtual_servers.end(); st++)
-	// {
-	// 	std::map<std::string, std::string>	tmp0 = st->getListen();
-	// 	for (std::map<std::string, std::string>::iterator first = tmp0.begin(); first != tmp0.end(); first++)
-	// 	{
-	// 		std::cout << "Port:" << (*first).second << std::endl;
-	// 		std::cout << "IP:" << (*first).first << std::endl;
-	// 	}
-	// 	std::vector<std::string>	tmp = st->getServerName();
-	// 	for (std::vector<std::string>::iterator first = tmp.begin(); first != tmp.end(); first++)
-	// 	{
-	// 		std::cout << "Server_Name:" << *first << std::endl;
-	// 	}
-	// 	std::cout << "Root:" << st->getRoot()<<std::endl;
-	// }	
-    try
+	try
     {
+		Configuration			current_config(buffer.str());
+		virtual_servers = current_config.getServers();
+
         webserv.initing(virtual_servers);
         webserv.execute();
     }

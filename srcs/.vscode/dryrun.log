@@ -1,6 +1,6 @@
-make --dry-run --always-make --keep-going --print-directory
-make: Entering directory '/mnt/nfs/homes/bdetune/42Cursus/42CommonCore/personal_git/42webserv/srcs'
-make: Leaving directory '/mnt/nfs/homes/bdetune/42Cursus/42CommonCore/personal_git/42webserv/srcs'
+make --dry-run --keep-going --print-directory
+make: Entering directory '/mnt/nfs/homes/bdetune/42Cursus/42CommonCore/vogsphere/webserv/srcs'
+make: Leaving directory '/mnt/nfs/homes/bdetune/42Cursus/42CommonCore/vogsphere/webserv/srcs'
  
 make: *** No targets specified and no makefile found.  Stop.
 
